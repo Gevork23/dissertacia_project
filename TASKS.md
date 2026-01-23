@@ -11,9 +11,9 @@
 - [x] Create `PROJECT_SCOPE.md`
 - [x] Create `README.md`
 - [x] Create `ERD.md`
-- [ ] Add `.gitignore` (Python + Django + env + media)
-- [ ] Add `LICENSE` (temporary: Private/Thesis or MIT later)
-- [ ] Create `/docs` folder and add `docs/notes.md`
+- [x] Add `.gitignore` (Python + Django + env + media)
+- [x] Add `LICENSE` (temporary: Private/Thesis or MIT later)
+- [x] Create `/docs` folder and add `docs/notes.md`
 
 ---
 

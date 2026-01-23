@@ -205,3 +205,40 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# =========================
+# Project specific
+# =========================
+
+# Uploaded files (documents)
+media/
+uploads/
+
+# Local database data (docker volumes)
+postgres_data/
+pgdata/
+qdrant_data/
+
+# Docker
+*.env
+.env.*
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+
+# Local secrets / configs
+infra/.env
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if frontend later)
+node_modules/
+
+# Temporary files
+tmp/
+.cache_project/

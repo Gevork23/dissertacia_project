@@ -31,8 +31,8 @@ Detailed scope and requirements: **[PROJECT_SCOPE.md](./PROJECT_SCOPE.md)**
 ## Roadmap (we implement step by step)
 ### Stage 0 — Planning
 - [x] Create project scope (`PROJECT_SCOPE.md`)
-- [ ] Create ERD schema (`ERD.md`)
-- [ ] Create tasks list (`TASKS.md`)
+- [x] Create ERD schema (`ERD.md`)
+- [x] Create tasks list (`TASKS.md`)
 
 ### Stage 1 — Infrastructure
 - [ ] Docker Compose: PostgreSQL + Qdrant + Backend

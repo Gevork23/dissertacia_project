@@ -221,7 +221,7 @@ qdrant_data/
 
 # Docker
 *.env
-.env.*
+.env
 docker-compose.override.yml
 
 # Logs

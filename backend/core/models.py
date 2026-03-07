@@ -1,3 +1,3 @@
-from django.db import models
-
-# Create your models here.
+# backend/core/models.py
+# Приложение core сейчас содержит инфраструктурные компоненты (middleware/logging).
+# Модели будут добавлены позже при развитии проекта.

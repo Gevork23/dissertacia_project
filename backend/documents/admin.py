@@ -1,6 +1,7 @@
 # backend/documents/admin.py
 from django.contrib import admin
-from .models import Document, DocumentVersion, Chunk
+
+from .models import Chunk, Document, DocumentVersion
 
 
 @admin.register(Document)

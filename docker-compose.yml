@@ -12,7 +12,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 15
+
   qdrant:
     image: qdrant/qdrant:latest
     container_name: dissertacia_qdrant
@@ -21,11 +22,6 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:6333/readyz"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
 
   backend:
     build:
@@ -34,17 +30,22 @@ services:
     container_name: dissertacia_backend
     env_file:
       - infra/.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_LOG_LEVEL=INFO
     volumes:
       - ./backend:/app
       - media:/app/media
+      - logs:/app/logs
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - qdrant
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
     command: >
       sh -c "
-      python -m pip install --upgrade pip &&
       python manage.py migrate &&
       python manage.py runserver 0.0.0.0:8000
       "
@@ -53,3 +54,4 @@ volumes:
   postgres_data:
   qdrant_data:
   media:
+  logs:

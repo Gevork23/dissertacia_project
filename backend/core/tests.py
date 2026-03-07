@@ -1,3 +1,2 @@
-from django.test import TestCase
-
-# Create your tests here.
+# backend/core/tests.py
+# Тесты будут добавлены позже (после стабилизации интерфейсов).

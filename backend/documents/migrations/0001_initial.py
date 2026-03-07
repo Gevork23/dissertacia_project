@@ -8,67 +8,111 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Document',
+            name="Document",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['-updated_at', '-created_at'],
+                "ordering": ["-updated_at", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='DocumentVersion',
+            name="DocumentVersion",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('version_number', models.PositiveIntegerField()),
-                ('source_filename', models.CharField(blank=True, max_length=255)),
-                ('file', models.FileField(upload_to='documents/%Y/%m/%d/')),
-                ('extracted_text', models.TextField(blank=True)),
-                ('normalized_text', models.TextField(blank=True)),
-                ('content_hash', models.CharField(blank=True, max_length=64)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('document', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='versions', to='documents.document')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("version_number", models.PositiveIntegerField()),
+                ("source_filename", models.CharField(blank=True, max_length=255)),
+                ("file", models.FileField(upload_to="documents/%Y/%m/%d/")),
+                ("extracted_text", models.TextField(blank=True)),
+                ("normalized_text", models.TextField(blank=True)),
+                ("content_hash", models.CharField(blank=True, max_length=64)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "document",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="versions",
+                        to="documents.document",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Chunk',
+            name="Chunk",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('chunk_index', models.PositiveIntegerField()),
-                ('section_path', models.CharField(blank=True, max_length=512)),
-                ('heading', models.CharField(blank=True, max_length=255)),
-                ('text', models.TextField()),
-                ('text_hash', models.CharField(blank=True, max_length=64)),
-                ('token_count', models.PositiveIntegerField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('version', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='chunks', to='documents.documentversion')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("chunk_index", models.PositiveIntegerField()),
+                ("section_path", models.CharField(blank=True, max_length=512)),
+                ("heading", models.CharField(blank=True, max_length=255)),
+                ("text", models.TextField()),
+                ("text_hash", models.CharField(blank=True, max_length=64)),
+                ("token_count", models.PositiveIntegerField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "version",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="chunks",
+                        to="documents.documentversion",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['chunk_index'],
+                "ordering": ["chunk_index"],
             },
         ),
         migrations.AddConstraint(
-            model_name='documentversion',
-            constraint=models.UniqueConstraint(fields=('document', 'version_number'), name='uniq_document_version_number'),
+            model_name="documentversion",
+            constraint=models.UniqueConstraint(
+                fields=("document", "version_number"),
+                name="uniq_document_version_number",
+            ),
         ),
         migrations.AddIndex(
-            model_name='chunk',
-            index=models.Index(fields=['version', 'chunk_index'], name='documents_c_version_5fd661_idx'),
+            model_name="chunk",
+            index=models.Index(
+                fields=["version", "chunk_index"], name="documents_c_version_5fd661_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='chunk',
-            index=models.Index(fields=['text_hash'], name='documents_c_text_ha_15c937_idx'),
+            model_name="chunk",
+            index=models.Index(
+                fields=["text_hash"], name="documents_c_text_ha_15c937_idx"
+            ),
         ),
     ]

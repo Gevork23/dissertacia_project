@@ -1,3 +1,2 @@
-from django.contrib import admin
-
-# Register your models here.
+# backend/core/admin.py
+# Пока в приложении core нет моделей для админки.

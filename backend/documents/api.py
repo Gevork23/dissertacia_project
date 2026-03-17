@@ -4,15 +4,16 @@ import logging
 from datetime import date, datetime
 from decimal import Decimal
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 from .change_enrichment import enrich_compare_payload
 from .diff import build_version_diff
 from .diff_quiz import build_quiz_from_diff
 from .diff_summary import build_brief_summary
-from .change_enrichment import enrich_compare_payload
 from .models import DocumentVersion, GeneratedQuiz, QuizAttempt
 from .qdrant_service import search_chunks
 from .quiz_attempts import evaluate_quiz_answers
@@ -41,6 +42,17 @@ def _make_json_safe(value):
 
 @api_view(["GET"])
 def search(request):
+    if not settings.QDRANT_ENABLED:
+        return Response(
+            {
+                "detail": (
+                    "Semantic search is disabled in the current backend profile. "
+                    "Set QDRANT_ENABLED=1 to enable it."
+                )
+            },
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     q = (request.query_params.get("q") or "").strip()
     if not q:
         logger.warning("Search rejected: empty q")
@@ -186,6 +198,7 @@ def compare_versions(request):
     )
 
     return Response(response_payload, status=status.HTTP_200_OK)
+
 
 @api_view(["GET"])
 def compare_versions_brief(request):

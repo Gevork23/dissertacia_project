@@ -1,4 +1,3 @@
-# backend/config/settings.py
 from __future__ import annotations
 
 import os
@@ -6,28 +5,40 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "change-me")
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+
+def env_str(name: str, default: str = "") -> str:
+    return os.environ.get(name, default).strip()
 
 
-def _split_hosts(raw: str) -> list[str]:
-    out: list[str] = []
-    for part in (raw or "").split(","):
-        part = part.strip()
-        if part:
-            out.append(part)
-    return out
+def env_bool(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
-env_hosts = _split_hosts(os.environ.get("DJANGO_ALLOWED_HOSTS", ""))
+def env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return int(raw)
 
+
+def split_csv(raw: str) -> list[str]:
+    cleaned = raw.replace(";", ",").replace(" ", ",")
+    return [item.strip() for item in cleaned.split(",") if item.strip()]
+
+
+SECRET_KEY = env_str("DJANGO_SECRET_KEY", "change-me")
+DEBUG = env_bool("DJANGO_DEBUG", True)
+
+
+env_hosts = split_csv(env_str("DJANGO_ALLOWED_HOSTS"))
 dev_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]
-
 if DEBUG:
     ALLOWED_HOSTS = sorted(set(env_hosts + dev_hosts))
 else:
     ALLOWED_HOSTS = env_hosts or ["localhost"]
-
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -71,16 +82,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "dissertacia"),
-        "USER": os.environ.get("POSTGRES_USER", "dissertacia"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "dissertacia"),
-        "HOST": os.environ.get("POSTGRES_HOST", "db"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+DB_ENGINE = env_str("DB_ENGINE", "postgres").lower()
+if DB_ENGINE == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env_str("POSTGRES_DB", "dissertacia"),
+            "USER": env_str("POSTGRES_USER", "dissertacia"),
+            "PASSWORD": env_str("POSTGRES_PASSWORD", "dissertacia"),
+            "HOST": env_str("POSTGRES_HOST", "db"),
+            "PORT": env_str("POSTGRES_PORT", "5432"),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -99,20 +119,38 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-ENTITY_LLM_API_URL = os.environ.get("ENTITY_LLM_API_URL", "").strip()
-ENTITY_LLM_API_KEY = os.environ.get("ENTITY_LLM_API_KEY", "").strip()
-ENTITY_LLM_MODEL = os.environ.get("ENTITY_LLM_MODEL", "").strip()
-ENTITY_LLM_TIMEOUT_SECONDS = int(
-    os.environ.get("ENTITY_LLM_TIMEOUT_SECONDS", "60")
-)
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
+    "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+}
+
+QDRANT_ENABLED = env_bool("QDRANT_ENABLED", False)
+QDRANT_HOST = env_str("QDRANT_HOST", "qdrant")
+QDRANT_PORT = env_int("QDRANT_PORT", 6333)
+QDRANT_TIMEOUT_SECONDS = float(env_str("QDRANT_TIMEOUT_SECONDS", "3"))
+
+ENTITY_LLM_API_URL = env_str("ENTITY_LLM_API_URL")
+ENTITY_LLM_API_KEY = env_str("ENTITY_LLM_API_KEY")
+ENTITY_LLM_MODEL = env_str("ENTITY_LLM_MODEL")
+ENTITY_LLM_TIMEOUT_SECONDS = env_int("ENTITY_LLM_TIMEOUT_SECONDS", 60)
+
+LOG_LEVEL = env_str("DJANGO_LOG_LEVEL", "INFO").upper()
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 

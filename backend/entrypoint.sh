@@ -10,9 +10,21 @@ import sys
 import time
 
 services = [
-    (os.environ.get("POSTGRES_HOST", "db"), int(os.environ.get("POSTGRES_PORT", "5432")), "postgres"),
-    (os.environ.get("QDRANT_HOST", "qdrant"), int(os.environ.get("QDRANT_PORT", "6333")), "qdrant"),
+    (
+        os.environ.get("POSTGRES_HOST", "db"),
+        int(os.environ.get("POSTGRES_PORT", "5432")),
+        "postgres",
+    ),
 ]
+
+if os.environ.get("QDRANT_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}:
+    services.append(
+        (
+            os.environ.get("QDRANT_HOST", "qdrant"),
+            int(os.environ.get("QDRANT_PORT", "6333")),
+            "qdrant",
+        )
+    )
 
 timeout_seconds = int(os.environ.get("STARTUP_WAIT_TIMEOUT_SECONDS", "60"))
 started = time.time()

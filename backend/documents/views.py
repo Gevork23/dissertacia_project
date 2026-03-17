@@ -1,9 +1,9 @@
-# backend/documents/views.py
 from __future__ import annotations
 
 import logging
 import time
 
+from django.conf import settings
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -46,7 +46,6 @@ class DocumentVersionViewSet(
             file_path,
         )
 
-        # 1) Extract text
         t1 = time.perf_counter()
         try:
             extracted = extract_text_by_extension(file_path)
@@ -73,7 +72,6 @@ class DocumentVersionViewSet(
             extract_ms,
         )
 
-        # 2) Normalize + hashes
         t2 = time.perf_counter()
         normalized = normalize_text(extracted)
         instance.extracted_text = extracted
@@ -92,7 +90,6 @@ class DocumentVersionViewSet(
             instance.content_hash,
         )
 
-        # 3) Create chunks
         t3 = time.perf_counter()
         chunk_items = chunk_by_structure_ru(normalized)
         chunk_ms = int((time.perf_counter() - t3) * 1000)
@@ -103,7 +100,6 @@ class DocumentVersionViewSet(
             chunk_ms,
         )
 
-        # Persist chunks (replace old)
         t4 = time.perf_counter()
         deleted, _ = Chunk.objects.filter(version=instance).delete()
         Chunk.objects.bulk_create(
@@ -128,14 +124,21 @@ class DocumentVersionViewSet(
             db_ms,
         )
 
-        # 4) Index to Qdrant
-        t5 = time.perf_counter()
-        try:
-            points = index_chunks(instance.id)
-        except Exception:
-            logger.exception("Qdrant indexing failed: version_id=%s", instance.id)
-            raise
-        qdrant_ms = int((time.perf_counter() - t5) * 1000)
+        if settings.QDRANT_ENABLED:
+            t5 = time.perf_counter()
+            try:
+                points = index_chunks(instance.id)
+            except Exception:
+                logger.exception("Qdrant indexing failed: version_id=%s", instance.id)
+                raise
+            qdrant_ms = int((time.perf_counter() - t5) * 1000)
+        else:
+            points = 0
+            qdrant_ms = 0
+            logger.info(
+                "Qdrant indexing skipped: version_id=%s reason=qdrant_disabled",
+                instance.id,
+            )
 
         total_ms = int((time.perf_counter() - t0) * 1000)
         logger.info(

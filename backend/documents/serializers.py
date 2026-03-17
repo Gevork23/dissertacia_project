@@ -1,12 +1,63 @@
+from __future__ import annotations
+
+import mimetypes
+from pathlib import Path
+
+from django.db import transaction
+from django.db.models import Max
+from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
+from .models import (
+    ALLOWED_DOCUMENT_EXTENSIONS,
+    Document,
+    DocumentVersion,
+    GeneratedQuiz,
+    QuizAttempt,
+)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    versions_count = serializers.SerializerMethodField()
+    latest_version_number = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
-        fields = ["id", "title", "description", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "versions_count",
+            "latest_version_number",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "versions_count",
+            "latest_version_number",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_title(self, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise serializers.ValidationError("Document title cannot be empty.")
+        return cleaned
+    def get_versions_count(self, obj):
+        annotated_value = getattr(obj, "versions_count", None)
+        if annotated_value is not None:
+            return annotated_value
+        return obj.versions.count()
+
+    def get_latest_version_number(self, obj):
+        annotated_value = getattr(obj, "latest_version_number", None)
+        if annotated_value is not None:
+            return annotated_value
+        latest_version = obj.versions.order_by("-version_number").first()
+        return latest_version.version_number if latest_version else None
+
 
 
 class DocumentVersionSerializer(serializers.ModelSerializer):
@@ -20,11 +71,93 @@ class DocumentVersionSerializer(serializers.ModelSerializer):
             "version_number",
             "source_filename",
             "file",
+            "file_size",
+            "content_type",
             "extracted_text",
             "chunks_count",
             "created_at",
         ]
-        read_only_fields = ["extracted_text", "chunks_count", "created_at"]
+        read_only_fields = [
+            "id",
+            "version_number",
+            "source_filename",
+            "file_size",
+            "content_type",
+            "extracted_text",
+            "chunks_count",
+            "created_at",
+        ]
+
+
+class DocumentVersionCreateSerializer(serializers.ModelSerializer):
+    document = serializers.PrimaryKeyRelatedField(
+        queryset=Document.objects.all(),
+        required=False,
+    )
+    source_filename = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = DocumentVersion
+        fields = ["id", "document", "source_filename", "file"]
+        read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        document = attrs.get("document") or self.context.get("document")
+        if document is None:
+            raise serializers.ValidationError({"document": "This field is required."})
+        attrs["document"] = document
+        return attrs
+
+    def validate_source_filename(self, value: str) -> str:
+        return Path(value.strip()).name
+
+    def validate_file(self, uploaded_file):
+        extension = Path(uploaded_file.name).suffix.lower()
+        if extension not in ALLOWED_DOCUMENT_EXTENSIONS:
+            allowed = ", ".join(sorted(ALLOWED_DOCUMENT_EXTENSIONS))
+            raise serializers.ValidationError(
+                f"Unsupported file type. Allowed extensions: {allowed}."
+            )
+
+        if getattr(uploaded_file, "size", 0) <= 0:
+            raise serializers.ValidationError("Uploaded file is empty.")
+
+        return uploaded_file
+
+    def create(self, validated_data):
+        document = validated_data["document"]
+        uploaded_file = validated_data["file"]
+        source_filename = validated_data.get("source_filename") or uploaded_file.name
+        source_filename = Path(source_filename).name
+        content_type = (
+            getattr(uploaded_file, "content_type", "")
+            or mimetypes.guess_type(source_filename)[0]
+            or ""
+        )
+        file_size = getattr(uploaded_file, "size", 0) or 0
+
+        with transaction.atomic():
+            locked_document = Document.objects.select_for_update().get(pk=document.pk)
+            current_max = (
+                locked_document.versions.aggregate(max_number=Max("version_number"))[
+                    "max_number"
+                ]
+                or 0
+            )
+            version = DocumentVersion.objects.create(
+                document=locked_document,
+                version_number=current_max + 1,
+                source_filename=source_filename,
+                file=uploaded_file,
+                file_size=file_size,
+                content_type=content_type,
+            )
+            Document.objects.filter(pk=locked_document.pk).update(
+                updated_at=timezone.now()
+            )
+
+        return version
 
 
 class ChangeClassificationSerializer(serializers.Serializer):

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count, Max
 
 from .models import (
     Answer,
@@ -20,16 +21,44 @@ from .models import (
 class DocumentVersionInline(admin.TabularInline):
     model = DocumentVersion
     extra = 0
-    fields = ("version_number", "source_filename", "created_at")
+    fields = (
+        "version_number",
+        "source_filename",
+        "file",
+        "file_size",
+        "content_type",
+        "created_at",
+    )
     readonly_fields = ("created_at",)
 
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "updated_at", "created_at")
+    list_display = (
+        "id",
+        "title",
+        "versions_count",
+        "latest_version_number",
+        "updated_at",
+        "created_at",
+    )
     search_fields = ("title",)
     ordering = ("-updated_at",)
     inlines = [DocumentVersionInline]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            versions_count_value=Count("versions"),
+            latest_version_number_value=Max("versions__version_number"),
+        )
+
+    @admin.display(description="Версий")
+    def versions_count(self, obj):
+        return obj.versions_count_value
+
+    @admin.display(description="Последняя версия")
+    def latest_version_number(self, obj):
+        return obj.latest_version_number_value
 
 
 @admin.register(DocumentVersion)
@@ -39,11 +68,13 @@ class DocumentVersionAdmin(admin.ModelAdmin):
         "document",
         "version_number",
         "source_filename",
+        "file_size",
+        "content_type",
         "created_at",
     )
-    list_filter = ("document",)
+    list_filter = ("document", "content_type")
     search_fields = ("document__title", "source_filename")
-    ordering = ("-created_at",)
+    ordering = ("document", "-version_number")
 
 
 @admin.register(Chunk)

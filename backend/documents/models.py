@@ -1,4 +1,19 @@
+from pathlib import Path
+
 from django.db import models
+
+
+ALLOWED_DOCUMENT_EXTENSIONS = {".txt", ".pdf", ".docx"}
+
+
+def document_version_upload_to(instance: "DocumentVersion", filename: str) -> str:
+    safe_name = Path(filename).name
+    document_id = instance.document_id or "unknown"
+    version_number = instance.version_number or "unassigned"
+    return (
+        f"documents/document_{document_id}/"
+        f"version_{version_number}/{safe_name}"
+    )
 
 
 class Document(models.Model):
@@ -22,14 +37,16 @@ class DocumentVersion(models.Model):
     )
     version_number = models.PositiveIntegerField()
     source_filename = models.CharField(max_length=255, blank=True)
-    file = models.FileField(upload_to="documents/%Y/%m/%d/")
+    file = models.FileField(upload_to=document_version_upload_to)
+    file_size = models.PositiveBigIntegerField(default=0)
+    content_type = models.CharField(max_length=127, blank=True)
     extracted_text = models.TextField(blank=True)
     normalized_text = models.TextField(blank=True)
     content_hash = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-version_number", "-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=["document", "version_number"],

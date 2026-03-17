@@ -2,18 +2,24 @@
 
 ## Назначение
 
-Этот файл фиксирует **целевую ER-модель MVP**.
+Этот файл фиксирует **целевую ER-модель MVP** вокруг главного сценария:
 
-Важно: это не только снимок текущего кода из архива, а **модель данных, к которой должен прийти MVP**. Поэтому некоторые поля здесь описаны как целевые, даже если в текущем backend они ещё не полностью реализованы.
+**документ → версии → изменения → выжимка → тест → прохождение → результат**
+
+Ниже описана именно та схема, которая нужна как минимально достаточная доменная модель для backend и дальнейших фаз.
 
 ## Ключевая логика данных
 
 - один документ имеет много версий;
-- каждая версия разбивается на структурные фрагменты;
+- каждая версия разбивается на чанки;
 - сравнение выполняется между двумя версиями одного документа;
-- по результатам сравнения генерируется тест;
-- тест проходит сотрудник;
-- результат попытки хранится и участвует в отчётности.
+- сравнение хранит список конкретных изменений;
+- по сравнению формируется summary;
+- по summary/сравнению создаётся тест;
+- тест состоит из вопросов;
+- вопрос может иметь варианты ответа;
+- сотрудник проходит тест;
+- по каждой попытке хранятся ответы.
 
 ## Mermaid ER Diagram
 
@@ -21,9 +27,24 @@
 erDiagram
     DOCUMENT ||--o{ DOCUMENT_VERSION : has
     DOCUMENT_VERSION ||--o{ CHUNK : split_into
-    DOCUMENT_VERSION ||--o{ GENERATED_QUIZ : from_version
-    DOCUMENT_VERSION ||--o{ GENERATED_QUIZ : to_version
+
+    DOCUMENT ||--o{ VERSION_COMPARISON : has
+    DOCUMENT_VERSION ||--o{ VERSION_COMPARISON : from_version
+    DOCUMENT_VERSION ||--o{ VERSION_COMPARISON : to_version
+    VERSION_COMPARISON ||--o{ VERSION_CHANGE_ITEM : contains
+    VERSION_COMPARISON ||--|| SUMMARY : has
+
+    VERSION_COMPARISON ||--o{ GENERATED_QUIZ : produces
+    SUMMARY ||--o{ GENERATED_QUIZ : can_be_based_on
+    GENERATED_QUIZ ||--o{ QUESTION : consists_of
+    VERSION_CHANGE_ITEM ||--o{ QUESTION : can_source
+    QUESTION ||--o{ CHOICE : has
+
+    EMPLOYEE ||--o{ QUIZ_ATTEMPT : makes
     GENERATED_QUIZ ||--o{ QUIZ_ATTEMPT : has
+    QUIZ_ATTEMPT ||--o{ ANSWER : contains
+    QUESTION ||--o{ ANSWER : answered_by
+    CHOICE ||--o{ ANSWER : selected_in
 
     DOCUMENT {
         bigint id PK
@@ -38,7 +59,7 @@ erDiagram
         bigint document_id FK
         int version_number
         string source_filename
-        string file_path
+        string file
         text extracted_text
         text normalized_text
         string content_hash
@@ -57,8 +78,41 @@ erDiagram
         datetime created_at
     }
 
+    VERSION_COMPARISON {
+        bigint id PK
+        bigint document_id FK
+        bigint from_version_id FK
+        bigint to_version_id FK
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    VERSION_CHANGE_ITEM {
+        bigint id PK
+        bigint comparison_id FK
+        bigint old_chunk_id FK
+        bigint new_chunk_id FK
+        string change_type
+        float similarity
+        string match_reason
+        int sort_order
+        datetime created_at
+    }
+
+    SUMMARY {
+        bigint id PK
+        bigint comparison_id FK
+        text text
+        json highlights
+        datetime created_at
+        datetime updated_at
+    }
+
     GENERATED_QUIZ {
         bigint id PK
+        bigint comparison_id FK
+        bigint summary_id FK
         bigint from_version_id FK
         bigint to_version_id FK
         string title
@@ -69,14 +123,67 @@ erDiagram
         datetime approved_at
         text approval_comment
         datetime created_at
+        datetime updated_at
+    }
+
+    QUESTION {
+        bigint id PK
+        bigint quiz_id FK
+        bigint source_change_item_id FK
+        int order
+        string question_type
+        text prompt
+        text correct_text_answer
+        text explanation
+        datetime created_at
+    }
+
+    CHOICE {
+        bigint id PK
+        bigint question_id FK
+        int order
+        text text
+        bool is_correct
+    }
+
+    EMPLOYEE {
+        bigint id PK
+        string full_name
+        string position
+        string department
+        string email
+        bool is_active
+        datetime created_at
+        datetime updated_at
     }
 
     QUIZ_ATTEMPT {
         bigint id PK
         bigint quiz_id FK
+        bigint employee_id FK
         string participant_name
         json answers
         int score
         int total_questions
+        string status
+        datetime created_at
+        datetime completed_at
+    }
+
+    ANSWER {
+        bigint id PK
+        bigint attempt_id FK
+        bigint question_id FK
+        bigint selected_choice_id FK
+        text text_answer
+        bool is_correct
         datetime created_at
     }
+```
+
+## Примечания по MVP
+
+- `GeneratedQuiz` остаётся текущим именем модели в коде, но доменно это сущность **теста**.
+- `QuizAttempt` остаётся текущим именем модели в коде, но доменно это сущность **попытки прохождения**.
+- Поля `payload` и `answers` сохранены как практичные JSON-снимки текущего прототипа, чтобы не ломать уже существующую логику.
+- При этом нормализованные сущности `Question`, `Choice` и `Answer` добавлены уже сейчас, чтобы база была готова к админке, отчётам и дальнейшему развитию.

@@ -126,3 +126,49 @@
 - не поддерживают прикладную ценность для МФЦ;
 
 то такие элементы должны быть упрощены, отложены или исключены из MVP.
+
+## Быстрый старт Фазы 1
+
+1. Скопируйте пример переменных окружения:
+
+```bash
+cp infra/.env.example infra/.env
+```
+
+2. Соберите и поднимите сервисы:
+
+```bash
+docker compose up --build
+```
+
+3. Проверьте доступность backend health endpoint:
+
+```bash
+docker compose ps
+curl http://localhost:8000/api/health
+```
+
+4. Проверьте доступность Qdrant:
+
+```bash
+curl http://localhost:6333/collections
+```
+
+5. При необходимости откройте логи:
+
+```bash
+docker compose logs -f backend
+docker compose logs -f db
+docker compose logs -f qdrant
+```
+6. Остановка:
+
+```bash
+docker compose down
+```
+
+7. Полный сброс:
+
+```bash
+docker compose down -v
+```

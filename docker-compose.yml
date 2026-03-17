@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: dissertacia_db
+    restart: unless-stopped
     env_file:
       - infra/.env
     ports:
@@ -16,7 +16,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: dissertacia_qdrant
+    restart: unless-stopped
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -27,12 +27,13 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: dissertacia_backend
+    restart: unless-stopped
     env_file:
       - infra/.env
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings
-      - DJANGO_LOG_LEVEL=INFO
+      DJANGO_SETTINGS_MODULE: config.settings
+      DJANGO_LOG_LEVEL: INFO
+      STARTUP_WAIT_TIMEOUT_SECONDS: 60
     volumes:
       - ./backend:/app
       - media:/app/media
@@ -44,11 +45,12 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_started
-    command: >
-      sh -c "
-      python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000
-      "
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    command: sh /app/entrypoint.sh
 
 volumes:
   postgres_data:

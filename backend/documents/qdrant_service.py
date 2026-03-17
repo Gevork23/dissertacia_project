@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import time
+from typing import TYPE_CHECKING, Any
 
 from django.db.models import Max
 from qdrant_client import QdrantClient
@@ -17,9 +18,13 @@ from qdrant_client.http.models import (
     PointStruct,
     VectorParams,
 )
-from sentence_transformers import SentenceTransformer
 
 from .models import Chunk, DocumentVersion
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
+else:
+    SentenceTransformer = Any
 
 logger = logging.getLogger("documents.qdrant")
 
@@ -34,8 +39,16 @@ _model: SentenceTransformer | None = None
 def get_model() -> SentenceTransformer:
     global _model
     if _model is None:
+        try:
+            from sentence_transformers import SentenceTransformer as _SentenceTransformer
+        except ImportError as exc:
+            raise RuntimeError(
+                "sentence-transformers is not installed. "
+                "Install backend/requirements-ml.txt to enable embeddings search."
+            ) from exc
+
         started_at = time.perf_counter()
-        _model = SentenceTransformer(_MODEL_NAME)
+        _model = _SentenceTransformer(_MODEL_NAME)
         logger.info(
             "Embeddings model loaded: model=%s load_ms=%s",
             _MODEL_NAME,
@@ -47,7 +60,8 @@ def get_model() -> SentenceTransformer:
 def get_qdrant() -> QdrantClient:
     host = os.environ.get("QDRANT_HOST", "qdrant")
     port = int(os.environ.get("QDRANT_PORT", "6333"))
-    return QdrantClient(host=host, port=port)
+    timeout = float(os.environ.get("QDRANT_TIMEOUT_SECONDS", "3"))
+    return QdrantClient(host=host, port=port, timeout=timeout)
 
 
 def ensure_collection(client: QdrantClient, vector_size: int) -> None:

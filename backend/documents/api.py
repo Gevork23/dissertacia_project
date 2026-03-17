@@ -8,10 +8,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
+from .change_enrichment import enrich_compare_payload
 from .diff import build_version_diff
 from .diff_quiz import build_quiz_from_diff
 from .diff_summary import build_brief_summary
+from .change_enrichment import enrich_compare_payload
 from .models import DocumentVersion, GeneratedQuiz, QuizAttempt
 from .qdrant_service import search_chunks
 from .quiz_attempts import evaluate_quiz_answers
@@ -170,21 +171,21 @@ def compare_versions(request):
         to_version=version_to,
     )
     serializer = VersionDiffSerializer(diff_payload)
+    response_payload = enrich_compare_payload(serializer.data)
 
     logger.info(
         "Compare versions response: from_version_id=%s to_version_id=%s "
         "added=%s removed=%s modified=%s moved=%s unchanged=%s",
         version_from.id,
         version_to.id,
-        serializer.data["summary"]["added"],
-        serializer.data["summary"]["removed"],
-        serializer.data["summary"]["modified"],
-        serializer.data["summary"]["moved"],
-        serializer.data["summary"]["unchanged"],
+        response_payload["summary"]["added"],
+        response_payload["summary"]["removed"],
+        response_payload["summary"]["modified"],
+        response_payload["summary"]["moved"],
+        response_payload["summary"]["unchanged"],
     )
 
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
+    return Response(response_payload, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 def compare_versions_brief(request):

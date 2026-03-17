@@ -1,147 +1,122 @@
-# TASKS — Dissertation Project (MVP → Defense)
+# TASKS
 
-Этот файл — список задач проекта. Мы двигаемся сверху вниз.
-Формат статусов:
-- [ ] todo
-- [x] done
+## Статусы
 
----
+- `done` — выполнено
+- `partial` — начато, но не закрыто
+- `planned` — запланировано
 
-## Stage 0 — Planning & Repo
-- [x] Create `PROJECT_SCOPE.md`
-- [x] Create `README.md`
-- [x] Create `ERD.md`
-- [x] Add `.gitignore` (Python + Django + env + media)
-- [x] Add `LICENSE` (temporary: Private/Thesis or MIT later)
-- [x] Create `/docs` folder and add `docs/notes.md`
+## Фаза 0 — фиксация замысла проекта
 
----
+**Статус:** `done`
 
-## Stage 1 — Infrastructure (Docker)
-- [ ] Create `docker-compose.yml` for: postgres + qdrant + backend
-- [ ] Create `infra/.env.example` (DB creds, secret key, ports)
-- [ ] Add `Makefile` (optional) with shortcuts: up/down/logs/migrate
-- [ ] Verify:
-  - [ ] Postgres is reachable
-  - [ ] Qdrant is reachable (web UI or health endpoint)
-  - [ ] Backend container starts
+Задачи фазы:
 
----
+- зафиксировать цель проекта;
+- зафиксировать основной пользовательский сценарий;
+- зафиксировать главный режим анализа: новая редакция vs предыдущая;
+- разделить must have и nice to have;
+- зафиксировать границы MVP;
+- зафиксировать архитектурные принципы;
+- зафиксировать фазы проекта;
+- зафиксировать критерии готовности;
+- привести документацию к единому виду;
+- убрать пустые и дублирующие документы.
 
-## Stage 2 — Backend skeleton (Django + DRF)
-- [ ] Create Django project (`backend/`)
-- [ ] Install dependencies (Django, DRF, psycopg, etc.)
-- [ ] Configure settings for Docker (DB, allowed hosts, media)
-- [ ] Create base app `core` (or `documents`)
-- [ ] Add Django admin
-- [ ] Add health endpoint `/api/health`
+Результат фазы:
 
----
+- README отражает проект правильно;
+- есть PROJECT_SCOPE, ARCHITECTURE, ROADMAP, TASKS, ERD;
+- нет противоречий между основными документами.
 
-## Stage 3 — Data models & migrations
-- [ ] Implement models:
-  - [ ] Document
-  - [ ] DocumentVersion
-  - [ ] Chunk
-  - [ ] Test
-  - [ ] Question
-  - [ ] Choice
-  - [ ] Attempt
-  - [ ] Answer
-- [ ] Create and apply migrations
-- [ ] Register models in Django Admin
-- [ ] Create superuser
+## Фаза 1 — базовая платформа и данные
 
----
+**Статус:** `partial`
 
-## Stage 4 — File upload & text extraction
-- [ ] Endpoint: create Document
-- [ ] Endpoint: upload DocumentVersion (file)
-- [ ] Save uploaded file to `/media`
-- [ ] Extract text from:
-  - [ ] DOCX
-  - [ ] TXT
-- [ ] Store `extracted_text` in DocumentVersion
+Задачи фазы:
 
----
+- стабилизировать модель `Document`;
+- стабилизировать модель `DocumentVersion`;
+- завершить поддержку загрузки файлов;
+- реализовать поддержку DOCX / PDF / TXT;
+- нормализовать извлечённый текст;
+- реализовать устойчивое разбиение на статьи / пункты / подпункты;
+- подготовить миграции и базовые тесты ingestion-сценариев;
+- обеспечить локальный запуск.
 
-## Stage 5 — Chunking (split into blocks)
-- [ ] Implement normalizer (spaces, hyphens, newlines)
-- [ ] Implement chunking:
-  - [ ] Structure-aware (sections/articles/clauses heuristics)
-  - [ ] Fallback: paragraphs
-- [ ] Create chunks in DB after upload
-- [ ] Add basic tests for chunking
+## Фаза 2 — сравнение редакций
 
----
+**Статус:** `partial`
 
-## Stage 6 — Embeddings & Qdrant indexing
-- [ ] Choose embeddings method (local sentence-transformers for MVP)
-- [ ] Add Qdrant client integration
-- [ ] Create Qdrant collection on startup (if missing)
-- [ ] Index chunks in Qdrant (point_id = chunk_id)
-- [ ] Endpoint: `/api/search` (top-k chunks + metadata)
+Задачи фазы:
 
----
+- завершить сравнение двух версий одного документа;
+- корректно обрабатывать added / removed / modified / moved;
+- выделять значимые изменения;
+- добавить объяснимые правила классификации изменений;
+- покрыть diff-логику тестами;
+- подготовить стабильный демонстрационный набор примеров.
 
-## Stage 7 — RAG (Q&A + summaries)
-- [ ] Endpoint: `/api/chat`
-  - [ ] Retrieve top-k chunks
-  - [ ] Build context
-  - [ ] Generate answer via LLM
-  - [ ] Return citations (chunk ids + quotes)
-- [ ] Endpoint: `/api/summarize` (summary of a document/version)
+## Фаза 3 — выжимка и генерация тестов
 
-> Note: LLM mode decision:
-> - local (Ollama/vLLM) OR
-> - API (if allowed)
+**Статус:** `partial`
 
----
+Задачи фазы:
 
-## Stage 8 — Version diff & “what changed”
-- [ ] Implement diff between versions:
-  - [ ] quick text diff (fallback)
-  - [ ] chunk-based diff (main)
-- [ ] Endpoint: `/api/compare` (from_version, to_version)
-- [ ] Generate “what changed” briefing via LLM
-- [ ] (Optional) persist VersionComparison + VersionChangeItem
+- генерировать краткую и понятную выжимку по изменениям;
+- формировать тесты по реальным изменениям;
+- ограничить тесты материалом из diff, а не общими знаниями;
+- сохранить тест как отдельную сущность;
+- покрыть summary/quiz-логику тестами.
 
----
+## Фаза 4 — утверждение, прохождение, результаты
 
-## Stage 9 — Quiz generation & passing
-- [ ] Generate quiz from changes:
-  - [ ] question types: single_choice, true_false
-  - [ ] store correct answers
-  - [ ] store question sources (chunk citations)
-- [ ] Publish quiz
-- [ ] Employee can take quiz:
-  - [ ] create Attempt
-  - [ ] submit answers
-  - [ ] compute score
-  - [ ] show results
+**Статус:** `planned`
 
----
+Задачи фазы:
 
-## Stage 10 — UI (local web)
-- [ ] Minimal UI pages:
-  - [ ] Login
-  - [ ] Documents list
-  - [ ] Upload version
-  - [ ] View changes
-  - [ ] Generate quiz
-  - [ ] Take quiz
-  - [ ] Results
-- [ ] Roles/permissions (admin vs employee)
-- [ ] Basic statistics dashboard
+- добавить статус теста: черновик / утверждён;
+- добавить данные ответственного лица;
+- реализовать утверждение теста;
+- реализовать прохождение теста сотрудником с указанием ФИО;
+- стабилизировать оценивание ответов;
+- реализовать сохранение результатов;
+- реализовать пользовательские отчёты по тесту и сотрудникам.
 
----
+## Фаза 5 — демонстрационный MVP
 
-## Stage 11 — Defense packaging (thesis materials)
-- [ ] Architecture diagram
-- [ ] Experiments plan:
-  - [ ] chunking strategies
-  - [ ] retrieval quality
-  - [ ] quiz quality
-- [ ] Metrics & tables
-- [ ] User manual (install/run/use)
-- [ ] Results section + conclusions
+**Статус:** `planned`
+
+Задачи фазы:
+
+- собрать минимальный UI для живой демонстрации;
+- подготовить демонстрационный сценарий;
+- подготовить демо-корпус;
+- сделать запуск воспроизводимым;
+- проверить проект на одном ПК в сетевом режиме;
+- расширить автотесты;
+- убрать всё лишнее, что не усиливает демонстрацию.
+
+## Фаза 6 — подготовка к защите
+
+**Статус:** `planned`
+
+Задачи фазы:
+
+- привести интерфейс к аккуратному демонстрационному виду;
+- подготовить финальный demo-script;
+- подготовить схемы и диаграммы;
+- подготовить описание научной новизны и практической значимости;
+- согласовать финальную терминологию проекта;
+- провести несколько полных прогона демонстрации.
+
+## Приоритетное правило
+
+Если задача:
+
+- не усиливает основной сценарий;
+- мешает срокам;
+- усложняет демонстрацию;
+- не нужна для защиты и MVP,
+
+то она по умолчанию не приоритетна и выносится за пределы текущей фазы.

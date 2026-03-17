@@ -1,131 +1,101 @@
-# Dissertation Project — Working Notes
-
-This file is a living document for ideas, decisions, experiments, and thesis preparation.
 
 ---
 
-## Project info
+### `docs/notes.md`
 
-**Repository:** dissertacia_project  
-**Type:** Master thesis + internal system for MFC  
-**Topic (RU):**
-Исследование и разработка методов интеллектуального анализа нормативно-правовых документов с автоматизированной генерацией тестовых материалов.
+```md
+# Notes
 
-**Topic (EN):**
-Research and development of intelligent analysis methods for regulatory documents with automated test generation.
+## 2026-03-17 — фиксация решений Фазы 0
 
----
+### 1. Зафиксированная формулировка проекта
 
-## Goals
+**Интеллектуальная система анализа нормативно-правовых документов, обеспечивающая выявление значимых изменений, генерацию кратких разъяснений и формирование адаптивных тестовых материалов для проверки знаний сотрудников.**
 
-- Build a local system for:
-  - document versioning
-  - change detection
-  - summarization (RAG)
-  - quiz generation
-- Use the system as:
-  - real internal tool
-  - experimental platform for thesis
+### 2. Главный прикладной сценарий
 
----
+Главный сценарий проекта:
 
-## Architecture (draft)
+**документ → версии → изменения → выжимка → генерация теста → прохождение теста → отчёт**
 
-- Backend: Django + DRF
-- DB: PostgreSQL
-- Vector DB: Qdrant
-- NLP:
-  - embeddings (sentence-transformers)
-  - LLM (local or API)
-  - LangGraph (agent orchestration)
-- Deployment:
-  - Docker Compose
-  - Local network access
+### 3. Главный режим анализа
 
----
+Основной режим проекта:
 
-## Data pipeline (draft)
+**сравнение новой редакции документа с предыдущей редакцией того же документа**
 
-1. Upload document file
-2. Extract text
-3. Normalize text
-4. Chunk into blocks
-5. Store chunks in DB
-6. Embed chunks
-7. Index in Qdrant
-8. Compare versions
-9. Generate change summary
-10. Generate quiz
-11. User passes quiz
+### 4. Что считается ядром проекта
 
----
+Ядро проекта:
 
-## Research part ideas
+- документ;
+- версии документа;
+- извлечение текста;
+- структурное разбиение;
+- сравнение редакций;
+- интерпретация изменений;
+- краткая выжимка;
+- генерация теста;
+- утверждение теста;
+- прохождение теста;
+- сохранение результатов;
+- отчёт.
 
-### Chunking strategies
-- By paragraphs
-- By legal structure (article / clause)
-- Hybrid approach
+### 5. Что не должно размывать MVP
 
-### Diff strategies
-- Raw text diff
-- Chunk-based diff
-- Semantic diff (optional)
+Не делаем центром проекта:
 
-### RAG evaluation
-- Precision@k
-- Human expert scoring
+- чат по документам;
+- общий поиск по всем законам;
+- тяжёлые внешние интеграции;
+- сложные личные кабинеты;
+- большие AI-возможности без прямой пользы для главного сценария.
 
-### Quiz quality
-- correctness
-- coverage of changes
-- difficulty level
+### 6. Архитектурные решения верхнего уровня
 
----
+- система должна разворачиваться локально на одном ПК;
+- система должна быть доступна по сети;
+- backend содержит основную бизнес-логику;
+- UI должен быть минимальным и демонстрационным;
+- AI-слой допустим только как вспомогательный;
+- explainability важнее “магии”.
 
-## Risks & constraints
+### 7. Решения по документации
 
-- Legal sensitivity of documents
-- No external legal DB integration
-- Possible restriction on internet access
-- Limited GPU / CPU
+Принято решение:
 
----
+- использовать один главный `README.md`;
+- использовать один главный `ARCHITECTURE.md` в корне;
+- не создавать отдельный `docs/architecture.md`, чтобы не было дубля;
+- `docs/demo-script.md` в Фазе 0 допускается как черновик;
+- пустые placeholder-файлы, не привязанные к текущей фазе, лучше удалить или заполнить позже.
 
-## Decisions log
+### 8. Снимок состояния репозитория на момент аудита
 
-| Date | Decision |
-|------|----------|
-| 2026-01-23 | Use local document versioning only |
-| 2026-01-23 | Use Django + Qdrant |
+В коде уже есть:
 
----
+- Django backend;
+- документы и версии;
+- чанки;
+- compare;
+- brief;
+- quiz generation;
+- quiz attempts;
+- demo corpus;
+- автотесты;
+- docker-compose.
 
-## Thesis structure (draft)
+Ещё не хватает для целевого MVP:
 
-1. Introduction
-2. Analysis of existing solutions
-3. Problem statement
-4. System architecture
-5. Document processing methods
-6. Change detection methods
-7. Test generation methods
-8. Experiments and evaluation
-9. Implementation details
-10. Conclusion
+- PDF;
+- утверждения теста;
+- пользовательской отчётности;
+- минимального завершённого UI.
 
----
+### 9. Управляющее правило
 
-## Commands cheat sheet (later)
+Любая новая идея проходит через вопрос:
 
-(To be filled)
+**усиливает ли она сценарий “новая редакция vs предыдущая редакция”?**
 
----
-
-## Notes
-
-- Always store document sources locally
-- Prefer reproducible experiments
-- Save dataset snapshots for thesis
-
----
+Если нет, она не должна становиться приоритетом текущего MVP.

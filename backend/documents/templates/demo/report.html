@@ -1,0 +1,43 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Отчёт по тесту · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary">Отчёт по тесту</span>
+    <h2 style="margin-top: 12px;">{{ report.quiz.title }}</h2>
+    <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card"><div class="muted">Попыток</div><div class="metric">{{ report.attempts_count }}</div></div>
+        <div class="card"><div class="muted">Средний балл</div><div class="metric">{{ report.average_score }}</div></div>
+        <div class="card"><div class="muted">Средний процент</div><div class="metric">{{ report.average_percentage }}%</div></div>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Последние попытки</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Сотрудник</th>
+                    <th>Результат</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for attempt in report.latest_attempts %}
+                <tr>
+                    <td>{{ attempt.created_at }}</td>
+                    <td>{{ attempt.participant_name|default:"—" }}</td>
+                    <td>{{ attempt.score }}/{{ attempt.total_questions }}</td>
+                    <td><a class="btn secondary" href="{% url 'demo-attempt-detail' attempt.id %}">Открыть</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Попыток ещё нет.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Тесты · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>Сохранённые тесты</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Документ</th>
+                    <th>Пара версий</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for quiz in quizzes %}
+                <tr>
+                    <td>{{ quiz.id }}</td>
+                    <td>{{ quiz.title }}</td>
+                    <td>{{ quiz.from_version.document.title }}</td>
+                    <td>v{{ quiz.from_version.version_number }} → v{{ quiz.to_version.version_number }}</td>
+                    <td>
+                        {% if quiz.status == "approved" %}
+                            <span class="pill success">Утверждён</span>
+                        {% else %}
+                            <span class="pill warning">Черновик</span>
+                        {% endif %}
+                    </td>
+                    <td><a class="btn secondary" href="{% url 'demo-quiz-detail' quiz.id %}">Открыть</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">Тесты ещё не создавались.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -8,6 +8,7 @@ from django.db.models import Max
 from django.utils import timezone
 from rest_framework import serializers
 
+from .ingestion import rebuild_version_chunks
 from .models import (
     ALLOWED_DOCUMENT_EXTENSIONS,
     Document,
@@ -15,7 +16,11 @@ from .models import (
     GeneratedQuiz,
     QuizAttempt,
 )
-from .text_extractors import EmptyExtractedTextError, TextExtractionError, process_uploaded_file
+from .text_extractors import (
+    EmptyExtractedTextError,
+    TextExtractionError,
+    process_uploaded_file,
+)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -46,6 +51,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         if not cleaned:
             raise serializers.ValidationError("Document title cannot be empty.")
         return cleaned
+
     def get_versions_count(self, obj):
         annotated_value = getattr(obj, "versions_count", None)
         if annotated_value is not None:
@@ -58,7 +64,6 @@ class DocumentSerializer(serializers.ModelSerializer):
             return annotated_value
         latest_version = obj.versions.order_by("-version_number").first()
         return latest_version.version_number if latest_version else None
-
 
 
 class DocumentVersionSerializer(serializers.ModelSerializer):
@@ -167,6 +172,7 @@ class DocumentVersionCreateSerializer(serializers.ModelSerializer):
                 normalized_text=processed_text.normalized_text,
                 content_hash=processed_text.content_hash,
             )
+            rebuild_version_chunks(version)
             Document.objects.filter(pk=locked_document.pk).update(
                 updated_at=timezone.now()
             )
@@ -243,13 +249,23 @@ class GeneratedQuizSerializer(serializers.ModelSerializer):
             "title",
             "payload",
             "questions_count",
+            "status",
+            "approved_by_name",
+            "approved_at",
+            "approval_comment",
             "created_at",
+            "updated_at",
         ]
         read_only_fields = [
             "id",
             "payload",
             "questions_count",
+            "status",
+            "approved_by_name",
+            "approved_at",
+            "approval_comment",
             "created_at",
+            "updated_at",
         ]
 
 
@@ -263,11 +279,15 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
             "answers",
             "score",
             "total_questions",
+            "status",
             "created_at",
+            "completed_at",
         ]
         read_only_fields = [
             "id",
             "score",
             "total_questions",
+            "status",
             "created_at",
+            "completed_at",
         ]

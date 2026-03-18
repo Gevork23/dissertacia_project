@@ -1,0 +1,125 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Demo UI · Главная{% endblock %}
+
+{% block content %}
+<div class="grid grid-3">
+    <div class="card">
+        <div class="muted">Документы</div>
+        <div class="metric">{{ stats.documents_count }}</div>
+    </div>
+    <div class="card">
+        <div class="muted">Сохранённые тесты</div>
+        <div class="metric">{{ stats.quizzes_count }}</div>
+    </div>
+    <div class="card">
+        <div class="muted">Попытки прохождения</div>
+        <div class="metric">{{ stats.attempts_count }}</div>
+    </div>
+</div>
+
+<div class="grid grid-2" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Маршрут демонстрации</h2>
+        <ol>
+            <li>Открыть демонстрационный документ.</li>
+            <li>Выбрать пару версий и запустить сравнение.</li>
+            <li>Показать выжимку и значимые изменения.</li>
+            <li>Сгенерировать тест по diff.</li>
+            <li>Утвердить тест ответственным лицом.</li>
+            <li>Пройти тест от имени сотрудника.</li>
+            <li>Показать отчёт и сохранённый результат.</li>
+        </ol>
+        <div class="actions">
+            <a class="btn secondary" href="/api/health/">Проверить health</a>
+            <a class="btn secondary" href="/api/documents/">Открыть API списка документов</a>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Что открывать комиссии</h2>
+        <ul>
+            <li>Этот экран — стартовая точка показа.</li>
+            <li>Основной демонстрационный путь — через сценарий изменения сроков.</li>
+            <li>Запасные сценарии — документы, основания отказа, обязанности сотрудника.</li>
+            <li>Admin остаётся резервным маршрутом, но не основным экраном показа.</li>
+        </ul>
+    </section>
+</div>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Доступные документы</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Документ</th>
+                    <th>Описание</th>
+                    <th>Версий</th>
+                    <th>Последняя версия</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for document in documents %}
+                <tr>
+                    <td>
+                        <strong>{{ document.title }}</strong><br>
+                        <span class="muted">ID {{ document.id }}</span>
+                    </td>
+                    <td>{{ document.description|default:"—" }}</td>
+                    <td>{{ document.versions_count|default:0 }}</td>
+                    <td>{{ document.latest_version_number|default:"—" }}</td>
+                    <td><a class="btn" href="{% url 'demo-document-detail' document.id %}">Открыть</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">Демо-корпус ещё не загружен. Выполните management command load_demo_pairs.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="grid grid-2" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Последние тесты</h2>
+        <div class="stack">
+            {% for quiz in quizzes %}
+                <div>
+                    <div><strong>{{ quiz.title }}</strong></div>
+                    <div class="muted">{{ quiz.from_version.document.title }} · v{{ quiz.from_version.version_number }} → v{{ quiz.to_version.version_number }}</div>
+                    <div style="margin-top: 8px;">
+                        {% if quiz.status == "approved" %}
+                            <span class="pill success">Утверждён</span>
+                        {% else %}
+                            <span class="pill warning">Черновик</span>
+                        {% endif %}
+                    </div>
+                    <div class="actions">
+                        <a class="btn secondary" href="{% url 'demo-quiz-detail' quiz.id %}">Открыть тест</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted">Сохранённых тестов пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Последние попытки</h2>
+        <div class="stack">
+            {% for attempt in attempts %}
+                <div>
+                    <div><strong>{{ attempt.participant_name|default:"Без имени" }}</strong></div>
+                    <div class="muted">Тест #{{ attempt.quiz_id }} · {{ attempt.score }}/{{ attempt.total_questions }}</div>
+                    <div class="actions">
+                        <a class="btn secondary" href="{% url 'demo-attempt-detail' attempt.id %}">Открыть результат</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted">Попыток прохождения пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

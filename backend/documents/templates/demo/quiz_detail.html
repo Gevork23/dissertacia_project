@@ -1,0 +1,82 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Тест #{{ quiz.id }} · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:start;">
+        <div>
+            <span class="pill primary">Сохранённый тест</span>
+            <h2 style="margin-top: 12px;">{{ quiz.title }}</h2>
+            <p class="muted">{{ quiz.from_version.document.title }} · v{{ quiz.from_version.version_number }} → v{{ quiz.to_version.version_number }}</p>
+            {% if quiz.status == "approved" %}
+                <span class="pill success">Утверждён</span>
+            {% else %}
+                <span class="pill warning">Черновик</span>
+            {% endif %}
+        </div>
+        <div class="actions">
+            {% if quiz.status == "approved" %}
+                <a class="btn success" href="{% url 'demo-take-quiz' quiz.id %}">Пройти тест</a>
+                <a class="btn secondary" href="{% url 'demo-report' quiz.id %}">Открыть отчёт</a>
+            {% endif %}
+            <a class="btn secondary" href="/api/quizzes/{{ quiz.id }}/report/">JSON-отчёт</a>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Утверждение теста</h2>
+        {% if quiz.status == "approved" %}
+            <p><strong>Ответственное лицо:</strong> {{ quiz.approved_by_name }}</p>
+            <p><strong>Дата:</strong> {{ quiz.approved_at }}</p>
+            <p><strong>Комментарий:</strong> {{ quiz.approval_comment|default:"—" }}</p>
+        {% else %}
+            <form method="post" action="{% url 'demo-approve-quiz' quiz.id %}">
+                {% csrf_token %}
+                <label>
+                    ФИО ответственного лица
+                    <input type="text" name="approved_by_name" value="Иванова Е.А.">
+                </label>
+                <label>
+                    Комментарий к утверждению
+                    <textarea name="approval_comment">Тест согласован для демонстрации комиссии и выдачи сотруднику.</textarea>
+                </label>
+                <div class="actions">
+                    <button class="btn success" type="submit">Утвердить тест</button>
+                </div>
+            </form>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Краткий отчёт по тесту</h2>
+        <p><strong>Вопросов:</strong> {{ quiz.questions_count }}</p>
+        <p><strong>Попыток:</strong> {{ report.attempts_count }}</p>
+        <p><strong>Средний результат:</strong> {{ report.average_percentage }}%</p>
+        <p><strong>Лучший балл:</strong> {{ report.best_score }}</p>
+    </section>
+</div>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Содержимое теста</h2>
+    <div class="stack">
+        {% for question in quiz.payload.questions %}
+            <div class="question-card">
+                <div class="muted">Вопрос {{ forloop.counter }}</div>
+                <h3>{{ question.question }}</h3>
+                <ul>
+                    {% for choice in question.choices %}
+                        <li>{{ choice.text }}{% if choice.is_correct %} <span class="pill success">правильный вариант</span>{% endif %}</li>
+                    {% endfor %}
+                </ul>
+                <details>
+                    <summary>Показать эталонный ответ</summary>
+                    <p style="margin-top:12px;">{{ question.answer }}</p>
+                </details>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

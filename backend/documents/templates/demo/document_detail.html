@@ -1,0 +1,76 @@
+{% extends "demo/base.html" %}
+
+{% block title %}{{ document.title }} · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary">Документ</span>
+    <h2 style="margin-top: 12px;">{{ document.title }}</h2>
+    <p class="muted">{{ document.description|default:"Описание не заполнено." }}</p>
+    {% if suggested_pair %}
+        <div class="actions">
+            <a class="btn" href="{% url 'demo-compare' %}?from_version={{ suggested_pair.0.id }}&to_version={{ suggested_pair.1.id }}">
+                Сравнить последние версии (v{{ suggested_pair.0.version_number }} → v{{ suggested_pair.1.version_number }})
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Версии документа</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Версия</th>
+                    <th>Файл</th>
+                    <th>Размер</th>
+                    <th>Чанков</th>
+                    <th>Создана</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for version in versions %}
+                <tr>
+                    <td><strong>v{{ version.version_number }}</strong> <span class="muted">ID {{ version.id }}</span></td>
+                    <td>{{ version.source_filename|default:"—" }}</td>
+                    <td>{{ version.file_size|default:0 }}</td>
+                    <td>{{ version.chunks.count }}</td>
+                    <td>{{ version.created_at }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">Версии отсутствуют.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Ручной выбор пары для сравнения</h2>
+    <form method="post" action="{% url 'demo-compare' %}">
+        {% csrf_token %}
+        <div class="grid grid-2">
+            <label>
+                Версия «было»
+                <select name="from_version" required>
+                    {% for version in versions %}
+                        <option value="{{ version.id }}">v{{ version.version_number }} · {{ version.source_filename }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Версия «стало»
+                <select name="to_version" required>
+                    {% for version in versions %}
+                        <option value="{{ version.id }}">v{{ version.version_number }} · {{ version.source_filename }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="actions">
+            <button class="btn" type="submit">Открыть сравнение</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

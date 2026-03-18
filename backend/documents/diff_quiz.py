@@ -2,6 +2,29 @@ from __future__ import annotations
 
 from typing import Any
 
+GENERIC_DISTRACTORS = {
+    "added": [
+        "Изменений в этом разделе не обнаружено.",
+        "Фрагмент был удалён, а не добавлен.",
+        "Изменение касается только редакционной правки без нового требования.",
+    ],
+    "removed": [
+        "Фрагмент был добавлен в новой редакции.",
+        "Содержание раздела осталось без изменений.",
+        "Изменение касается только срока оказания услуги.",
+    ],
+    "modified": [
+        "Фрагмент не менялся, а только был перемещён внутри документа.",
+        "Изменение касается только названия раздела без смены содержания.",
+        "В новой редакции раздел исключён полностью.",
+    ],
+    "moved": [
+        "Фрагмент был удалён без переноса.",
+        "Фрагмент был добавлен заново и ранее отсутствовал.",
+        "Изменение затронуло только формулировку без смены позиции.",
+    ],
+}
+
 
 def truncate_text(text: str, max_len: int = 180) -> str:
     normalized = " ".join((text or "").split())
@@ -96,6 +119,52 @@ def build_moved_question(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _normalize_option(value: str) -> str:
+    return " ".join((value or "").split())
+
+
+def _build_choices(
+    *,
+    question_type: str,
+    correct_answer: str,
+    answer_pool: list[str],
+    position_seed: int,
+) -> list[dict[str, Any]]:
+    distractors: list[str] = []
+    seen = {_normalize_option(correct_answer)}
+
+    for candidate in answer_pool:
+        normalized = _normalize_option(candidate)
+        if not normalized or normalized in seen:
+            continue
+        distractors.append(candidate)
+        seen.add(normalized)
+        if len(distractors) == 2:
+            break
+
+    for candidate in GENERIC_DISTRACTORS.get(question_type, []):
+        normalized = _normalize_option(candidate)
+        if normalized in seen:
+            continue
+        distractors.append(candidate)
+        seen.add(normalized)
+        if len(distractors) == 2:
+            break
+
+    options = [correct_answer, *distractors[:2]]
+    rotation = position_seed % len(options)
+    rotated = options[rotation:] + options[:rotation]
+
+    return [
+        {
+            "choice_index": index,
+            "text": option,
+            "is_correct": option == correct_answer,
+        }
+        for index, option in enumerate(rotated)
+    ]
+
+
 def build_quiz_from_diff(
     diff_payload: dict[str, Any],
     max_questions: int = 10,
@@ -115,6 +184,18 @@ def build_quiz_from_diff(
         questions.append(build_moved_question(item))
 
     questions = questions[:max_questions]
+    answer_pool = [
+        question["answer"] for question in questions if question.get("answer")
+    ]
+
+    for index, question in enumerate(questions):
+        question["question_type"] = "single_choice"
+        question["choices"] = _build_choices(
+            question_type=question["type"],
+            correct_answer=question["answer"],
+            answer_pool=answer_pool,
+            position_seed=index,
+        )
 
     return {
         "from_version": diff_payload["from_version"],

@@ -1,0 +1,111 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Сравнение версий · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary">Сравнение версий</span>
+    <h2 style="margin-top: 12px;">{{ document.title }}</h2>
+    <p class="muted">Версия {{ from_version.version_number }} → версия {{ to_version.version_number }}</p>
+    <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card"><div class="muted">Добавлено</div><div class="metric">{{ diff.summary.added }}</div></div>
+        <div class="card"><div class="muted">Удалено</div><div class="metric">{{ diff.summary.removed }}</div></div>
+        <div class="card"><div class="muted">Изменено</div><div class="metric">{{ diff.summary.modified }}</div></div>
+        <div class="card"><div class="muted">Перемещено</div><div class="metric">{{ diff.summary.moved }}</div></div>
+        <div class="card"><div class="muted">Без изменений</div><div class="metric">{{ diff.summary.unchanged }}</div></div>
+    </div>
+</section>
+
+<div class="grid grid-2" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Краткая выжимка</h2>
+        <p>{{ brief.brief_text }}</p>
+        <div class="stack">
+            {% for item in brief.highlights %}
+                <div class="question-card">
+                    {% if item.type == 'added' %}<span class="pill success">Добавлено</span>{% endif %}
+                    {% if item.type == 'removed' %}<span class="pill danger">Удалено</span>{% endif %}
+                    {% if item.type == 'modified' %}<span class="pill warning">Изменено</span>{% endif %}
+                    {% if item.type == 'moved' %}<span class="pill primary">Перемещено</span>{% endif %}
+                    <h3 style="margin-top: 10px;">{{ item.title }}</h3>
+                    <p class="muted">{{ item.description }}</p>
+                </div>
+            {% empty %}
+                <p class="muted">Значимые highlights не сформированы.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Создать тест по diff</h2>
+        <p class="muted">В превью уже доступно {{ quiz_preview.questions_count }} вопросов. Для демонстрации удобно сохранять тест на 3–5 вопросов.</p>
+        <form method="post" action="{% url 'demo-create-quiz' %}">
+            {% csrf_token %}
+            <input type="hidden" name="from_version" value="{{ from_version.id }}">
+            <input type="hidden" name="to_version" value="{{ to_version.id }}">
+            <label>
+                Название теста
+                <input type="text" name="title" value="Демо-тест: {{ document.title }} v{{ from_version.version_number }} → v{{ to_version.version_number }}">
+            </label>
+            <label>
+                Количество вопросов
+                <input type="number" name="limit" min="1" max="20" value="5">
+            </label>
+            <div class="actions">
+                <button class="btn" type="submit">Сохранить тест</button>
+                <a class="btn secondary" href="/api/compare/?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Открыть JSON compare</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Детали изменений</h2>
+    <div class="stack">
+        {% if diff.modified %}
+            <details open>
+                <summary>Изменённые фрагменты ({{ diff.modified|length }})</summary>
+                {% for item in diff.modified %}
+                    <div class="question-card" style="margin-top: 12px;">
+                        <h3>{{ item.to_chunk.heading|default:item.to_chunk.section_path }}</h3>
+                        <p><strong>Было:</strong> {{ item.from_chunk.text }}</p>
+                        <p><strong>Стало:</strong> {{ item.to_chunk.text }}</p>
+                        {% if item.importance %}
+                            <p class="muted">Важность: {{ item.importance.label }} · confidence={{ item.importance.confidence }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </details>
+        {% endif %}
+
+        {% if diff.added %}
+            <details>
+                <summary>Добавленные фрагменты ({{ diff.added|length }})</summary>
+                {% for item in diff.added %}
+                    <div class="question-card" style="margin-top: 12px;">
+                        <h3>{{ item.heading|default:item.section_path }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                {% endfor %}
+            </details>
+        {% endif %}
+
+        {% if diff.removed %}
+            <details>
+                <summary>Удалённые фрагменты ({{ diff.removed|length }})</summary>
+                {% for item in diff.removed %}
+                    <div class="question-card" style="margin-top: 12px;">
+                        <h3>{{ item.heading|default:item.section_path }}</h3>
+                        <p>{{ item.text }}</p>
+                    </div>
+                {% endfor %}
+            </details>
+        {% endif %}
+
+        <details>
+            <summary>Текстовый diff</summary>
+            <pre style="margin-top: 12px;">{{ diff.text_diff }}</pre>
+        </details>
+    </div>
+</section>
+{% endblock %}

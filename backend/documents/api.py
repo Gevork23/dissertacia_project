@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -38,6 +39,38 @@ def _make_json_safe(value):
     if isinstance(value, Decimal):
         return float(value)
     return value
+
+
+def build_quiz_report_payload(quiz: GeneratedQuiz) -> dict:
+    attempts = list(quiz.attempts.order_by("-created_at"))
+    attempts_count = len(attempts)
+    scores = [attempt.score for attempt in attempts]
+    totals = [
+        attempt.total_questions for attempt in attempts if attempt.total_questions
+    ]
+    average_score = round(sum(scores) / attempts_count, 2) if attempts_count else 0.0
+    average_percentage = (
+        round(
+            sum(
+                (attempt.score / attempt.total_questions) * 100
+                for attempt in attempts
+                if attempt.total_questions
+            )
+            / len(totals),
+            2,
+        )
+        if totals
+        else 0.0
+    )
+
+    return {
+        "quiz": GeneratedQuizSerializer(quiz).data,
+        "attempts_count": attempts_count,
+        "average_score": average_score,
+        "average_percentage": average_percentage,
+        "best_score": max(scores) if scores else 0,
+        "latest_attempts": QuizAttemptSerializer(attempts[:10], many=True).data,
+    }
 
 
 @api_view(["GET"])
@@ -347,8 +380,44 @@ def list_saved_quizzes(request):
 
 
 @api_view(["POST"])
+def approve_quiz(request, quiz_id: int):
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+    approved_by_name = (request.data.get("approved_by_name") or "").strip()
+    approval_comment = (request.data.get("approval_comment") or "").strip()
+
+    if not approved_by_name:
+        return Response(
+            {"detail": "Field 'approved_by_name' is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    quiz.status = GeneratedQuiz.Status.APPROVED
+    quiz.approved_by_name = approved_by_name
+    quiz.approved_at = timezone.now()
+    quiz.approval_comment = approval_comment
+    quiz.save(
+        update_fields=[
+            "status",
+            "approved_by_name",
+            "approved_at",
+            "approval_comment",
+            "updated_at",
+        ]
+    )
+
+    logger.info("Quiz approved: quiz_id=%s approved_by=%s", quiz.id, approved_by_name)
+    return Response(GeneratedQuizSerializer(quiz).data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 def submit_quiz_attempt(request, quiz_id: int):
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+
+    if quiz.status != GeneratedQuiz.Status.APPROVED:
+        return Response(
+            {"detail": "Quiz must be approved before it can be assigned."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     if quiz.questions_count == 0:
         return Response(
@@ -377,6 +446,8 @@ def submit_quiz_attempt(request, quiz_id: int):
         answers=stored_answers,
         score=evaluation["score"],
         total_questions=evaluation["total_questions"],
+        status=QuizAttempt.Status.COMPLETED,
+        completed_at=timezone.now(),
     )
 
     logger.info(
@@ -398,3 +469,9 @@ def list_quiz_attempts(request, quiz_id: int):
 
     serializer = QuizAttemptSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def quiz_report(request, quiz_id: int):
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+    return Response(build_quiz_report_payload(quiz), status=status.HTTP_200_OK)

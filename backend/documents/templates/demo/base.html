@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}ДГТУ — Demo UI{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #111827;
+            --card: #ffffff;
+            --muted: #64748b;
+            --text: #0f172a;
+            --line: #e2e8f0;
+            --primary: #2563eb;
+            --primary-soft: #dbeafe;
+            --success: #15803d;
+            --success-soft: #dcfce7;
+            --warning: #b45309;
+            --warning-soft: #fef3c7;
+            --danger: #b91c1c;
+            --danger-soft: #fee2e2;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: #f8fafc;
+            color: var(--text);
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            color: #fff;
+            padding: 24px 0;
+        }
+        .container {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+        nav {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 999px;
+            background: rgba(255,255,255,.08);
+        }
+        main { padding: 24px 0 48px; }
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+        h1, h2, h3 { margin: 0 0 12px; }
+        h1 { font-size: 32px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 18px; }
+        p, li { line-height: 1.55; }
+        .muted { color: var(--muted); }
+        .pill {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .pill.primary { background: var(--primary-soft); color: var(--primary); }
+        .pill.success { background: var(--success-soft); color: var(--success); }
+        .pill.warning { background: var(--warning-soft); color: var(--warning); }
+        .pill.danger { background: var(--danger-soft); color: var(--danger); }
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+            text-align: left;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: var(--primary);
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn.secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--line);
+        }
+        .btn.success { background: var(--success); }
+        .btn.warning { background: var(--warning); }
+        .stack { display: grid; gap: 12px; }
+        label {
+            display: grid;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font: inherit;
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        .flash {
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+        .flash.success { background: var(--success-soft); border-color: #bbf7d0; }
+        .flash.error { background: var(--danger-soft); border-color: #fecaca; }
+        .metric { font-size: 28px; font-weight: 700; }
+        .question-card { border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+        .choice { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+        details { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: #fff; }
+        summary { cursor: pointer; font-weight: 600; }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <div class="muted" style="color: rgba(255,255,255,.75);">ДГТУ · интеллектуальная система анализа нормативно-правовых документов</div>
+        <h1 style="margin-top: 8px;">Демонстрационный контур защиты</h1>
+        <p style="max-width: 900px; color: rgba(255,255,255,.92); margin-top: 12px;">
+            Цепочка показа комиссии: документ → версии → изменения → выжимка → тест → прохождение → отчёт.
+        </p>
+        <nav>
+            <a href="{% url 'demo-dashboard' %}">Главная</a>
+            <a href="{% url 'demo-quizzes' %}">Тесты</a>
+            <a href="/api/">API</a>
+            <a href="/admin/">Admin</a>
+        </nav>
+    </div>
+</header>
+<main>
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash {% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+</body>
+</html>

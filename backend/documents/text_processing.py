@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import unicodedata
 from dataclasses import dataclass
 
 MAX_CHUNK_LEN = 2200
@@ -12,6 +13,8 @@ def normalize_text(text: str) -> str:
     if not text:
         return ""
 
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("\ufeff", "")
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = text.replace("—", "-").replace("–", "-")
     text = text.replace("\xa0", " ")

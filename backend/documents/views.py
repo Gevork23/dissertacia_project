@@ -112,4 +112,11 @@ class DocumentVersionViewSet(
     def text(self, request, pk=None):
         version = self.get_object()
         logger.info("Get extracted text: version_id=%s", version.id)
-        return Response({"id": version.id, "text": version.extracted_text})
+        return Response(
+            {
+                "id": version.id,
+                "extracted_text": version.extracted_text,
+                "normalized_text": version.normalized_text,
+                "content_hash": version.content_hash,
+            }
+        )

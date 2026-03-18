@@ -70,11 +70,41 @@ class DocumentVersionAdmin(admin.ModelAdmin):
         "source_filename",
         "file_size",
         "content_type",
+        "has_extracted_text",
         "created_at",
     )
     list_filter = ("document", "content_type")
-    search_fields = ("document__title", "source_filename")
+    search_fields = (
+        "document__title",
+        "source_filename",
+        "content_hash",
+        "extracted_text",
+    )
     ordering = ("document", "-version_number")
+    readonly_fields = (
+        "created_at",
+        "file_size",
+        "content_type",
+        "content_hash",
+        "extracted_text",
+        "normalized_text",
+    )
+    fields = (
+        "document",
+        "version_number",
+        "source_filename",
+        "file",
+        "file_size",
+        "content_type",
+        "content_hash",
+        "extracted_text",
+        "normalized_text",
+        "created_at",
+    )
+
+    @admin.display(boolean=True, description="Текст извлечён")
+    def has_extracted_text(self, obj):
+        return bool(obj.extracted_text)
 
 
 @admin.register(Chunk)

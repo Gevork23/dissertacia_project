@@ -15,6 +15,7 @@ from .models import (
     GeneratedQuiz,
     QuizAttempt,
 )
+from .text_extractors import EmptyExtractedTextError, TextExtractionError, process_uploaded_file
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -137,6 +138,16 @@ class DocumentVersionCreateSerializer(serializers.ModelSerializer):
         )
         file_size = getattr(uploaded_file, "size", 0) or 0
 
+        try:
+            processed_text = process_uploaded_file(
+                uploaded_file=uploaded_file,
+                source_filename=source_filename,
+            )
+        except EmptyExtractedTextError as error:
+            raise serializers.ValidationError({"file": [str(error)]}) from error
+        except TextExtractionError as error:
+            raise serializers.ValidationError({"file": [str(error)]}) from error
+
         with transaction.atomic():
             locked_document = Document.objects.select_for_update().get(pk=document.pk)
             current_max = (
@@ -152,6 +163,9 @@ class DocumentVersionCreateSerializer(serializers.ModelSerializer):
                 file=uploaded_file,
                 file_size=file_size,
                 content_type=content_type,
+                extracted_text=processed_text.extracted_text,
+                normalized_text=processed_text.normalized_text,
+                content_hash=processed_text.content_hash,
             )
             Document.objects.filter(pk=locked_document.pk).update(
                 updated_at=timezone.now()

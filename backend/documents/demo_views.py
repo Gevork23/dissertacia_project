@@ -19,7 +19,6 @@ from .models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
 from .quiz_attempts import evaluate_quiz_answers
 from .serializers import VersionDiffSerializer
 
-
 DEMO_DOCUMENT_TITLE_PREFIX = "DEMO МФЦ:"
 
 

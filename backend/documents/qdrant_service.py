@@ -40,7 +40,9 @@ def get_model() -> SentenceTransformer:
     global _model
     if _model is None:
         try:
-            from sentence_transformers import SentenceTransformer as _SentenceTransformer
+            from sentence_transformers import (
+                SentenceTransformer as _SentenceTransformer,
+            )
         except ImportError as exc:
             raise RuntimeError(
                 "sentence-transformers is not installed. "

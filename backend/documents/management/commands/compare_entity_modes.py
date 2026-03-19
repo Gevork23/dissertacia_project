@@ -88,9 +88,13 @@ class Command(BaseCommand):
                 entities.extend(analysis.entities)
             aggregated[method] = entities
 
-        rules_set = {_entity_key(item) for item in aggregated[ExtractionMethod.RULE_BASED.value]}
+        rules_set = {
+            _entity_key(item) for item in aggregated[ExtractionMethod.RULE_BASED.value]
+        }
         llm_set = {_entity_key(item) for item in aggregated[ExtractionMethod.LLM.value]}
-        hybrid_set = {_entity_key(item) for item in aggregated[ExtractionMethod.HYBRID.value]}
+        hybrid_set = {
+            _entity_key(item) for item in aggregated[ExtractionMethod.HYBRID.value]
+        }
 
         rules_llm_overlap = len(rules_set & llm_set)
         rules_hybrid_overlap = len(rules_set & hybrid_set)
@@ -98,7 +102,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'version_id={version.id} document_id={version.document_id} '
+                f"version_id={version.id} document_id={version.document_id} "
                 f'document="{version.document.title}"'
             )
         )
@@ -107,9 +111,7 @@ class Command(BaseCommand):
         for method in methods:
             entities = aggregated[method]
             counts = _count_entity_types(entities)
-            self.stdout.write(
-                f"{method}: entities={len(entities)} by_type={counts}"
-            )
+            self.stdout.write(f"{method}: entities={len(entities)} by_type={counts}")
 
         self.stdout.write("")
         self.stdout.write(
@@ -120,6 +122,4 @@ class Command(BaseCommand):
             f"rules_vs_hybrid_overlap={rules_hybrid_overlap} "
             f"hybrid_total={len(hybrid_set)}"
         )
-        self.stdout.write(
-            f"llm_vs_hybrid_overlap={llm_hybrid_overlap}"
-        )
+        self.stdout.write(f"llm_vs_hybrid_overlap={llm_hybrid_overlap}")

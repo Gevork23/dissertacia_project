@@ -639,17 +639,11 @@ class OpenAICompatibleLLMEntityExtractor:
         self.timeout = settings.ENTITY_LLM_TIMEOUT_SECONDS
 
         if not self.api_url:
-            raise LLMEntityExtractionError(
-                "ENTITY_LLM_API_URL is not configured."
-            )
+            raise LLMEntityExtractionError("ENTITY_LLM_API_URL is not configured.")
         if not self.api_key:
-            raise LLMEntityExtractionError(
-                "ENTITY_LLM_API_KEY is not configured."
-            )
+            raise LLMEntityExtractionError("ENTITY_LLM_API_KEY is not configured.")
         if not self.model:
-            raise LLMEntityExtractionError(
-                "ENTITY_LLM_MODEL is not configured."
-            )
+            raise LLMEntityExtractionError("ENTITY_LLM_MODEL is not configured.")
 
     def extract(
         self,
@@ -699,17 +693,13 @@ class OpenAICompatibleLLMEntityExtractor:
                 f"LLM HTTP error {error.code}: {body}"
             ) from error
         except urllib.error.URLError as error:
-            raise LLMEntityExtractionError(
-                f"LLM network error: {error}"
-            ) from error
+            raise LLMEntityExtractionError(f"LLM network error: {error}") from error
 
         try:
             data = json.loads(raw_response)
             content = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
-            raise LLMEntityExtractionError(
-                "Unexpected LLM response format."
-            ) from error
+            raise LLMEntityExtractionError("Unexpected LLM response format.") from error
 
         raw_entities = _parse_response_content(content)
         entities: list[dict[str, Any]] = []

@@ -3,7 +3,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_DIR = BASE_DIR.parent
+load_dotenv(PROJECT_DIR / "infra" / ".env", override=False)
 
 
 def env_str(name: str, default: str = "") -> str:
@@ -82,7 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DB_ENGINE = env_str("DB_ENGINE", "postgres").lower()
+DB_ENGINE = env_str("DB_ENGINE", "sqlite").lower()
 if DB_ENGINE == "sqlite":
     DATABASES = {
         "default": {

@@ -96,7 +96,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f'Creating document: "{document_spec.title}" '
-                f'[{document_spec.scenario}]'
+                f"[{document_spec.scenario}]"
             )
         )
 

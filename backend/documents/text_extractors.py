@@ -43,7 +43,6 @@ def _detect_extension(filename: str) -> str:
     return Path(filename or "").suffix.lower()
 
 
-
 def _iter_block_items(parent: DocxDocumentType | _Cell) -> Iterable[Paragraph | Table]:
     if isinstance(parent, DocxDocumentType):
         parent_element = parent.element.body
@@ -55,7 +54,6 @@ def _iter_block_items(parent: DocxDocumentType | _Cell) -> Iterable[Paragraph | 
             yield Paragraph(child, parent)
         elif isinstance(child, CT_Tbl):
             yield Table(child, parent)
-
 
 
 def _extract_table_text(table: Table) -> list[str]:
@@ -85,7 +83,6 @@ def _extract_table_text(table: Table) -> list[str]:
     return rows_text
 
 
-
 def extract_text_from_txt_bytes(data: bytes) -> str:
     decoded_text: str | None = None
 
@@ -100,7 +97,6 @@ def extract_text_from_txt_bytes(data: bytes) -> str:
         decoded_text = data.decode("utf-8", errors="ignore")
 
     return decoded_text.replace("\r\n", "\n").replace("\r", "\n")
-
 
 
 def extract_text_from_docx_bytes(data: bytes) -> str:
@@ -118,7 +114,6 @@ def extract_text_from_docx_bytes(data: bytes) -> str:
     return "\n".join(parts).strip()
 
 
-
 def extract_text_from_pdf_bytes(data: bytes) -> str:
     reader = PdfReader(BytesIO(data))
     pages_text: list[str] = []
@@ -131,7 +126,6 @@ def extract_text_from_pdf_bytes(data: bytes) -> str:
     return "\n\n".join(pages_text).strip()
 
 
-
 def extract_text_from_bytes(data: bytes, filename: str) -> str:
     extension = _detect_extension(filename)
 
@@ -142,11 +136,14 @@ def extract_text_from_bytes(data: bytes, filename: str) -> str:
     if extension == ".pdf":
         return extract_text_from_pdf_bytes(data)
 
-    raise UnsupportedFileTypeError(f"Unsupported file extension: {extension or 'unknown'}")
+    raise UnsupportedFileTypeError(
+        f"Unsupported file extension: {extension or 'unknown'}"
+    )
 
 
-
-def process_uploaded_file(uploaded_file, source_filename: str | None = None) -> ProcessedDocumentText:
+def process_uploaded_file(
+    uploaded_file, source_filename: str | None = None
+) -> ProcessedDocumentText:
     filename = source_filename or getattr(uploaded_file, "name", "") or ""
 
     uploaded_file.seek(0)

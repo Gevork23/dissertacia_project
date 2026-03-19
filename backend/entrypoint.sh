@@ -9,13 +9,16 @@ import socket
 import sys
 import time
 
-services = [
-    (
-        os.environ.get("POSTGRES_HOST", "db"),
-        int(os.environ.get("POSTGRES_PORT", "5432")),
-        "postgres",
-    ),
-]
+services = []
+db_engine = os.environ.get("DB_ENGINE", "postgres").strip().lower()
+if db_engine != "sqlite":
+    services.append(
+        (
+            os.environ.get("POSTGRES_HOST", "db"),
+            int(os.environ.get("POSTGRES_PORT", "5432")),
+            "postgres",
+        )
+    )
 
 if os.environ.get("QDRANT_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}:
     services.append(

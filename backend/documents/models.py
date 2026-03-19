@@ -2,7 +2,6 @@ from pathlib import Path
 
 from django.db import models
 
-
 ALLOWED_DOCUMENT_EXTENSIONS = {".txt", ".pdf", ".docx"}
 
 
@@ -10,10 +9,7 @@ def document_version_upload_to(instance: "DocumentVersion", filename: str) -> st
     safe_name = Path(filename).name
     document_id = instance.document_id or "unknown"
     version_number = instance.version_number or "unassigned"
-    return (
-        f"documents/document_{document_id}/"
-        f"version_{version_number}/{safe_name}"
-    )
+    return f"documents/document_{document_id}/" f"version_{version_number}/{safe_name}"
 
 
 class Document(models.Model):
@@ -161,8 +157,7 @@ class VersionComparison(models.Model):
 
     def __str__(self) -> str:
         return (
-            f"Comparison {self.id}: "
-            f"{self.from_version_id} -> {self.to_version_id}"
+            f"Comparison {self.id}: " f"{self.from_version_id} -> {self.to_version_id}"
         )
 
 

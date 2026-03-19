@@ -6,7 +6,6 @@ from typing import Any, Mapping
 
 from .importance_service import classify_change_importance
 
-
 KNOWN_CHANGE_TYPES = {
     "deadline",
     "document",
@@ -35,7 +34,14 @@ def _stringify(value: Any) -> str:
     if isinstance(value, (int, float, bool)):
         return str(value)
     if isinstance(value, dict):
-        for key in ("text", "content", "normalized_text", "body", "value", "extracted_text"):
+        for key in (
+            "text",
+            "content",
+            "normalized_text",
+            "body",
+            "value",
+            "extracted_text",
+        ):
             if key in value and value[key]:
                 return _stringify(value[key])
         return json.dumps(value, ensure_ascii=False)
@@ -139,7 +145,9 @@ def extract_change_texts(change: Mapping[str, Any]) -> tuple[str, str, str]:
     return old_text, new_text, diff_text
 
 
-def infer_change_type(change: Mapping[str, Any], old_text: str, new_text: str, diff_text: str) -> str:
+def infer_change_type(
+    change: Mapping[str, Any], old_text: str, new_text: str, diff_text: str
+) -> str:
     type_mapping = {
         "deadline_change": "deadline",
         "document_change": "document",
@@ -157,7 +165,9 @@ def infer_change_type(change: Mapping[str, Any], old_text: str, new_text: str, d
 
     change_classification = change.get("change_classification")
     if isinstance(change_classification, dict):
-        primary_type = _normalize_text(_stringify(change_classification.get("primary_type")))
+        primary_type = _normalize_text(
+            _stringify(change_classification.get("primary_type"))
+        )
         if primary_type in type_mapping:
             return type_mapping[primary_type]
 
@@ -175,16 +185,24 @@ def infer_change_type(change: Mapping[str, Any], old_text: str, new_text: str, d
     if re.search(r"\bответственност\w*|\bдисциплинарн\w*|\bматериальн\w*", text):
         return "responsibility"
 
-    if re.search(r"\bпредставля\w+\b.*\bдокумент|\bснилс\b|\bпаспорт\b|\bдоверенност\w*", text):
+    if re.search(
+        r"\bпредставля\w+\b.*\bдокумент|\bснилс\b|\bпаспорт\b|\bдоверенност\w*", text
+    ):
         return "document"
 
-    if re.search(r"\bпредварительн\w+\s+запис|\bличн\w+\s+кабинет|\bуведомлен\w*|\bконсультирован\w*", text):
+    if re.search(
+        r"\bпредварительн\w+\s+запис|\bличн\w+\s+кабинет|\bуведомлен\w*|\bконсультирован\w*",
+        text,
+    ):
         return "procedure"
 
     if re.search(r"\bместу\s+пребывания\b|\bзаконн\w+\s+представител\w*", text):
         return "condition"
 
-    if re.search(r"\bтелефон\w*|\bгоряч\w+\s+лини|\bофициальн\w+\s+сайт|\bинформационн\w+\s+стенд", text):
+    if re.search(
+        r"\bтелефон\w*|\bгоряч\w+\s+лини|\bофициальн\w+\s+сайт|\bинформационн\w+\s+стенд",
+        text,
+    ):
         return "informational"
 
     old_canon = re.sub(r"[^\w\s]", " ", _normalize_text(old_text))
@@ -220,14 +238,20 @@ def _extract_document_entities(old_text: str, new_text: str) -> list[dict[str, s
     new_match = re.search(r"представля\w+\s+(.+)", new_text, re.IGNORECASE)
 
     if old_match:
-        entities.append({"type": "required_documents_old", "value": old_match.group(1).strip(" .")})
+        entities.append(
+            {"type": "required_documents_old", "value": old_match.group(1).strip(" .")}
+        )
     if new_match:
-        entities.append({"type": "required_documents_new", "value": new_match.group(1).strip(" .")})
+        entities.append(
+            {"type": "required_documents_new", "value": new_match.group(1).strip(" .")}
+        )
 
     return entities
 
 
-def extract_entities_baseline(change_type: str, old_text: str, new_text: str) -> list[dict[str, str]]:
+def extract_entities_baseline(
+    change_type: str, old_text: str, new_text: str
+) -> list[dict[str, str]]:
     if change_type == "deadline":
         return _extract_deadline_entities(old_text, new_text)
 
@@ -293,7 +317,10 @@ def enrich_change(change: Mapping[str, Any]) -> dict[str, Any]:
 
 def enrich_compare_payload(payload: Any) -> Any:
     if isinstance(payload, list):
-        return [enrich_change(item) if isinstance(item, Mapping) else item for item in payload]
+        return [
+            enrich_change(item) if isinstance(item, Mapping) else item
+            for item in payload
+        ]
 
     if isinstance(payload, dict):
         result = dict(payload)

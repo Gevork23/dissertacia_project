@@ -47,9 +47,13 @@ class DocumentAdmin(admin.ModelAdmin):
     inlines = [DocumentVersionInline]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).annotate(
-            versions_count_value=Count("versions"),
-            latest_version_number_value=Max("versions__version_number"),
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                versions_count_value=Count("versions"),
+                latest_version_number_value=Max("versions__version_number"),
+            )
         )
 
     @admin.display(description="Версий")

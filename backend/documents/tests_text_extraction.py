@@ -27,14 +27,8 @@ class TextExtractionUnitTests(TestCase):
         return buffer.getvalue()
 
     def make_pdf_bytes(self, text: str = "Hello PDF") -> bytes:
-        safe_text = (
-            text.replace("\\", "\\\\")
-            .replace("(", "\\(")
-            .replace(")", "\\)")
-        )
-        stream = (
-            f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
-        )
+        safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        stream = f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
         objects = [
             b"<< /Type /Catalog /Pages 2 0 R >>",
             b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -42,7 +36,11 @@ class TextExtractionUnitTests(TestCase):
                 b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] "
                 b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
             ),
-            b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+            b"<< /Length "
+            + str(len(stream)).encode()
+            + b" >>\nstream\n"
+            + stream
+            + b"\nendstream",
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
         ]
 
@@ -95,7 +93,9 @@ class TextExtractionUnitTests(TestCase):
         processed = process_uploaded_file(uploaded_file)
 
         self.assertEqual(processed.extracted_text, "Строка 1\n\nСтрока 2")
-        self.assertEqual(processed.normalized_text, normalize_text(processed.extracted_text))
+        self.assertEqual(
+            processed.normalized_text, normalize_text(processed.extracted_text)
+        )
         self.assertEqual(processed.content_hash, sha256_hex(processed.normalized_text))
 
     def test_process_uploaded_file_rejects_pdf_without_extractable_text(self):

@@ -147,16 +147,14 @@ def _finalize_classification(
     scores: dict[str, float],
     rationale: list[str],
 ) -> dict[str, Any]:
-    matched_types = [
-        change_type
-        for change_type, score in scores.items()
-        if score > 0
-    ]
+    matched_types = [change_type for change_type, score in scores.items() if score > 0]
 
     if not matched_types:
         matched_types = [ChangeType.EDITORIAL.value]
         scores[ChangeType.EDITORIAL.value] = 1.0
-        rationale.append("Не найдено доменных сигналов, изменение отнесено к editorial.")
+        rationale.append(
+            "Не найдено доменных сигналов, изменение отнесено к editorial."
+        )
 
     primary_type = sorted(
         matched_types,
@@ -320,10 +318,9 @@ def classify_modified_chunk_pair(
         "последовательно",
         "изложен",
     )
-    editorial_context = (
-        any(token in from_editorial for token in editorial_vocab)
-        or any(token in to_editorial for token in editorial_vocab)
-    )
+    editorial_context = any(
+        token in from_editorial for token in editorial_vocab
+    ) or any(token in to_editorial for token in editorial_vocab)
 
     only_soft_domain_signal = all_entity_types <= {
         EntityType.OBLIGATION.value,
@@ -371,6 +368,7 @@ def classify_modified_chunk_pair(
         )
 
     return _finalize_classification(scores=scores, rationale=rationale)
+
 
 def summarize_change_types(diff_payload: dict[str, Any]) -> dict[str, int]:
     counts = {

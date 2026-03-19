@@ -1,7 +1,7 @@
 import shutil
 import tempfile
-
 from unittest.mock import Mock
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
@@ -15,8 +15,8 @@ from .analysis_service import (
 )
 from .change_types import ChangeType
 from .diff import build_version_diff
-from .entity_schema import EntityType, ExtractionMethod
 from .entity_extraction import extract_entities_from_text
+from .entity_schema import EntityType, ExtractionMethod
 from .models import Chunk, ChunkAnalysis, Document, DocumentVersion, GeneratedQuiz
 from .text_processing import sha256_hex
 
@@ -640,6 +640,22 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(save_response.status_code, status.HTTP_201_CREATED)
         quiz_id = save_response.data["id"]
 
+        approve_url = reverse("approve-quiz", kwargs={"quiz_id": quiz_id})
+        approve_response = self.client.post(
+            approve_url,
+            {
+                "approved_by_name": "Иванова Е.А.",
+                "approval_comment": "Готово к выдаче.",
+            },
+            format="json",
+        )
+
+        self.assertEqual(approve_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            approve_response.data["status"],
+            GeneratedQuiz.Status.APPROVED,
+        )
+
         questions = save_response.data["payload"]["questions"]
         self.assertEqual(len(questions), 2)
 
@@ -725,6 +741,75 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("there are no changes", response.data["detail"])
 
+    def test_submit_quiz_attempt_rejects_unapproved_quiz(self):
+        document = Document.objects.create(
+            title="Неутверждённый квиз",
+            description="",
+        )
+
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая версия",
+            filename="draft1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая версия",
+            filename="draft2.txt",
+        )
+
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Черновик квиза",
+            payload={
+                "from_version": {
+                    "id": version_one.id,
+                    "document_id": document.id,
+                    "version_number": version_one.version_number,
+                    "created_at": version_one.created_at.isoformat(),
+                },
+                "to_version": {
+                    "id": version_two.id,
+                    "document_id": document.id,
+                    "version_number": version_two.version_number,
+                    "created_at": version_two.created_at.isoformat(),
+                },
+                "identical": False,
+                "questions_count": 1,
+                "questions": [
+                    {
+                        "question": "Что изменилось?",
+                        "answer": "Изменился порядок действий",
+                    }
+                ],
+            },
+            questions_count=1,
+        )
+
+        url = reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz.id})
+        response = self.client.post(
+            url,
+            {
+                "participant_name": "Tester",
+                "answers": [
+                    {
+                        "question_index": 0,
+                        "answer": "Изменился порядок действий",
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["detail"],
+            "Quiz must be approved before it can be assigned.",
+        )
+
     def test_submit_quiz_attempt_rejects_empty_quiz(self):
         document = Document.objects.create(
             title="Пустой квиз",
@@ -766,6 +851,8 @@ class CompareVersionsAPITests(APITestCase):
                 "questions": [],
             },
             questions_count=0,
+            status=GeneratedQuiz.Status.APPROVED,
+            approved_by_name="Иванова Е.А.",
         )
 
         url = reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz.id})
@@ -783,6 +870,7 @@ class CompareVersionsAPITests(APITestCase):
             response.data["detail"],
             "Cannot submit an attempt for an empty quiz.",
         )
+
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class BaselineEntityExtractionTests(APITestCase):
@@ -1026,6 +1114,7 @@ class BaselineEntityExtractionTests(APITestCase):
         self.assertEqual(analyses.count(), 1)
         self.assertGreaterEqual(analyses.first().entities_count, 2)
 
+
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class LLMEntityExtractionModeTests(APITestCase):
     @classmethod
@@ -1241,6 +1330,7 @@ class LLMEntityExtractionModeTests(APITestCase):
             EntityType.REFUSAL_REASON.value,
         )
 
+
 class LLMEntityPostprocessingTests(SimpleTestCase):
     def test_llm_sanitize_deadline_entity_adds_structured_fields(self):
         from documents.llm_entity_extraction import _sanitize_entity
@@ -1311,6 +1401,7 @@ class LLMEntityPostprocessingTests(SimpleTestCase):
             entity["refusal_reason_text"],
             "представления недостоверных сведений",
         )
+
 
 class ChangeClassificationUnitTests(SimpleTestCase):
     def test_classify_deadline_modified_chunk_pair(self):

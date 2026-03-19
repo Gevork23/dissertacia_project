@@ -5,7 +5,6 @@ import re
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
-
 LABELS = ("critical", "important", "informational", "editorial")
 LABEL_PRIORITY = {
     "critical": 4,
@@ -191,7 +190,9 @@ def classify_change_importance(
 
     old_norm = _normalize_text(old_text)
     new_norm = _normalize_text(new_text)
-    combined_text = _normalize_text(" ".join(part for part in (old_text, new_text, diff_text) if part))
+    combined_text = _normalize_text(
+        " ".join(part for part in (old_text, new_text, diff_text) if part)
+    )
     change_type_norm = _normalize_text(change_type)
     entities = _parse_entities(extracted_entities)
     entity_types = _entity_types(entities)
@@ -247,7 +248,11 @@ def classify_change_importance(
         hit("informational", 90, "informational_keywords")
 
     # 4. Редакционные эвристики
-    if old_norm and new_norm and _canonical_editorial(old_text) == _canonical_editorial(new_text):
+    if (
+        old_norm
+        and new_norm
+        and _canonical_editorial(old_text) == _canonical_editorial(new_text)
+    ):
         hit("editorial", 85, "normalized_text_equal")
 
     if _looks_like_contact_or_reference_addition(old_text, new_text):

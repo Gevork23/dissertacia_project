@@ -122,4 +122,3 @@ class DemoViewsTests(TestCase):
         attempt = QuizAttempt.objects.get()
         self.assertEqual(attempt.score, 1)
         self.assertEqual(attempt.total_questions, 1)
-        

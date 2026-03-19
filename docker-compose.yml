@@ -17,6 +17,7 @@ services:
   qdrant:
     image: qdrant/qdrant:latest
     restart: unless-stopped
+    profiles: ["search"]
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -34,6 +35,8 @@ services:
       DJANGO_SETTINGS_MODULE: config.settings
       DJANGO_LOG_LEVEL: INFO
       STARTUP_WAIT_TIMEOUT_SECONDS: 60
+      DB_ENGINE: postgres
+      POSTGRES_HOST: db
     volumes:
       - ./backend:/app
       - media:/app/media

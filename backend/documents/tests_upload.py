@@ -53,14 +53,8 @@ class DocumentUploadAPITests(APITestCase):
         name: str = "reglament.pdf",
         text: str = "Hello PDF",
     ) -> SimpleUploadedFile:
-        safe_text = (
-            text.replace("\\", "\\\\")
-            .replace("(", "\\(")
-            .replace(")", "\\)")
-        )
-        stream = (
-            f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
-        )
+        safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        stream = f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
         objects = [
             b"<< /Type /Catalog /Pages 2 0 R >>",
             b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -68,7 +62,11 @@ class DocumentUploadAPITests(APITestCase):
                 b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] "
                 b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
             ),
-            b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+            b"<< /Length "
+            + str(len(stream)).encode()
+            + b" >>\nstream\n"
+            + stream
+            + b"\nendstream",
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
         ]
 
@@ -128,7 +126,9 @@ class DocumentUploadAPITests(APITestCase):
         self.assertEqual(response.data["document"], document.id)
         self.assertEqual(response.data["version_number"], 1)
         self.assertEqual(response.data["source_filename"], "reglament_v1.txt")
-        self.assertEqual(response.data["file_size"], len("Первая редакция".encode("utf-8")))
+        self.assertEqual(
+            response.data["file_size"], len("Первая редакция".encode("utf-8"))
+        )
         self.assertEqual(response.data["content_type"], "text/plain")
 
         version = DocumentVersion.objects.get(pk=response.data["id"])
@@ -136,7 +136,9 @@ class DocumentUploadAPITests(APITestCase):
         self.assertIn(f"document_{document.id}", version.file.name)
         self.assertIn("version_1", version.file.name)
 
-    def test_upload_populates_extracted_text_normalized_text_and_content_hash_for_txt(self):
+    def test_upload_populates_extracted_text_normalized_text_and_content_hash_for_txt(
+        self,
+    ):
         document = Document.objects.create(title="TXT документ")
         raw_text = "Строка 1\r\n\r\nСтрока 2"
 

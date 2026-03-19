@@ -37,9 +37,7 @@ def _count_types(entities: list[dict]) -> dict[str, int]:
 
 
 class Command(BaseCommand):
-    help = (
-        "Compare rules / llm / hybrid extraction across demo corpus versions."
-    )
+    help = "Compare rules / llm / hybrid extraction across demo corpus versions."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -99,8 +97,7 @@ class Command(BaseCommand):
 
         for version in versions:
             aggregated = {
-                method: _collect_entities(version, method)
-                for method in methods
+                method: _collect_entities(version, method) for method in methods
             }
 
             missing = [method for method, items in aggregated.items() if not items]
@@ -112,9 +109,9 @@ class Command(BaseCommand):
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'version_id={version.id} '
-                    f'document_id={version.document_id} '
-                    f'version_number={version.version_number} '
+                    f"version_id={version.id} "
+                    f"document_id={version.document_id} "
+                    f"version_number={version.version_number} "
                     f'document="{version.document.title}"'
                 )
             )
@@ -135,12 +132,10 @@ class Command(BaseCommand):
                 for item in aggregated[ExtractionMethod.RULE_BASED.value]
             }
             llm_set = {
-                _entity_key(item)
-                for item in aggregated[ExtractionMethod.LLM.value]
+                _entity_key(item) for item in aggregated[ExtractionMethod.LLM.value]
             }
             hybrid_set = {
-                _entity_key(item)
-                for item in aggregated[ExtractionMethod.HYBRID.value]
+                _entity_key(item) for item in aggregated[ExtractionMethod.HYBRID.value]
             }
 
             overlaps["rules_vs_llm"] += len(rules_set & llm_set)

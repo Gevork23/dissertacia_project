@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-
+from documents.domain.text_processing import (
+    chunk_by_structure_ru,
+    normalize_text,
+    sha256_hex,
+)
 from documents.models import Chunk, DocumentVersion
-from documents.qdrant_service import index_chunks
-from documents.text_processing import chunk_by_structure_ru, normalize_text, sha256_hex
+from documents.services.search import index_chunks
 
 
 class Command(BaseCommand):

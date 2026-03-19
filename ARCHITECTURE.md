@@ -81,7 +81,26 @@ LLM, embeddings и semantic search допустимы только как уси
 - на каких изменениях основан квиз;
 - как посчитан результат попытки.
 
+### 3.6. Явные границы слоёв внутри backend
+
+Для app `documents` принят практический, а не академический вариант разбиения:
+
+- `domain/` — детерминированная предметная логика сравнения редакций, enrichment, summary и quiz generation;
+- `services/` — orchestration и интеграции: ingestion, importance analysis, optional search/Qdrant, evaluation services;
+- `api/` — HTTP/DRF слой: serializers, endpoints, viewsets, url routing;
+- `demo/` — демонстрационный presentation-слой и demo corpus;
+- `models.py` — единая ORM-модель данных MVP.
+
+Это разбиение выбрано как компромисс между читаемостью и устойчивостью:
+
+- без переусложнения отдельными микросервисами или десятками Django apps;
+- без смешения demo/UI, API и доменного ядра в одном плоском каталоге;
+- с сохранением понятного пути роста к следующим фазам проекта.
+
 ## 4. Логические подсистемы
+
+На уровне структуры репозитория эти подсистемы теперь отражаются напрямую в каталогах `backend/documents/domain`, `backend/documents/services`, `backend/documents/api` и `backend/documents/demo`.
+
 
 ### 4.1. Хранение документов
 

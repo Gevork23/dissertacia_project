@@ -7,12 +7,12 @@ from django.test import TestCase
 from docx import Document as DocxDocument
 from pypdf import PdfWriter
 
-from .text_extractors import (
+from ..domain.text_extractors import (
     EmptyExtractedTextError,
     extract_text_from_bytes,
     process_uploaded_file,
 )
-from .text_processing import normalize_text, sha256_hex
+from ..domain.text_processing import normalize_text, sha256_hex
 
 
 class TextExtractionUnitTests(TestCase):

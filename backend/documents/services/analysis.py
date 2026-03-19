@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from django.db import transaction
 
-from .entity_extraction import extract_entities_from_text
-from .entity_schema import ExtractionMethod
-from .llm_entity_extraction import get_default_llm_entity_extractor
-from .models import Chunk, ChunkAnalysis, DocumentVersion
+from ..domain.entity_extraction import extract_entities_from_text
+from ..domain.entity_schema import ExtractionMethod
+from ..domain.llm_entity_extraction import get_default_llm_entity_extractor
+from ..models import Chunk, ChunkAnalysis, DocumentVersion
 
 
 def normalize_analysis_mode(mode: str) -> str:

@@ -4,7 +4,7 @@ import json
 import re
 from typing import Any, Mapping
 
-from .importance_service import classify_change_importance
+from ..services.importance import classify_change_importance
 
 KNOWN_CHANGE_TYPES = {
     "deadline",

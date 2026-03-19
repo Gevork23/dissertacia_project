@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .api import (
+from .endpoints import (
     approve_quiz,
     compare_versions,
     compare_versions_brief,
@@ -13,7 +13,7 @@ from .api import (
     search,
     submit_quiz_attempt,
 )
-from .views import DocumentVersionViewSet, DocumentViewSet
+from .viewsets import DocumentVersionViewSet, DocumentViewSet
 
 router = DefaultRouter()
 router.register("documents", DocumentViewSet, basename="documents")

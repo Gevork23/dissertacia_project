@@ -19,7 +19,7 @@ from qdrant_client.http.models import (
     VectorParams,
 )
 
-from .models import Chunk, DocumentVersion
+from ..models import Chunk, DocumentVersion
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer

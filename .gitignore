@@ -242,3 +242,7 @@ node_modules/
 # Temporary files
 tmp/
 .cache_project/
+
+# Local runtime artifacts
+backend/media/
+backend/logs/

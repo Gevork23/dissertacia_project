@@ -8,17 +8,17 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .analysis_service import (
+from ..domain.change_types import ChangeType
+from ..domain.diff import build_version_diff
+from ..domain.entity_extraction import extract_entities_from_text
+from ..domain.entity_schema import EntityType, ExtractionMethod
+from ..domain.text_processing import sha256_hex
+from ..models import Chunk, ChunkAnalysis, Document, DocumentVersion, GeneratedQuiz
+from ..services.analysis import (
     analyze_chunk_entities,
     analyze_version_entities,
     extract_entities_by_mode,
 )
-from .change_types import ChangeType
-from .diff import build_version_diff
-from .entity_extraction import extract_entities_from_text
-from .entity_schema import EntityType, ExtractionMethod
-from .models import Chunk, ChunkAnalysis, Document, DocumentVersion, GeneratedQuiz
-from .text_processing import sha256_hex
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -1333,7 +1333,7 @@ class LLMEntityExtractionModeTests(APITestCase):
 
 class LLMEntityPostprocessingTests(SimpleTestCase):
     def test_llm_sanitize_deadline_entity_adds_structured_fields(self):
-        from documents.llm_entity_extraction import _sanitize_entity
+        from documents.domain.llm_entity_extraction import _sanitize_entity
 
         entity = _sanitize_entity(
             {
@@ -1356,7 +1356,7 @@ class LLMEntityPostprocessingTests(SimpleTestCase):
         self.assertEqual(entity["normalized_value"], "P7_WORKING_DAYS")
 
     def test_llm_sanitize_required_document_entity_adds_actor_and_role(self):
-        from documents.llm_entity_extraction import _sanitize_entity
+        from documents.domain.llm_entity_extraction import _sanitize_entity
 
         entity = _sanitize_entity(
             {
@@ -1380,7 +1380,7 @@ class LLMEntityPostprocessingTests(SimpleTestCase):
         )
 
     def test_llm_sanitize_refusal_reason_entity_adds_category(self):
-        from documents.llm_entity_extraction import _sanitize_entity
+        from documents.domain.llm_entity_extraction import _sanitize_entity
 
         entity = _sanitize_entity(
             {
@@ -1405,7 +1405,7 @@ class LLMEntityPostprocessingTests(SimpleTestCase):
 
 class ChangeClassificationUnitTests(SimpleTestCase):
     def test_classify_deadline_modified_chunk_pair(self):
-        from documents.change_classification import classify_modified_chunk_pair
+        from documents.domain.change_classification import classify_modified_chunk_pair
 
         classification = classify_modified_chunk_pair(
             from_chunk={
@@ -1444,7 +1444,9 @@ class ChangeClassificationUnitTests(SimpleTestCase):
         )
 
     def test_classify_document_added_chunk(self):
-        from documents.change_classification import classify_added_or_removed_chunk
+        from documents.domain.change_classification import (
+            classify_added_or_removed_chunk,
+        )
 
         classification = classify_added_or_removed_chunk(
             {
@@ -1469,7 +1471,7 @@ class ChangeClassificationUnitTests(SimpleTestCase):
         )
 
     def test_classify_moved_chunk_pair_as_structural(self):
-        from documents.change_classification import classify_moved_chunk_pair
+        from documents.domain.change_classification import classify_moved_chunk_pair
 
         classification = classify_moved_chunk_pair(
             from_chunk={
@@ -1496,7 +1498,7 @@ class ChangeClassificationUnitTests(SimpleTestCase):
         )
 
     def test_classify_editorial_modified_chunk_pair(self):
-        from documents.change_classification import classify_modified_chunk_pair
+        from documents.domain.change_classification import classify_modified_chunk_pair
 
         classification = classify_modified_chunk_pair(
             from_chunk={

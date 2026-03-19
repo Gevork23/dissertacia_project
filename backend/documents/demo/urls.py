@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .demo_views import (
+from .views import (
     approve_quiz_view,
     attempt_detail,
     compare_page,

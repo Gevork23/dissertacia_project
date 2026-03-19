@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections import defaultdict
 from difflib import SequenceMatcher, unified_diff
 
+from ..models import Chunk, DocumentVersion
 from .change_classification import (
     classify_added_or_removed_chunk,
     classify_modified_chunk_pair,
     classify_moved_chunk_pair,
     summarize_change_types,
 )
-from .models import Chunk, DocumentVersion
 
 HIGH_TEXT_SIMILARITY_THRESHOLD = 0.92
 TEXT_SIMILARITY_THRESHOLD = 0.80

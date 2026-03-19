@@ -11,8 +11,8 @@ from pypdf import PdfWriter
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Document, DocumentVersion
-from .text_processing import normalize_text, sha256_hex
+from ..domain.text_processing import normalize_text, sha256_hex
+from ..models import Document, DocumentVersion
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 

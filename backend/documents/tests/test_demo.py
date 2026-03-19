@@ -5,8 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
-from .text_processing import sha256_hex
+from ..domain.text_processing import sha256_hex
+from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 

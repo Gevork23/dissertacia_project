@@ -10,14 +10,14 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
 
-from .api import build_quiz_report_payload
-from .change_enrichment import enrich_compare_payload
-from .diff import build_version_diff
-from .diff_quiz import build_quiz_from_diff
-from .diff_summary import build_brief_summary
-from .models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
-from .quiz_attempts import evaluate_quiz_answers
-from .serializers import VersionDiffSerializer
+from ..api.endpoints import build_quiz_report_payload
+from ..api.serializers import VersionDiffSerializer
+from ..domain.change_enrichment import enrich_compare_payload
+from ..domain.diff import build_version_diff
+from ..domain.diff_quiz import build_quiz_from_diff
+from ..domain.diff_summary import build_brief_summary
+from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
+from ..services.quiz_attempts import evaluate_quiz_answers
 
 DEMO_DOCUMENT_TITLE_PREFIX = "DEMO МФЦ:"
 

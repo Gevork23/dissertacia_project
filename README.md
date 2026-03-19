@@ -83,12 +83,31 @@
 
 ## Структура репозитория
 
-- `backend/` — Django backend, API, demo UI, тесты
-- `docs/` — заметки и сценарии демонстрации
-- `data/` — вспомогательные датасеты и demo-данные
-- `tools/` — утилиты подготовки данных
+- `backend/` — Django backend и основной runtime-контур
+- `docs/` — материалы для защиты и демонстрации
+- `data/` — датасеты и ручные sample-артефакты
+- `tools/` — offline-утилиты подготовки и оценки данных
 - `infra/` — шаблоны переменных окружения
-- `scripts/` — вспомогательные скрипты проверки
+- `scripts/` — инженерные сценарии проверки и smoke-прогона
+
+### Карта backend
+
+Главная предметная зона находится в `backend/documents/` и после нормализации Фазы 2 разделена по слоям:
+
+- `models.py`, `admin.py` — ORM и административный слой;
+- `api/` — DRF serializers, HTTP endpoints и viewsets;
+- `demo/` — demo UI на Django templates и deterministic demo corpus;
+- `domain/` — сравнение версий, enrichment, extraction, quiz/summary logic;
+- `services/` — ingestion, importance analysis, optional search/Qdrant, evaluation services;
+- `tests/` — тесты app-модуля, сгруппированные по сценариям.
+
+Такое разложение позволяет отдельно объяснять комиссии:
+
+- где находится доменная логика сравнения редакций;
+- где находятся интеграционные и служебные сервисы;
+- где API-слой;
+- где demo-представление;
+- где лежат тесты и вспомогательные sample-материалы.
 
 ## Документы проекта
 
@@ -127,8 +146,8 @@ python manage.py runserver
 ```bash
 python manage.py check
 cd ..
-./scripts/test.sh
-./scripts/lint.sh
+bash ./scripts/test.sh
+bash ./scripts/lint.sh
 ```
 
 ## Быстрый старт: Docker Compose

@@ -8,19 +8,19 @@ from django.db.models import Max
 from django.utils import timezone
 from rest_framework import serializers
 
-from .ingestion import rebuild_version_chunks
-from .models import (
+from ..domain.text_extractors import (
+    EmptyExtractedTextError,
+    TextExtractionError,
+    process_uploaded_file,
+)
+from ..models import (
     ALLOWED_DOCUMENT_EXTENSIONS,
     Document,
     DocumentVersion,
     GeneratedQuiz,
     QuizAttempt,
 )
-from .text_extractors import (
-    EmptyExtractedTextError,
-    TextExtractionError,
-    process_uploaded_file,
-)
+from ..services.ingestion import rebuild_version_chunks
 
 
 class DocumentSerializer(serializers.ModelSerializer):

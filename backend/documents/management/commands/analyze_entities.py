@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-
-from documents.analysis_service import analyze_version_entities
 from documents.models import DocumentVersion
+from documents.services.analysis import analyze_version_entities
 
 
 class Command(BaseCommand):

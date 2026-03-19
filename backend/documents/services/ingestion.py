@@ -4,9 +4,9 @@ import logging
 
 from django.conf import settings
 
-from .models import Chunk, DocumentVersion
-from .qdrant_service import index_chunks
-from .text_processing import chunk_by_structure_ru, normalize_text, sha256_hex
+from ..domain.text_processing import chunk_by_structure_ru, normalize_text, sha256_hex
+from ..models import Chunk, DocumentVersion
+from .search import index_chunks
 
 logger = logging.getLogger("documents.ingestion")
 

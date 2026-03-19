@@ -1,6 +1,5 @@
 from django.test import SimpleTestCase
-
-from documents.importance_service import classify_change_importance
+from documents.services.importance import classify_change_importance
 
 
 class ImportanceRulesTests(SimpleTestCase):

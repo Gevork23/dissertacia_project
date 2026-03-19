@@ -11,13 +11,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .change_enrichment import enrich_compare_payload
-from .diff import build_version_diff
-from .diff_quiz import build_quiz_from_diff
-from .diff_summary import build_brief_summary
-from .models import DocumentVersion, GeneratedQuiz, QuizAttempt
-from .qdrant_service import search_chunks
-from .quiz_attempts import evaluate_quiz_answers
+from ..domain.change_enrichment import enrich_compare_payload
+from ..domain.diff import build_version_diff
+from ..domain.diff_quiz import build_quiz_from_diff
+from ..domain.diff_summary import build_brief_summary
+from ..models import DocumentVersion, GeneratedQuiz, QuizAttempt
+from ..services.quiz_attempts import evaluate_quiz_answers
+from ..services.search import search_chunks
 from .serializers import (
     GeneratedQuizSerializer,
     QuizAttemptSerializer,

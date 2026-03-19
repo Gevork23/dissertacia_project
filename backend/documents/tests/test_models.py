@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import TestCase
 
-from .models import (
+from ..models import (
     Answer,
     Choice,
     Chunk,

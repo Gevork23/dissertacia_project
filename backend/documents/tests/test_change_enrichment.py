@@ -1,6 +1,5 @@
 from django.test import SimpleTestCase
-
-from documents.change_enrichment import enrich_change
+from documents.domain.change_enrichment import enrich_change
 
 
 class ChangeEnrichmentTests(SimpleTestCase):

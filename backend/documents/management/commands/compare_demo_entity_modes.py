@@ -3,10 +3,9 @@ from __future__ import annotations
 from collections import Counter
 
 from django.core.management.base import BaseCommand, CommandError
-
-from documents.analysis_service import analyze_version_entities
-from documents.entity_schema import ExtractionMethod
+from documents.domain.entity_schema import ExtractionMethod
 from documents.models import ChunkAnalysis, DocumentVersion
+from documents.services.analysis import analyze_version_entities
 
 
 def _entity_key(entity: dict) -> tuple[str, str, str]:

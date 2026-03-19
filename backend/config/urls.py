@@ -15,11 +15,14 @@ def root_redirect(request):
 
 urlpatterns = [
     path("", root_redirect, name="root-redirect"),
-    path("demo/", include("documents.demo_urls")),
+    path("demo/", include("documents.demo.urls")),
     path("admin/", admin.site.urls),
     path("api/", include("core.urls")),
-    path("api/", include("documents.urls")),
-    path("api/v1/", include(("documents.urls", "documents"), namespace="documents-v1")),
+    path("api/", include("documents.api.urls")),
+    path(
+        "api/v1/",
+        include(("documents.api.urls", "documents"), namespace="documents-v1"),
+    ),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

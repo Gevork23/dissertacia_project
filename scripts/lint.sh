@@ -2,13 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-BACKEND_DIR="$ROOT_DIR/backend"
 
 if command -v docker >/dev/null 2>&1 && docker compose ps --services 2>/dev/null | grep -qx backend; then
-  docker compose exec backend sh -c "cd /app && isort --check-only . && black --check . && flake8 ."
+  docker compose exec backend sh -c "cd /app && isort --check-only backend tools && black --check backend tools && flake8 backend tools"
 else
-  cd "$BACKEND_DIR"
-  python -m isort --check-only .
-  python -m black --check .
-  python -m flake8 .
+  cd "$ROOT_DIR"
+  python -m isort --check-only backend tools
+  python -m black --check backend tools
+  python -m flake8 backend tools
 fi

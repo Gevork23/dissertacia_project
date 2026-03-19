@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-
-from documents.diff import build_version_diff
+from documents.domain.diff import build_version_diff
 from documents.models import DocumentVersion
 
 

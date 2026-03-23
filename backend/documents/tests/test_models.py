@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import TestCase
@@ -33,6 +34,37 @@ class Phase3DomainModelTests(TestCase):
             normalized_text=f"version {version_number}",
             content_hash=f"hash-{version_number}",
         )
+
+    def test_document_auto_generates_document_key(self):
+        document = Document.objects.create(title=" Регламент МФЦ ")
+        self.assertEqual(document.document_key, "регламент-мфц")
+
+    def test_document_current_version_must_belong_to_same_document(self):
+        first_document = Document.objects.create(title="Регламент 1")
+        second_document = Document.objects.create(title="Регламент 2")
+        other_version = self.make_version(document=second_document, version_number=1)
+        first_document.current_version = other_version
+
+        with self.assertRaises(ValidationError):
+            first_document.save()
+
+    def test_document_version_identity_fields_are_immutable(self):
+        document = Document.objects.create(title="Регламент")
+        version = DocumentVersion.objects.create(
+            document=document,
+            version_number=1,
+            source_filename="reglament.txt",
+            source_revision_id="rev-1",
+            extracted_text="text",
+            normalized_text="text",
+            content_hash="abc123",
+            file=SimpleUploadedFile("reglament.txt", b"text", content_type="text/plain"),
+        )
+
+        version.source_revision_id = "rev-2"
+
+        with self.assertRaises(ValidationError):
+            version.save(update_fields=["source_revision_id"])
 
     def test_comparison_summary_quiz_attempt_route_is_represented(self):
         document = Document.objects.create(title="Регламент")
@@ -124,6 +156,7 @@ class Phase3DomainModelTests(TestCase):
         )
 
         self.assertEqual(document.versions.count(), 2)
+        self.assertEqual(document.current_version_id, version_two.id)
         self.assertEqual(comparison.change_items.count(), 1)
         self.assertEqual(comparison.summary, summary)
         self.assertEqual(quiz.questions.count(), 1)
@@ -153,6 +186,69 @@ class Phase3DomainModelTests(TestCase):
                 text="Текст 2",
                 text_hash="h2",
             )
+
+    def test_comparison_rejects_versions_from_different_documents(self):
+        first_document = Document.objects.create(title="Регламент 1")
+        second_document = Document.objects.create(title="Регламент 2")
+        version_one = self.make_version(document=first_document, version_number=1)
+        version_two = self.make_version(document=second_document, version_number=1)
+
+        with self.assertRaises(ValidationError):
+            VersionComparison.objects.create(
+                document=first_document,
+                from_version=version_one,
+                to_version=version_two,
+            )
+
+    def test_change_item_rejects_invalid_chunk_shape(self):
+        document = Document.objects.create(title="Регламент")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+        comparison = VersionComparison.objects.create(
+            document=document,
+            from_version=version_one,
+            to_version=version_two,
+        )
+        old_chunk = Chunk.objects.create(
+            version=version_one,
+            chunk_index=1,
+            heading="Пункт 1",
+            section_path="1",
+            text="Старый текст",
+            text_hash="old-1",
+        )
+        new_chunk = Chunk.objects.create(
+            version=version_two,
+            chunk_index=1,
+            heading="Пункт 1",
+            section_path="1",
+            text="Новый текст",
+            text_hash="new-1",
+        )
+
+        with self.assertRaises(ValidationError):
+            VersionChangeItem.objects.create(
+                comparison=comparison,
+                change_type=VersionChangeItem.ChangeType.ADDED,
+                old_chunk=old_chunk,
+                new_chunk=new_chunk,
+            )
+
+    def test_approved_quiz_auto_sets_approval_timestamp(self):
+        document = Document.objects.create(title="Инструкция")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест",
+            questions_count=1,
+            status=GeneratedQuiz.Status.APPROVED,
+            approved_by_name="Иванова Е.А.",
+        )
+
+        self.assertIsNotNone(quiz.approved_at)
 
     def test_answer_is_unique_per_attempt_and_question(self):
         document = Document.objects.create(title="Инструкция")
@@ -198,5 +294,5 @@ class Phase3DomainModelTests(TestCase):
                 attempt=attempt,
                 question=question,
                 text_answer="Ответ 2",
-                is_correct=False,
+                is_correct=True,
             )

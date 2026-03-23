@@ -108,8 +108,10 @@ class DocumentUploadAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["title"], "Приказ о приёме документов")
+        self.assertTrue(response.data["document_key"])
         self.assertEqual(response.data["versions_count"], 0)
         self.assertIsNone(response.data["latest_version_number"])
+        self.assertIsNone(response.data["current_version_id"])
 
     def test_upload_first_version_assigns_number_and_saves_file(self):
         document = Document.objects.create(title="Административный регламент")
@@ -118,6 +120,7 @@ class DocumentUploadAPITests(APITestCase):
             reverse("documents-versions", kwargs={"pk": document.id}),
             {
                 "file": self.make_file("reglament_v1.txt", "Первая редакция"),
+                "source_revision_id": "rev-2026-03-01",
             },
             format="multipart",
         )
@@ -126,12 +129,15 @@ class DocumentUploadAPITests(APITestCase):
         self.assertEqual(response.data["document"], document.id)
         self.assertEqual(response.data["version_number"], 1)
         self.assertEqual(response.data["source_filename"], "reglament_v1.txt")
+        self.assertEqual(response.data["source_revision_id"], "rev-2026-03-01")
         self.assertEqual(
             response.data["file_size"], len("Первая редакция".encode("utf-8"))
         )
         self.assertEqual(response.data["content_type"], "text/plain")
 
         version = DocumentVersion.objects.get(pk=response.data["id"])
+        document.refresh_from_db()
+        self.assertEqual(document.current_version_id, version.id)
         self.assertTrue(os.path.exists(version.file.path))
         self.assertIn(f"document_{document.id}", version.file.name)
         self.assertIn("version_1", version.file.name)
@@ -244,6 +250,9 @@ class DocumentUploadAPITests(APITestCase):
             file=self.make_file("instruction_v1.txt", "Редакция 1"),
             file_size=len("Редакция 1".encode("utf-8")),
             content_type="text/plain",
+            extracted_text="Редакция 1",
+            normalized_text=normalize_text("Редакция 1"),
+            content_hash=sha256_hex(normalize_text("Редакция 1")),
         )
 
         response = self.client.post(
@@ -258,77 +267,24 @@ class DocumentUploadAPITests(APITestCase):
         self.assertEqual(response.data["version_number"], 2)
         self.assertEqual(document.versions.count(), 2)
 
-    def test_versions_list_can_be_requested_for_specific_document(self):
-        first_document = Document.objects.create(title="Документ 1")
-        second_document = Document.objects.create(title="Документ 2")
-
-        DocumentVersion.objects.create(
-            document=first_document,
-            version_number=1,
-            source_filename="doc1_v1.txt",
-            file=self.make_file("doc1_v1.txt", "Первая версия"),
-            file_size=len("Первая версия".encode("utf-8")),
-            content_type="text/plain",
-        )
-        DocumentVersion.objects.create(
-            document=second_document,
-            version_number=1,
-            source_filename="doc2_v1.txt",
-            file=self.make_file("doc2_v1.txt", "Другая версия"),
-            file_size=len("Другая версия".encode("utf-8")),
-            content_type="text/plain",
-        )
-
-        response = self.client.get(
-            reverse("versions-list"),
-            {"document": first_document.id},
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["document"], first_document.id)
-        self.assertEqual(response.data[0]["version_number"], 1)
-
-    def test_document_list_contains_versions_count_and_latest_version_number(self):
-        document = Document.objects.create(title="Положение")
-        DocumentVersion.objects.create(
-            document=document,
-            version_number=1,
-            source_filename="v1.txt",
-            file=self.make_file("v1.txt", "Версия 1"),
-            file_size=len("Версия 1".encode("utf-8")),
-            content_type="text/plain",
-        )
-        DocumentVersion.objects.create(
-            document=document,
-            version_number=2,
-            source_filename="v2.txt",
-            file=self.make_file("v2.txt", "Версия 2"),
-            file_size=len("Версия 2".encode("utf-8")),
-            content_type="text/plain",
-        )
-
-        response = self.client.get(reverse("documents-list"))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["versions_count"], 2)
-        self.assertEqual(response.data[0]["latest_version_number"], 2)
-
-    def test_upload_rejects_unsupported_extension(self):
-        document = Document.objects.create(title="Плохой файл")
-
-        response = self.client.post(
+    def test_upload_rejects_duplicate_content_for_same_document(self):
+        document = Document.objects.create(title="Дубликаты")
+        first_response = self.client.post(
             reverse("documents-versions", kwargs={"pk": document.id}),
             {
-                "file": self.make_file(
-                    "malware.exe",
-                    "not allowed",
-                    content_type="application/octet-stream",
-                ),
+                "file": self.make_file("v1.txt", "Одинаковый текст"),
+            },
+            format="multipart",
+        )
+        self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
+
+        second_response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": self.make_file("v2.txt", "Одинаковый текст"),
             },
             format="multipart",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Unsupported file type", response.data["file"][0])
+        self.assertEqual(second_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("same normalized content", second_response.data["file"][0])

@@ -24,6 +24,8 @@ class DocumentVersionInline(admin.TabularInline):
     fields = (
         "version_number",
         "source_filename",
+        "source_revision_id",
+        "effective_date",
         "file",
         "file_size",
         "content_type",
@@ -36,25 +38,35 @@ class DocumentVersionInline(admin.TabularInline):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "id",
+        "document_key",
         "title",
+        "current_version_link",
         "versions_count",
         "latest_version_number",
         "updated_at",
         "created_at",
     )
-    search_fields = ("title",)
+    search_fields = ("title", "document_key")
     ordering = ("-updated_at",)
+    readonly_fields = ("document_key", "current_version")
     inlines = [DocumentVersionInline]
 
     def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
+            .select_related("current_version")
             .annotate(
                 versions_count_value=Count("versions"),
                 latest_version_number_value=Max("versions__version_number"),
             )
         )
+
+    @admin.display(description="Текущая версия")
+    def current_version_link(self, obj):
+        if not obj.current_version_id:
+            return "—"
+        return f"v{obj.current_version.version_number} (id={obj.current_version_id})"
 
     @admin.display(description="Версий")
     def versions_count(self, obj):
@@ -72,6 +84,8 @@ class DocumentVersionAdmin(admin.ModelAdmin):
         "document",
         "version_number",
         "source_filename",
+        "source_revision_id",
+        "effective_date",
         "file_size",
         "content_type",
         "has_extracted_text",
@@ -80,7 +94,9 @@ class DocumentVersionAdmin(admin.ModelAdmin):
     list_filter = ("document", "content_type")
     search_fields = (
         "document__title",
+        "document__document_key",
         "source_filename",
+        "source_revision_id",
         "content_hash",
         "extracted_text",
     )
@@ -97,6 +113,8 @@ class DocumentVersionAdmin(admin.ModelAdmin):
         "document",
         "version_number",
         "source_filename",
+        "source_revision_id",
+        "effective_date",
         "file",
         "file_size",
         "content_type",
@@ -223,15 +241,8 @@ class GeneratedQuizAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "quiz",
-        "order",
-        "question_type",
-        "source_change_item",
-    )
+    list_display = ("id", "quiz", "order", "question_type")
     list_filter = ("question_type",)
-    search_fields = ("prompt",)
     ordering = ("quiz", "order", "id")
     inlines = [ChoiceInline]
 
@@ -240,7 +251,6 @@ class QuestionAdmin(admin.ModelAdmin):
 class ChoiceAdmin(admin.ModelAdmin):
     list_display = ("id", "question", "order", "is_correct")
     list_filter = ("is_correct",)
-    search_fields = ("text",)
     ordering = ("question", "order", "id")
 
 
@@ -248,7 +258,7 @@ class AnswerInline(admin.TabularInline):
     model = Answer
     extra = 0
     fields = ("question", "selected_choice", "text_answer", "is_correct")
-    readonly_fields = ("is_correct",)
+    readonly_fields = ("question", "selected_choice", "text_answer", "is_correct")
 
 
 @admin.register(QuizAttempt)
@@ -256,14 +266,14 @@ class QuizAttemptAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "quiz",
-        "employee",
         "participant_name",
-        "status",
         "score",
         "total_questions",
+        "status",
         "created_at",
+        "completed_at",
     )
-    list_filter = ("status", "created_at")
+    list_filter = ("status",)
     search_fields = ("participant_name", "employee__full_name")
     ordering = ("-created_at",)
     inlines = [AnswerInline]
@@ -271,6 +281,6 @@ class QuizAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ("id", "attempt", "question", "selected_choice", "is_correct")
+    list_display = ("id", "attempt", "question", "is_correct", "created_at")
     list_filter = ("is_correct",)
     ordering = ("attempt", "id")

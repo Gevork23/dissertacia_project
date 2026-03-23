@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
-from decimal import Decimal
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -15,9 +13,13 @@ from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff import build_version_diff
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
-from ..models import DocumentVersion, GeneratedQuiz, QuizAttempt
-from ..services.quiz_attempts import evaluate_quiz_answers
+from ..models import DocumentVersion, GeneratedQuiz
 from ..services.search import search_chunks
+from ..services.workflows import (
+    EmptyQuizError,
+    create_quiz_from_versions,
+    record_quiz_attempt,
+)
 from .serializers import (
     GeneratedQuizSerializer,
     QuizAttemptSerializer,
@@ -25,20 +27,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger("documents.api")
-
-
-def _make_json_safe(value):
-    if isinstance(value, dict):
-        return {key: _make_json_safe(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_make_json_safe(item) for item in value]
-    if isinstance(value, tuple):
-        return [_make_json_safe(item) for item in value]
-    if isinstance(value, (datetime, date)):
-        return value.isoformat()
-    if isinstance(value, Decimal):
-        return float(value)
-    return value
 
 
 def build_quiz_report_payload(quiz: GeneratedQuiz) -> dict:
@@ -321,40 +309,24 @@ def save_versions_quiz(request):
 
     title = (request.data.get("title") or "").strip()
 
-    diff_payload = build_version_diff(
-        from_version=version_from,
-        to_version=version_to,
-    )
-    quiz_payload = build_quiz_from_diff(
-        diff_payload=diff_payload,
-        max_questions=max_questions,
-    )
-    quiz_payload = _make_json_safe(quiz_payload)
-
-    if quiz_payload["questions_count"] == 0:
-        return Response(
-            {
-                "detail": (
-                    "Quiz was not saved because there are no changes between "
-                    "the selected versions."
-                )
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
     if not title:
         title = (
             f"Quiz for versions "
             f"{version_from.version_number} -> {version_to.version_number}"
         )
 
-    generated_quiz = GeneratedQuiz.objects.create(
-        from_version=version_from,
-        to_version=version_to,
-        title=title,
-        payload=quiz_payload,
-        questions_count=quiz_payload["questions_count"],
-    )
+    try:
+        generated_quiz = create_quiz_from_versions(
+            from_version=version_from,
+            to_version=version_to,
+            title=title,
+            max_questions=max_questions,
+        )
+    except EmptyQuizError as error:
+        return Response(
+            {"detail": str(error)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     logger.info(
         "Quiz saved: quiz_id=%s from_version_id=%s to_version_id=%s questions=%s",
@@ -434,20 +406,10 @@ def submit_quiz_attempt(request, quiz_id: int):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    evaluation = evaluate_quiz_answers(
-        quiz_payload=quiz.payload,
-        submitted_answers=answers,
-    )
-    stored_answers = _make_json_safe(evaluation["results"])
-
-    attempt = QuizAttempt.objects.create(
+    attempt, evaluation = record_quiz_attempt(
         quiz=quiz,
         participant_name=participant_name,
-        answers=stored_answers,
-        score=evaluation["score"],
-        total_questions=evaluation["total_questions"],
-        status=QuizAttempt.Status.COMPLETED,
-        completed_at=timezone.now(),
+        submitted_answers=answers,
     )
 
     logger.info(

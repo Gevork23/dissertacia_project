@@ -2,16 +2,12 @@ from __future__ import annotations
 
 import logging
 
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+
 from documents.demo.corpus import DEMO_DOCUMENTS, DemoDocumentSpec, DemoVersionSpec
-from documents.domain.text_processing import (
-    chunk_by_structure_ru,
-    normalize_text,
-    sha256_hex,
-)
-from documents.models import Chunk, Document, DocumentVersion
+from documents.models import Document, DocumentVersion
 from documents.services.search import index_chunks
+from documents.services.versioning import create_text_document_version
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +82,10 @@ class Command(BaseCommand):
         first_pair = all_pairs[0]
         self.stdout.write(
             'curl -X POST "http://localhost:8000/api/compare/quiz/save/" '
-            '\\\n  -H "Content-Type: application/json" '
-            f'\\\n  -d \'{{"from_version":{first_pair["from_version_id"]},'
+            '\\
+  -H "Content-Type: application/json" '
+            f'\\
+  -d \'{{"from_version":{first_pair["from_version_id"]},'
             f'"to_version":{first_pair["to_version_id"]},'
             '"title":"Demo quiz","limit":10}\''
         )
@@ -139,35 +137,12 @@ class Command(BaseCommand):
         document: Document,
         version_spec: DemoVersionSpec,
     ) -> DocumentVersion:
-        raw_text = version_spec.text.strip()
-        normalized = normalize_text(raw_text)
-
-        version = DocumentVersion(
+        version = create_text_document_version(
             document=document,
-            version_number=version_spec.version_number,
             source_filename=version_spec.source_filename,
-            extracted_text=raw_text,
-            normalized_text=normalized,
-            content_hash=sha256_hex(normalized),
+            raw_text=version_spec.text.strip(),
+            version_number=version_spec.version_number,
+            allow_duplicate_content=True,
         )
-        version.file.save(
-            version_spec.source_filename,
-            ContentFile(raw_text.encode("utf-8")),
-            save=False,
-        )
-        version.save()
-
-        chunks = chunk_by_structure_ru(normalized)
-        for chunk in chunks:
-            Chunk.objects.create(
-                version=version,
-                chunk_index=chunk.chunk_index,
-                heading=chunk.heading,
-                section_path=chunk.section_path,
-                text=chunk.text,
-                text_hash=chunk.text_hash,
-            )
-
         safe_index_chunks(version.id)
-
         return version

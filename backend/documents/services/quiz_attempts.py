@@ -7,7 +7,7 @@ def normalize_text(value: str) -> str:
     return " ".join((value or "").strip().lower().split())
 
 
-def _resolve_submitted_answer(
+def resolve_submitted_answer(
     question: dict[str, Any], submitted_item: dict[str, Any]
 ) -> str:
     question_type = question.get("question_type") or question.get("type")
@@ -47,7 +47,7 @@ def evaluate_quiz_answers(quiz_payload: dict, submitted_answers: list[dict]) -> 
     for index, question in enumerate(questions):
         expected_answer = normalize_text(question.get("answer", ""))
         submitted_item = submitted_by_index.get(index, {})
-        resolved_answer = _resolve_submitted_answer(question, submitted_item)
+        resolved_answer = resolve_submitted_answer(question, submitted_item)
         submitted_answer = normalize_text(resolved_answer)
 
         is_correct = bool(submitted_answer) and submitted_answer == expected_answer

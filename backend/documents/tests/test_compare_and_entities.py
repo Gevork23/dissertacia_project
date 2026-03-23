@@ -13,7 +13,19 @@ from ..domain.diff import build_version_diff
 from ..domain.entity_extraction import extract_entities_from_text
 from ..domain.entity_schema import EntityType, ExtractionMethod
 from ..domain.text_processing import sha256_hex
-from ..models import Chunk, ChunkAnalysis, Document, DocumentVersion, GeneratedQuiz
+from ..models import (
+    Answer,
+    Choice,
+    Chunk,
+    ChunkAnalysis,
+    Document,
+    DocumentVersion,
+    GeneratedQuiz,
+    Question,
+    QuizAttempt,
+    Summary,
+    VersionComparison,
+)
 from ..services.analysis import (
     analyze_chunk_entities,
     analyze_version_entities,
@@ -575,6 +587,16 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(save_response.data["title"], "Контроль по изменениям")
         self.assertEqual(save_response.data["questions_count"], 2)
         self.assertEqual(GeneratedQuiz.objects.count(), 1)
+        self.assertEqual(VersionComparison.objects.count(), 1)
+        self.assertEqual(Summary.objects.count(), 1)
+        self.assertEqual(Question.objects.count(), 2)
+        self.assertGreaterEqual(Choice.objects.count(), 4)
+
+        saved_quiz = GeneratedQuiz.objects.select_related("comparison", "summary").get()
+        self.assertIsNotNone(saved_quiz.comparison_id)
+        self.assertIsNotNone(saved_quiz.summary_id)
+        self.assertEqual(saved_quiz.comparison.change_items.count(), 2)
+        self.assertEqual(saved_quiz.questions.count(), 2)
 
         list_url = reverse("list-saved-quizzes")
         list_response = self.client.get(list_url)
@@ -683,6 +705,13 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(submit_response.data["score"], 1)
         self.assertEqual(submit_response.data["total_questions"], 2)
         self.assertEqual(len(submit_response.data["answers"]), 2)
+        self.assertEqual(QuizAttempt.objects.count(), 1)
+        self.assertEqual(Answer.objects.count(), 2)
+
+        attempt = QuizAttempt.objects.get()
+        self.assertEqual(attempt.answer_items.count(), 2)
+        self.assertTrue(attempt.answer_items.filter(is_correct=True).exists())
+        self.assertTrue(attempt.answer_items.filter(is_correct=False).exists())
 
         list_url = reverse("list-quiz-attempts", kwargs={"quiz_id": quiz_id})
         list_response = self.client.get(list_url)

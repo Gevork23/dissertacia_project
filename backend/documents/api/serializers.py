@@ -1,38 +1,31 @@
 from __future__ import annotations
 
-import mimetypes
 from pathlib import Path
 
-from django.db import transaction
-from django.db.models import Max
-from django.utils import timezone
 from rest_framework import serializers
 
-from ..domain.text_extractors import (
-    EmptyExtractedTextError,
-    TextExtractionError,
-    process_uploaded_file,
+from ..domain.text_extractors import EmptyExtractedTextError, TextExtractionError
+from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
+from ..services.versioning import (
+    DuplicateDocumentVersionError,
+    InvalidDocumentVersionFileError,
+    create_uploaded_document_version,
 )
-from ..models import (
-    ALLOWED_DOCUMENT_EXTENSIONS,
-    Document,
-    DocumentVersion,
-    GeneratedQuiz,
-    QuizAttempt,
-)
-from ..services.ingestion import rebuild_version_chunks
 
 
 class DocumentSerializer(serializers.ModelSerializer):
     versions_count = serializers.SerializerMethodField()
     latest_version_number = serializers.SerializerMethodField()
+    current_version_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Document
         fields = [
             "id",
+            "document_key",
             "title",
             "description",
+            "current_version_id",
             "versions_count",
             "latest_version_number",
             "created_at",
@@ -40,6 +33,8 @@ class DocumentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "document_key",
+            "current_version_id",
             "versions_count",
             "latest_version_number",
             "created_at",
@@ -59,6 +54,8 @@ class DocumentSerializer(serializers.ModelSerializer):
         return obj.versions.count()
 
     def get_latest_version_number(self, obj):
+        if obj.current_version_id:
+            return obj.current_version.version_number
         annotated_value = getattr(obj, "latest_version_number", None)
         if annotated_value is not None:
             return annotated_value
@@ -67,7 +64,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class DocumentVersionSerializer(serializers.ModelSerializer):
-    chunks_count = serializers.IntegerField(source="chunks.count", read_only=True)
+    chunks_count = serializers.SerializerMethodField()
 
     class Meta:
         model = DocumentVersion
@@ -76,6 +73,8 @@ class DocumentVersionSerializer(serializers.ModelSerializer):
             "document",
             "version_number",
             "source_filename",
+            "source_revision_id",
+            "effective_date",
             "file",
             "file_size",
             "content_type",
@@ -87,12 +86,20 @@ class DocumentVersionSerializer(serializers.ModelSerializer):
             "id",
             "version_number",
             "source_filename",
+            "source_revision_id",
+            "effective_date",
             "file_size",
             "content_type",
             "extracted_text",
             "chunks_count",
             "created_at",
         ]
+
+    def get_chunks_count(self, obj):
+        annotated_value = getattr(obj, "chunks_count", None)
+        if annotated_value is not None:
+            return annotated_value
+        return obj.chunks.count()
 
 
 class DocumentVersionCreateSerializer(serializers.ModelSerializer):
@@ -101,10 +108,19 @@ class DocumentVersionCreateSerializer(serializers.ModelSerializer):
         required=False,
     )
     source_filename = serializers.CharField(required=False, allow_blank=True)
+    source_revision_id = serializers.CharField(required=False, allow_blank=True)
+    effective_date = serializers.DateField(required=False, allow_null=True)
 
     class Meta:
         model = DocumentVersion
-        fields = ["id", "document", "source_filename", "file"]
+        fields = [
+            "id",
+            "document",
+            "source_filename",
+            "source_revision_id",
+            "effective_date",
+            "file",
+        ]
         read_only_fields = ["id"]
 
     def validate(self, attrs):
@@ -118,66 +134,23 @@ class DocumentVersionCreateSerializer(serializers.ModelSerializer):
     def validate_source_filename(self, value: str) -> str:
         return Path(value.strip()).name
 
-    def validate_file(self, uploaded_file):
-        extension = Path(uploaded_file.name).suffix.lower()
-        if extension not in ALLOWED_DOCUMENT_EXTENSIONS:
-            allowed = ", ".join(sorted(ALLOWED_DOCUMENT_EXTENSIONS))
-            raise serializers.ValidationError(
-                f"Unsupported file type. Allowed extensions: {allowed}."
-            )
-
-        if getattr(uploaded_file, "size", 0) <= 0:
-            raise serializers.ValidationError("Uploaded file is empty.")
-
-        return uploaded_file
-
     def create(self, validated_data):
-        document = validated_data["document"]
-        uploaded_file = validated_data["file"]
-        source_filename = validated_data.get("source_filename") or uploaded_file.name
-        source_filename = Path(source_filename).name
-        content_type = (
-            getattr(uploaded_file, "content_type", "")
-            or mimetypes.guess_type(source_filename)[0]
-            or ""
-        )
-        file_size = getattr(uploaded_file, "size", 0) or 0
-
         try:
-            processed_text = process_uploaded_file(
-                uploaded_file=uploaded_file,
-                source_filename=source_filename,
+            return create_uploaded_document_version(
+                document=validated_data["document"],
+                uploaded_file=validated_data["file"],
+                source_filename=validated_data.get("source_filename", ""),
+                source_revision_id=validated_data.get("source_revision_id", ""),
+                effective_date=validated_data.get("effective_date"),
             )
+        except InvalidDocumentVersionFileError as error:
+            raise serializers.ValidationError({"file": [str(error)]}) from error
+        except DuplicateDocumentVersionError as error:
+            raise serializers.ValidationError({"file": [str(error)]}) from error
         except EmptyExtractedTextError as error:
             raise serializers.ValidationError({"file": [str(error)]}) from error
         except TextExtractionError as error:
             raise serializers.ValidationError({"file": [str(error)]}) from error
-
-        with transaction.atomic():
-            locked_document = Document.objects.select_for_update().get(pk=document.pk)
-            current_max = (
-                locked_document.versions.aggregate(max_number=Max("version_number"))[
-                    "max_number"
-                ]
-                or 0
-            )
-            version = DocumentVersion.objects.create(
-                document=locked_document,
-                version_number=current_max + 1,
-                source_filename=source_filename,
-                file=uploaded_file,
-                file_size=file_size,
-                content_type=content_type,
-                extracted_text=processed_text.extracted_text,
-                normalized_text=processed_text.normalized_text,
-                content_hash=processed_text.content_hash,
-            )
-            rebuild_version_chunks(version)
-            Document.objects.filter(pk=locked_document.pk).update(
-                updated_at=timezone.now()
-            )
-
-        return version
 
 
 class ChangeClassificationSerializer(serializers.Serializer):
@@ -260,10 +233,7 @@ class GeneratedQuizSerializer(serializers.ModelSerializer):
             "id",
             "payload",
             "questions_count",
-            "status",
-            "approved_by_name",
             "approved_at",
-            "approval_comment",
             "created_at",
             "updated_at",
         ]
@@ -275,6 +245,7 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "quiz",
+            "employee",
             "participant_name",
             "answers",
             "score",
@@ -285,9 +256,9 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "answers",
             "score",
             "total_questions",
-            "status",
             "created_at",
             "completed_at",
         ]

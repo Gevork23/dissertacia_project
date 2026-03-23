@@ -17,7 +17,11 @@ from ..domain.diff import build_version_diff
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
-from ..services.quiz_attempts import evaluate_quiz_answers
+from ..services.workflows import (
+    EmptyQuizError,
+    create_quiz_from_versions,
+    record_quiz_attempt,
+)
 
 DEMO_DOCUMENT_TITLE_PREFIX = "DEMO МФЦ:"
 
@@ -170,24 +174,20 @@ def create_quiz(request: HttpRequest) -> HttpResponse:
             f"v{from_version.version_number} → v{to_version.version_number}"
         )
 
-    diff_payload = build_version_diff(from_version=from_version, to_version=to_version)
-    quiz_payload = build_quiz_from_diff(diff_payload, max_questions=limit)
-
-    if quiz_payload["questions_count"] == 0:
+    try:
+        quiz = create_quiz_from_versions(
+            from_version=from_version,
+            to_version=to_version,
+            title=title,
+            max_questions=limit,
+        )
+    except EmptyQuizError:
         messages.error(request, "Для выбранной пары версий нет вопросов для теста.")
         compare_url = reverse("demo-compare")
         return redirect(
             f"{compare_url}?from_version={from_version.id}"
             f"&to_version={to_version.id}"
         )
-
-    quiz = GeneratedQuiz.objects.create(
-        from_version=from_version,
-        to_version=to_version,
-        title=title,
-        payload=quiz_payload,
-        questions_count=quiz_payload["questions_count"],
-    )
     messages.success(request, "Тест создан. Теперь его можно утвердить.")
     return redirect("demo-quiz-detail", quiz_id=quiz.id)
 
@@ -280,18 +280,10 @@ def take_quiz(request: HttpRequest, quiz_id: int) -> HttpResponse:
                 }
             )
 
-        evaluation = evaluate_quiz_answers(
-            quiz_payload=quiz.payload,
-            submitted_answers=submitted_answers,
-        )
-        attempt = QuizAttempt.objects.create(
+        attempt, _ = record_quiz_attempt(
             quiz=quiz,
             participant_name=participant_name,
-            answers=evaluation["results"],
-            score=evaluation["score"],
-            total_questions=evaluation["total_questions"],
-            status=QuizAttempt.Status.COMPLETED,
-            completed_at=timezone.now(),
+            submitted_answers=submitted_answers,
         )
         messages.success(request, "Результат прохождения сохранён.")
         return redirect("demo-attempt-detail", attempt_id=attempt.id)

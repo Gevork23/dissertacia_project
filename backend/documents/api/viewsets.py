@@ -22,10 +22,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
 
     def get_queryset(self):
-        return Document.objects.annotate(
+        return Document.objects.select_related("current_version").annotate(
             versions_count=Count("versions"),
             latest_version_number=Max("versions__version_number"),
-        ).all()
+        )
 
     @action(
         detail=True,

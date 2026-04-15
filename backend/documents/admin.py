@@ -21,6 +21,8 @@ from .models import (
 class DocumentVersionInline(admin.TabularInline):
     model = DocumentVersion
     extra = 0
+    can_delete = False
+    show_change_link = True
     fields = (
         "version_number",
         "source_filename",
@@ -31,7 +33,19 @@ class DocumentVersionInline(admin.TabularInline):
         "content_type",
         "created_at",
     )
-    readonly_fields = ("created_at",)
+    readonly_fields = (
+        "version_number",
+        "source_filename",
+        "source_revision_id",
+        "effective_date",
+        "file",
+        "file_size",
+        "content_type",
+        "created_at",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Document)
@@ -102,12 +116,18 @@ class DocumentVersionAdmin(admin.ModelAdmin):
     )
     ordering = ("document", "-version_number")
     readonly_fields = (
-        "created_at",
+        "document",
+        "version_number",
+        "source_filename",
+        "source_revision_id",
+        "effective_date",
+        "file",
         "file_size",
         "content_type",
         "content_hash",
         "extracted_text",
         "normalized_text",
+        "created_at",
     )
     fields = (
         "document",
@@ -123,6 +143,9 @@ class DocumentVersionAdmin(admin.ModelAdmin):
         "normalized_text",
         "created_at",
     )
+
+    def has_add_permission(self, request):
+        return False
 
     @admin.display(boolean=True, description="Текст извлечён")
     def has_extracted_text(self, obj):

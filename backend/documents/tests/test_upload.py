@@ -13,6 +13,10 @@ from rest_framework.test import APITestCase
 
 from ..domain.text_processing import normalize_text, sha256_hex
 from ..models import Document, DocumentVersion
+from ..services.versioning import (
+    InvalidDocumentVersionFileError,
+    create_text_document_version,
+)
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -220,6 +224,59 @@ class DocumentUploadAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("OCR is not supported", response.data["file"][0])
 
+    def test_upload_rejects_corrupted_docx(self):
+        document = Document.objects.create(title="Битый DOCX")
+
+        response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": SimpleUploadedFile(
+                    name="broken.docx",
+                    content=b"not-a-valid-docx",
+                    content_type=(
+                        "application/vnd.openxmlformats-officedocument."
+                        "wordprocessingml.document"
+                    ),
+                ),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("invalid or corrupted", response.data["file"][0].lower())
+
+    def test_upload_rejects_corrupted_pdf(self):
+        document = Document.objects.create(title="Битый PDF")
+
+        response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": SimpleUploadedFile(
+                    name="broken.pdf",
+                    content=b"not-a-valid-pdf",
+                    content_type="application/pdf",
+                ),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("invalid or corrupted", response.data["file"][0].lower())
+
+    def test_upload_rejects_whitespace_only_txt(self):
+        document = Document.objects.create(title="Пустой TXT")
+
+        response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": self.make_file("empty.txt", " \n\t\r\n  "),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("does not contain extractable text", response.data["file"][0])
+
     def test_version_text_endpoint_returns_processing_fields(self):
         document = Document.objects.create(title="Документ")
         version = DocumentVersion.objects.create(
@@ -288,3 +345,36 @@ class DocumentUploadAPITests(APITestCase):
 
         self.assertEqual(second_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("same normalized content", second_response.data["file"][0])
+
+    def test_upload_rejects_duplicate_after_normalization(self):
+        document = Document.objects.create(title="Нормализованные дубликаты")
+
+        first_response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": self.make_file("v1.txt", "Строка 1\r\n\r\nСтрока 2"),
+            },
+            format="multipart",
+        )
+        self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
+
+        second_response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": self.make_file("v2.txt", "Строка 1\n\nСтрока 2"),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(second_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("same normalized content", second_response.data["file"][0])
+
+    def test_create_text_document_version_rejects_empty_normalized_text(self):
+        document = Document.objects.create(title="Raw text документ")
+
+        with self.assertRaises(InvalidDocumentVersionFileError):
+            create_text_document_version(
+                document=document,
+                source_filename="empty.txt",
+                raw_text=" \n\t\r\n ",
+            )

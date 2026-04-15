@@ -1,26 +1,10 @@
 from __future__ import annotations
 
-import logging
-
 from django.core.management.base import BaseCommand
-
 from documents.demo.corpus import DEMO_DOCUMENTS, DemoDocumentSpec, DemoVersionSpec
 from documents.models import Document, DocumentVersion
-from documents.services.search import index_chunks
+from documents.services.ingestion import safe_index_version_chunks
 from documents.services.versioning import create_text_document_version
-
-logger = logging.getLogger(__name__)
-
-
-def safe_index_chunks(version_id: int) -> None:
-    try:
-        index_chunks(version_id)
-    except Exception as error:  # noqa: BLE001
-        logger.warning(
-            "Demo indexing skipped for version_id=%s: %s",
-            version_id,
-            error,
-        )
 
 
 class Command(BaseCommand):
@@ -82,10 +66,8 @@ class Command(BaseCommand):
         first_pair = all_pairs[0]
         self.stdout.write(
             'curl -X POST "http://localhost:8000/api/compare/quiz/save/" '
-            '\\
-  -H "Content-Type: application/json" '
-            f'\\
-  -d \'{{"from_version":{first_pair["from_version_id"]},'
+            '\\\n  -H "Content-Type: application/json" '
+            f'\\\n  -d \'{{"from_version":{first_pair["from_version_id"]},'
             f'"to_version":{first_pair["to_version_id"]},'
             '"title":"Demo quiz","limit":10}\''
         )
@@ -144,5 +126,5 @@ class Command(BaseCommand):
             version_number=version_spec.version_number,
             allow_duplicate_content=True,
         )
-        safe_index_chunks(version.id)
+        safe_index_version_chunks(version)
         return version

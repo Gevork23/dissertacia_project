@@ -4,14 +4,17 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 from typing import Iterable
+from zipfile import BadZipFile
 
 from docx import Document as DocxDocument
 from docx.document import Document as DocxDocumentType
+from docx.opc.exceptions import PackageNotFoundError
 from docx.oxml.table import CT_Tbl
 from docx.oxml.text.paragraph import CT_P
 from docx.table import Table, _Cell
 from docx.text.paragraph import Paragraph
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 from .text_processing import normalize_text, sha256_hex
 
@@ -26,6 +29,10 @@ class UnsupportedFileTypeError(TextExtractionError):
 
 class EmptyExtractedTextError(TextExtractionError):
     """Raised when a supported file contains no extractable text."""
+
+
+class InvalidDocumentFileError(TextExtractionError):
+    """Raised when a file has a supported extension but invalid binary content."""
 
 
 @dataclass(frozen=True)
@@ -100,7 +107,17 @@ def extract_text_from_txt_bytes(data: bytes) -> str:
 
 
 def extract_text_from_docx_bytes(data: bytes) -> str:
-    document = DocxDocument(BytesIO(data))
+    try:
+        document = DocxDocument(BytesIO(data))
+    except (BadZipFile, PackageNotFoundError, ValueError) as error:
+        raise InvalidDocumentFileError(
+            "DOCX file is invalid or corrupted and cannot be processed."
+        ) from error
+    except Exception as error:  # noqa: BLE001
+        raise InvalidDocumentFileError(
+            "DOCX file is invalid or corrupted and cannot be processed."
+        ) from error
+
     parts: list[str] = []
 
     for item in _iter_block_items(document):
@@ -115,13 +132,22 @@ def extract_text_from_docx_bytes(data: bytes) -> str:
 
 
 def extract_text_from_pdf_bytes(data: bytes) -> str:
-    reader = PdfReader(BytesIO(data))
-    pages_text: list[str] = []
+    try:
+        reader = PdfReader(BytesIO(data))
+        pages_text: list[str] = []
 
-    for page in reader.pages:
-        page_text = (page.extract_text() or "").strip()
-        if page_text:
-            pages_text.append(page_text)
+        for page in reader.pages:
+            page_text = (page.extract_text() or "").strip()
+            if page_text:
+                pages_text.append(page_text)
+    except (PdfReadError, ValueError) as error:
+        raise InvalidDocumentFileError(
+            "PDF file is invalid or corrupted and cannot be processed."
+        ) from error
+    except Exception as error:  # noqa: BLE001
+        raise InvalidDocumentFileError(
+            "PDF file is invalid or corrupted and cannot be processed."
+        ) from error
 
     return "\n\n".join(pages_text).strip()
 

@@ -58,7 +58,9 @@ class Phase3DomainModelTests(TestCase):
             extracted_text="text",
             normalized_text="text",
             content_hash="abc123",
-            file=SimpleUploadedFile("reglament.txt", b"text", content_type="text/plain"),
+            file=SimpleUploadedFile(
+                "reglament.txt", b"text", content_type="text/plain"
+            ),
         )
 
         version.source_revision_id = "rev-2"

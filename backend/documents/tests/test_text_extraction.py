@@ -9,6 +9,7 @@ from pypdf import PdfWriter
 
 from ..domain.text_extractors import (
     EmptyExtractedTextError,
+    InvalidDocumentFileError,
     extract_text_from_bytes,
     process_uploaded_file,
 )
@@ -82,6 +83,14 @@ class TextExtractionUnitTests(TestCase):
         extracted = extract_text_from_bytes(self.make_pdf_bytes(), "order.pdf")
 
         self.assertIn("Hello PDF", extracted)
+
+    def test_extract_text_from_docx_rejects_corrupted_binary(self):
+        with self.assertRaises(InvalidDocumentFileError):
+            extract_text_from_bytes(b"not-a-valid-docx", "broken.docx")
+
+    def test_extract_text_from_pdf_rejects_corrupted_binary(self):
+        with self.assertRaises(InvalidDocumentFileError):
+            extract_text_from_bytes(b"not-a-valid-pdf", "broken.pdf")
 
     def test_process_uploaded_file_returns_normalized_text_and_hash(self):
         uploaded_file = SimpleUploadedFile(

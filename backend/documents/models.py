@@ -327,8 +327,7 @@ class VersionComparison(DomainValidatedModel):
 
     def __str__(self) -> str:
         return (
-            f"Comparison {self.id}: "
-            f"{self.from_version_id} -> {self.to_version_id}"
+            f"Comparison {self.id}: " f"{self.from_version_id} -> {self.to_version_id}"
         )
 
 
@@ -611,6 +610,7 @@ class Question(models.Model):
 
     def __str__(self) -> str:
         return f"Question {self.order} for quiz {self.quiz_id}"
+
 
 class Choice(models.Model):
     question = models.ForeignKey(

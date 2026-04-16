@@ -194,12 +194,32 @@ class DocumentVersion(models.Model):
 
 
 class Chunk(models.Model):
+    class FragmentType(models.TextChoices):
+        TITLE = "title", "Заголовок"
+        PREAMBLE = "preamble", "Преамбула"
+        SECTION = "section", "Раздел"
+        CHAPTER = "chapter", "Глава"
+        ARTICLE = "article", "Статья"
+        POINT = "point", "Пункт"
+        SUBPOINT = "subpoint", "Подпункт"
+        PARAGRAPH = "paragraph", "Абзац"
+        FALLBACK_BLOCK = "fallback_block", "Fallback-блок"
+
     version = models.ForeignKey(
         DocumentVersion,
         on_delete=models.CASCADE,
         related_name="chunks",
     )
     chunk_index = models.PositiveIntegerField()
+    fragment_type = models.CharField(
+        max_length=32,
+        choices=FragmentType.choices,
+        default=FragmentType.FALLBACK_BLOCK,
+    )
+    structure_level = models.PositiveSmallIntegerField(default=0)
+    raw_label = models.CharField(max_length=255, blank=True)
+    canonical_label = models.CharField(max_length=255, blank=True)
+    path_key = models.CharField(max_length=512, blank=True)
     section_path = models.CharField(max_length=512, blank=True)
     heading = models.CharField(max_length=255, blank=True)
     text = models.TextField()
@@ -211,6 +231,8 @@ class Chunk(models.Model):
         ordering = ["chunk_index"]
         indexes = [
             models.Index(fields=["version", "chunk_index"]),
+            models.Index(fields=["version", "fragment_type"]),
+            models.Index(fields=["version", "path_key"]),
             models.Index(fields=["text_hash"]),
         ]
         constraints = [
@@ -221,7 +243,7 @@ class Chunk(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"Chunk {self.chunk_index} ({self.version})"
+        return f"Chunk {self.chunk_index} [{self.fragment_type}] ({self.version})"
 
 
 class ChunkAnalysis(models.Model):

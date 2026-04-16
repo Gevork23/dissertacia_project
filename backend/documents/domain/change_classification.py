@@ -241,6 +241,12 @@ def classify_moved_chunk_pair(
     ]
     scores[ChangeType.STRUCTURAL.value] = 10.0
 
+    if from_chunk.get("path_key") != to_chunk.get("path_key"):
+        rationale.append("Изменился path_key.")
+    if from_chunk.get("canonical_label") != to_chunk.get("canonical_label"):
+        rationale.append("Изменился canonical_label.")
+    if from_chunk.get("fragment_type") != to_chunk.get("fragment_type"):
+        rationale.append("Изменился fragment_type.")
     if from_chunk.get("section_path") != to_chunk.get("section_path"):
         rationale.append("Изменился section_path.")
     if from_chunk.get("heading") != to_chunk.get("heading"):
@@ -264,6 +270,10 @@ def classify_modified_chunk_pair(
     to_heading = to_chunk.get("heading", "")
     from_section = from_chunk.get("section_path", "")
     to_section = to_chunk.get("section_path", "")
+    from_path_key = from_chunk.get("path_key", "")
+    to_path_key = to_chunk.get("path_key", "")
+    from_canonical_label = from_chunk.get("canonical_label", "")
+    to_canonical_label = to_chunk.get("canonical_label", "")
 
     scores = _make_empty_scores()
     rationale = [
@@ -296,6 +306,11 @@ def classify_modified_chunk_pair(
             f"Сущности до/после: old={sorted(old_entity_types)} "
             f"new={sorted(new_entity_types)}."
         )
+
+    if from_path_key != to_path_key:
+        rationale.append("Изменился path_key структурного фрагмента.")
+    if from_canonical_label != to_canonical_label:
+        rationale.append("Изменился canonical_label структурного фрагмента.")
 
     from_editorial = _normalize_for_editorial_check(from_text)
     to_editorial = _normalize_for_editorial_check(to_text)
@@ -340,7 +355,7 @@ def classify_modified_chunk_pair(
         )
 
     if (
-        match_reason in {"section_path", "heading"}
+        match_reason in {"path_key", "canonical_label", "section_path", "heading"}
         and similarity >= 0.95
         and from_text == to_text
     ):

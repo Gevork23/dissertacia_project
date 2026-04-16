@@ -13,12 +13,18 @@ from .change_classification import (
 
 HIGH_TEXT_SIMILARITY_THRESHOLD = 0.92
 TEXT_SIMILARITY_THRESHOLD = 0.80
+SECTION_PATH_SIMILARITY_THRESHOLD = 0.45
 
 
 def serialize_chunk(chunk: Chunk) -> dict[str, str | int]:
     return {
         "id": chunk.id,
         "chunk_index": chunk.chunk_index,
+        "fragment_type": chunk.fragment_type,
+        "structure_level": chunk.structure_level,
+        "raw_label": chunk.raw_label,
+        "canonical_label": chunk.canonical_label,
+        "path_key": chunk.path_key,
         "heading": chunk.heading,
         "section_path": chunk.section_path,
         "text": chunk.text,
@@ -57,33 +63,76 @@ def get_index_proximity_score(old_chunk: Chunk, new_chunk: Chunk) -> float:
     return 0.0
 
 
+def _same_path_key(old_chunk: Chunk, new_chunk: Chunk) -> bool:
+    return bool(old_chunk.path_key) and old_chunk.path_key == new_chunk.path_key
+
+
+def _same_canonical_label(old_chunk: Chunk, new_chunk: Chunk) -> bool:
+    return (
+        bool(old_chunk.canonical_label)
+        and old_chunk.canonical_label == new_chunk.canonical_label
+        and old_chunk.fragment_type == new_chunk.fragment_type
+    )
+
+
+def _same_heading(old_chunk: Chunk, new_chunk: Chunk) -> bool:
+    return bool(old_chunk.heading) and old_chunk.heading == new_chunk.heading
+
+
+def _same_section_path(old_chunk: Chunk, new_chunk: Chunk) -> bool:
+    return (
+        bool(old_chunk.section_path)
+        and old_chunk.section_path == new_chunk.section_path
+    )
+
+
+def _same_fragment_identity(old_chunk: Chunk, new_chunk: Chunk) -> bool:
+    same_anchor = (
+        _same_path_key(old_chunk, new_chunk)
+        or _same_canonical_label(old_chunk, new_chunk)
+        or (
+            _same_heading(old_chunk, new_chunk)
+            and _same_section_path(old_chunk, new_chunk)
+        )
+    )
+    return same_anchor and old_chunk.chunk_index == new_chunk.chunk_index
+
+
 def score_chunk_match(old_chunk: Chunk, new_chunk: Chunk) -> tuple[float, str | None]:
     similarity = text_similarity(old_chunk.text, new_chunk.text)
     score = similarity + get_index_proximity_score(old_chunk, new_chunk)
 
-    same_section_path = (
-        bool(old_chunk.section_path)
-        and old_chunk.section_path == new_chunk.section_path
-    )
-    same_heading = bool(old_chunk.heading) and old_chunk.heading == new_chunk.heading
+    same_path_key = _same_path_key(old_chunk, new_chunk)
+    same_canonical = _same_canonical_label(old_chunk, new_chunk)
+    same_section_path = _same_section_path(old_chunk, new_chunk)
+    same_heading = _same_heading(old_chunk, new_chunk)
+    same_fragment_type = old_chunk.fragment_type == new_chunk.fragment_type
 
-    if same_section_path:
-        score += 0.35
-
-    if same_heading:
+    if same_fragment_type:
+        score += 0.05
+    if same_path_key:
+        score += 0.45
+    elif same_canonical:
+        score += 0.30
+    elif same_section_path:
         score += 0.20
 
-    if same_section_path and similarity >= 0.30:
+    if same_heading:
+        score += 0.10
+
+    if same_path_key and similarity >= 0.20:
+        return score, "path_key"
+
+    if same_canonical and similarity >= 0.30:
+        return score, "canonical_label"
+
+    if same_section_path and similarity >= SECTION_PATH_SIMILARITY_THRESHOLD:
         return score, "section_path"
 
-    if same_heading and similarity >= TEXT_SIMILARITY_THRESHOLD:
+    if same_heading and same_fragment_type and similarity >= TEXT_SIMILARITY_THRESHOLD:
         return score, "heading"
 
-    if (
-        not same_section_path
-        and not same_heading
-        and similarity >= HIGH_TEXT_SIMILARITY_THRESHOLD
-    ):
+    if similarity >= HIGH_TEXT_SIMILARITY_THRESHOLD:
         return score, "high_text_similarity"
 
     return 0.0, None
@@ -121,13 +170,7 @@ def pair_by_exact_hash(
             matched_from_ids.add(old_chunk.id)
             matched_to_ids.add(new_chunk.id)
 
-            same_place = (
-                old_chunk.chunk_index == new_chunk.chunk_index
-                and old_chunk.heading == new_chunk.heading
-                and old_chunk.section_path == new_chunk.section_path
-            )
-
-            if same_place:
+            if _same_fragment_identity(old_chunk, new_chunk):
                 unchanged_count += 1
                 continue
 

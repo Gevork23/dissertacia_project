@@ -154,9 +154,23 @@ class DocumentVersionAdmin(admin.ModelAdmin):
 
 @admin.register(Chunk)
 class ChunkAdmin(admin.ModelAdmin):
-    list_display = ("id", "version", "chunk_index", "heading")
-    list_filter = ("version__document",)
-    search_fields = ("heading", "section_path", "text")
+    list_display = (
+        "id",
+        "version",
+        "chunk_index",
+        "fragment_type",
+        "canonical_label",
+        "heading",
+    )
+    list_filter = ("version__document", "fragment_type")
+    search_fields = (
+        "heading",
+        "canonical_label",
+        "raw_label",
+        "path_key",
+        "section_path",
+        "text",
+    )
     ordering = ("version", "chunk_index")
 
 

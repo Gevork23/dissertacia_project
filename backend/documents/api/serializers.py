@@ -163,6 +163,11 @@ class ChangeClassificationSerializer(serializers.Serializer):
 class ChunkDiffSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     chunk_index = serializers.IntegerField()
+    fragment_type = serializers.CharField(allow_blank=True)
+    structure_level = serializers.IntegerField(required=False)
+    raw_label = serializers.CharField(allow_blank=True)
+    canonical_label = serializers.CharField(allow_blank=True)
+    path_key = serializers.CharField(allow_blank=True)
     heading = serializers.CharField(allow_blank=True)
     section_path = serializers.CharField(allow_blank=True)
     text = serializers.CharField()

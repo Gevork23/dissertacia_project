@@ -7,7 +7,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.utils import timezone
 
 from ..domain.text_extractors import (
@@ -16,7 +16,13 @@ from ..domain.text_extractors import (
     process_uploaded_file,
 )
 from ..domain.text_processing import chunk_by_structure_ru, materialize_document_text
-from ..models import ALLOWED_DOCUMENT_EXTENSIONS, Chunk, Document, DocumentVersion
+from ..models import (
+    ALLOWED_DOCUMENT_EXTENSIONS,
+    Chunk,
+    Document,
+    DocumentVersion,
+    VersionComparison,
+)
 from .search import index_chunks
 
 logger = logging.getLogger("documents.ingestion")
@@ -112,11 +118,30 @@ def _rematerialize_extracted_text_from_file(version: DocumentVersion) -> str | N
             pass
 
 
+def invalidate_version_comparisons(version: DocumentVersion) -> int:
+    comparison_ids = list(
+        VersionComparison.objects.filter(
+            Q(from_version_id=version.id) | Q(to_version_id=version.id)
+        ).values_list("id", flat=True)
+    )
+    if not comparison_ids:
+        return 0
+
+    VersionComparison.objects.filter(id__in=comparison_ids).delete()
+    logger.warning(
+        "Chunk rebuild invalidated comparisons for version_id=%s: comparisons=%s",
+        version.id,
+        len(comparison_ids),
+    )
+    return len(comparison_ids)
+
+
 def rebuild_version_chunks(
     version: DocumentVersion,
     *,
     reindex: bool = True,
     rematerialize_text: bool = False,
+    invalidate_comparisons: bool = True,
 ) -> int:
     """Rebuild extracted/normalized text, chunks, and optionally reindex them."""
     extracted_text = version.extracted_text or ""
@@ -140,6 +165,9 @@ def rebuild_version_chunks(
     version.normalized_text = materialized.normalized_text
     version.content_hash = materialized.content_hash
 
+    if invalidate_comparisons:
+        invalidate_version_comparisons(version)
+
     version.chunks.all().delete()
 
     chunk_specs = chunk_by_structure_ru(materialized.normalized_text)
@@ -151,6 +179,11 @@ def rebuild_version_chunks(
             Chunk(
                 version=version,
                 chunk_index=chunk.chunk_index,
+                fragment_type=chunk.fragment_type,
+                structure_level=chunk.structure_level,
+                raw_label=chunk.raw_label,
+                canonical_label=chunk.canonical_label,
+                path_key=chunk.path_key,
                 heading=chunk.heading,
                 section_path=chunk.section_path,
                 text=chunk.text,

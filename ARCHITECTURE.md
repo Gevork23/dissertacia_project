@@ -114,8 +114,17 @@ LLM, embeddings и semantic search допустимы только как уси
 
 Отвечает за:
 - TXT / DOCX / PDF с текстовым слоем;
-- нормализацию;
+- формирование `extracted_text`;
+- безопасную и воспроизводимую нормализацию в `normalized_text`;
 - построение чанков.
+
+Внутри текущего backend-контракта фиксируются стадии:
+
+- `file` — исходный артефакт версии;
+- `extracted_text` — format-aware extraction output;
+- `normalized_text` — downstream-ready текст для chunking, diff и дальнейшей аналитики.
+
+Нормализация не должна уничтожать юридически значимую структуру. Для PDF допускается только безопасная предобработка: page number cleanup, header/footer deduplication при повторении, удаление machine-like stamp markers, склейка переносов слов и части line-wrap артефактов.
 
 Ограничение текущей версии: **OCR для сканированных PDF не входит в текущий контур**.
 

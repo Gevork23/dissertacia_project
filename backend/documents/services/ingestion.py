@@ -10,8 +10,12 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
-from ..domain.text_extractors import process_uploaded_file
-from ..domain.text_processing import chunk_by_structure_ru, normalize_text, sha256_hex
+from ..domain.text_extractors import (
+    TextExtractionError,
+    extract_text_from_bytes,
+    process_uploaded_file,
+)
+from ..domain.text_processing import chunk_by_structure_ru, materialize_document_text
 from ..models import ALLOWED_DOCUMENT_EXTENSIONS, Chunk, Document, DocumentVersion
 from .search import index_chunks
 
@@ -70,16 +74,75 @@ def _touch_document(document: Document, version: DocumentVersion) -> None:
     document.updated_at = timezone.now()
 
 
-def rebuild_version_chunks(version: DocumentVersion, *, reindex: bool = True) -> int:
-    """Normalize extracted text, rebuild chunks, and optionally reindex them."""
-    normalized = normalize_text(version.extracted_text or "")
-    version.normalized_text = normalized
-    version.content_hash = sha256_hex(normalized)
-    version.save(update_fields=["normalized_text", "content_hash"])
+def _detect_version_extension(version: DocumentVersion) -> str:
+    for candidate in [version.source_filename, getattr(version.file, "name", "")]:
+        extension = Path(candidate or "").suffix.lower()
+        if extension:
+            return extension
+    return ""
+
+
+def _rematerialize_extracted_text_from_file(version: DocumentVersion) -> str | None:
+    if not getattr(version, "file", None):
+        return None
+
+    try:
+        version.file.open("rb")
+        data = version.file.read()
+        filename = version.source_filename or getattr(version.file, "name", "") or ""
+        return extract_text_from_bytes(data=data, filename=filename)
+    except TextExtractionError as error:
+        logger.warning(
+            "Failed to rematerialize version_id=%s from file: %s",
+            version.id,
+            error,
+        )
+        return None
+    except Exception as error:  # noqa: BLE001
+        logger.warning(
+            "Unexpected rematerialization failure for version_id=%s: %s",
+            version.id,
+            error,
+        )
+        return None
+    finally:
+        try:
+            version.file.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def rebuild_version_chunks(
+    version: DocumentVersion,
+    *,
+    reindex: bool = True,
+    rematerialize_text: bool = False,
+) -> int:
+    """Rebuild extracted/normalized text, chunks, and optionally reindex them."""
+    extracted_text = version.extracted_text or ""
+    if rematerialize_text:
+        rematerialized = _rematerialize_extracted_text_from_file(version)
+        if rematerialized is not None:
+            extracted_text = rematerialized
+
+    materialized = materialize_document_text(
+        extracted_text,
+        extension=_detect_version_extension(version),
+    )
+
+    update_payload = {
+        "extracted_text": extracted_text,
+        "normalized_text": materialized.normalized_text,
+        "content_hash": materialized.content_hash,
+    }
+    DocumentVersion.objects.filter(pk=version.pk).update(**update_payload)
+    version.extracted_text = extracted_text
+    version.normalized_text = materialized.normalized_text
+    version.content_hash = materialized.content_hash
 
     version.chunks.all().delete()
 
-    chunk_specs = chunk_by_structure_ru(normalized)
+    chunk_specs = chunk_by_structure_ru(materialized.normalized_text)
     if not chunk_specs:
         return 0
 
@@ -180,20 +243,22 @@ def ingest_text_document_version(
     allow_duplicate_content: bool = False,
 ) -> DocumentVersion:
     extracted_text = raw_text or ""
-    normalized_text = normalize_text(extracted_text)
+    materialized = materialize_document_text(
+        extracted_text,
+        extension=Path(source_filename or "").suffix.lower(),
+    )
 
-    if not normalized_text:
+    if not materialized.normalized_text:
         raise InvalidDocumentVersionFileError(
             "Document text is empty after normalization and cannot be materialized as a version."
         )
 
-    content_hash = sha256_hex(normalized_text)
     locked_document = Document.objects.select_for_update().get(pk=document.pk)
 
     if not allow_duplicate_content:
         _assert_unique_content_hash(
             document=locked_document,
-            content_hash=content_hash,
+            content_hash=materialized.content_hash,
         )
 
     assigned_version_number = version_number or _next_version_number(locked_document)
@@ -210,8 +275,8 @@ def ingest_text_document_version(
         file_size=content.size,
         content_type=mimetypes.guess_type(content.name)[0] or "text/plain",
         extracted_text=extracted_text,
-        normalized_text=normalized_text,
-        content_hash=content_hash,
+        normalized_text=materialized.normalized_text,
+        content_hash=materialized.content_hash,
     )
     version.file.save(content.name, content, save=False)
     version.save()

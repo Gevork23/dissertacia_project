@@ -16,7 +16,7 @@ from docx.text.paragraph import Paragraph
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
-from .text_processing import normalize_text, sha256_hex
+from .text_processing import PDF_PAGE_BREAK, materialize_document_text
 
 
 class TextExtractionError(Exception):
@@ -101,7 +101,9 @@ def extract_text_from_txt_bytes(data: bytes) -> str:
             continue
 
     if decoded_text is None:
-        decoded_text = data.decode("utf-8", errors="ignore")
+        raise InvalidDocumentFileError(
+            "TXT file has unsupported encoding and cannot be decoded."
+        )
 
     return decoded_text.replace("\r\n", "\n").replace("\r", "\n")
 
@@ -149,7 +151,7 @@ def extract_text_from_pdf_bytes(data: bytes) -> str:
             "PDF file is invalid or corrupted and cannot be processed."
         ) from error
 
-    return "\n\n".join(pages_text).strip()
+    return PDF_PAGE_BREAK.join(pages_text).strip()
 
 
 def extract_text_from_bytes(data: bytes, filename: str) -> str:
@@ -171,16 +173,16 @@ def process_uploaded_file(
     uploaded_file, source_filename: str | None = None
 ) -> ProcessedDocumentText:
     filename = source_filename or getattr(uploaded_file, "name", "") or ""
+    extension = _detect_extension(filename)
 
     uploaded_file.seek(0)
     data = uploaded_file.read()
     uploaded_file.seek(0)
 
     extracted_text = extract_text_from_bytes(data=data, filename=filename).strip()
-    normalized_text = normalize_text(extracted_text)
+    materialized = materialize_document_text(extracted_text, extension=extension)
 
-    if not normalized_text:
-        extension = _detect_extension(filename)
+    if not materialized.normalized_text:
         if extension == ".pdf":
             raise EmptyExtractedTextError(
                 "PDF does not contain extractable text. OCR is not supported in Phase 5."
@@ -191,7 +193,7 @@ def process_uploaded_file(
 
     return ProcessedDocumentText(
         extracted_text=extracted_text,
-        normalized_text=normalized_text,
-        content_hash=sha256_hex(normalized_text),
-        extension=_detect_extension(filename),
+        normalized_text=materialized.normalized_text,
+        content_hash=materialized.content_hash,
+        extension=extension,
     )

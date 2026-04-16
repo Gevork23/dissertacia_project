@@ -11,8 +11,14 @@ from pypdf import PdfWriter
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..domain.text_processing import normalize_text, sha256_hex
+from ..domain.text_processing import (
+    PDF_PAGE_BREAK,
+    normalize_document_text,
+    normalize_text,
+    sha256_hex,
+)
 from ..models import Document, DocumentVersion
+from ..services.ingestion import rebuild_version_chunks
 from ..services.versioning import (
     InvalidDocumentVersionFileError,
     create_text_document_version,
@@ -56,23 +62,57 @@ class DocumentUploadAPITests(APITestCase):
         self,
         name: str = "reglament.pdf",
         text: str = "Hello PDF",
+        pages: list[list[str]] | None = None,
     ) -> SimpleUploadedFile:
-        safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-        stream = f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
-        objects = [
-            b"<< /Type /Catalog /Pages 2 0 R >>",
-            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            (
-                b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] "
-                b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
-            ),
-            b"<< /Length "
-            + str(len(stream)).encode()
-            + b" >>\nstream\n"
-            + stream
-            + b"\nendstream",
-            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        ]
+        def escape(value: str) -> str:
+            return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+        page_lines = pages or [[text]]
+        page_count = len(page_lines)
+        font_object_id = 3 + page_count * 2
+        objects: list[bytes] = [b"<< /Type /Catalog /Pages 2 0 R >>"]
+
+        page_object_ids = list(range(3, 3 + page_count))
+        content_object_ids = list(range(3 + page_count, 3 + page_count * 2))
+        kids = " ".join(f"{page_id} 0 R" for page_id in page_object_ids).encode()
+        objects.append(
+            b"<< /Type /Pages /Kids ["
+            + kids
+            + b"] /Count "
+            + str(page_count).encode()
+            + b" >>"
+        )
+
+        for page_id, content_id in zip(
+            page_object_ids, content_object_ids, strict=True
+        ):
+            objects.append(
+                (
+                    b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 400] "
+                    + f"/Contents {content_id} 0 R ".encode()
+                    + b"/Resources << /Font << /F1 "
+                    + f"{font_object_id} 0 R".encode()
+                    + b" >> >> >>"
+                )
+            )
+
+        for lines in page_lines:
+            commands = ["BT", "/F1 12 Tf", "50 350 Td"]
+            for index, line in enumerate(lines):
+                if index > 0:
+                    commands.append("0 -16 Td")
+                commands.append(f"({escape(line)}) Tj")
+            commands.append("ET")
+            stream = "\n".join(commands).encode("latin-1")
+            objects.append(
+                b"<< /Length "
+                + str(len(stream)).encode()
+                + b" >>\nstream\n"
+                + stream
+                + b"\nendstream"
+            )
+
+        objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
 
         pdf_bytes = bytearray(b"%PDF-1.4\n")
         offsets = [0]
@@ -201,6 +241,48 @@ class DocumentUploadAPITests(APITestCase):
         version = DocumentVersion.objects.get(pk=response.data["id"])
         self.assertIn("Hello PDF", version.extracted_text)
         self.assertEqual(version.content_hash, sha256_hex(version.normalized_text))
+
+    def test_upload_normalizes_pdf_page_noise_and_preserves_structure(self):
+        document = Document.objects.create(title="PDF нормализация")
+
+        response = self.client.post(
+            reverse("documents-versions", kwargs={"pk": document.id}),
+            {
+                "file": self.make_pdf_file(
+                    pages=[
+                        ["HEADER", "1", "Article 1", "workplac-", "e policy"],
+                        [
+                            "HEADER",
+                            "2",
+                            "1.1. worker must follow policy,",
+                            "and confirm rules.",
+                            "[SIGNERSTAMP1]",
+                        ],
+                    ]
+                ),
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        version = DocumentVersion.objects.get(pk=response.data["id"])
+        self.assertIn(PDF_PAGE_BREAK, version.extracted_text)
+        self.assertNotIn("HEADER", version.normalized_text)
+        self.assertNotIn("[SIGNERSTAMP1]", version.normalized_text)
+        self.assertEqual(
+            [
+                line
+                for line in version.normalized_text.splitlines()
+                if line in {"1", "2"}
+            ],
+            [],
+        )
+        self.assertIn("Article 1", version.normalized_text)
+        self.assertIn("workplace policy", version.normalized_text)
+        self.assertIn(
+            "1.1. worker must follow policy, and confirm rules.",
+            version.normalized_text,
+        )
 
     def test_upload_rejects_pdf_without_extractable_text(self):
         document = Document.objects.create(title="Скан PDF")
@@ -378,3 +460,39 @@ class DocumentUploadAPITests(APITestCase):
                 source_filename="empty.txt",
                 raw_text=" \n\t\r\n ",
             )
+
+    def test_rebuild_version_chunks_keeps_current_version_on_latest(self):
+        document = Document.objects.create(title="Rebuild versions")
+        older = create_text_document_version(
+            document=document,
+            source_filename="v1.txt",
+            raw_text="Первая редакция",
+        )
+        latest = create_text_document_version(
+            document=document,
+            source_filename="v2.txt",
+            raw_text="Вторая редакция",
+        )
+
+        rebuild_version_chunks(older)
+        document.refresh_from_db()
+
+        self.assertEqual(document.current_version_id, latest.id)
+
+    def test_create_text_document_version_uses_source_extension_for_normalization(self):
+        document = Document.objects.create(title="Programmatic PDF")
+        raw_text = (
+            f"HEADER\n1\nСтатья 1\nТекст документа"
+            f"{PDF_PAGE_BREAK}HEADER\n2\nПродолжение"
+        )
+
+        version = create_text_document_version(
+            document=document,
+            source_filename="import.pdf",
+            raw_text=raw_text,
+        )
+
+        self.assertEqual(
+            version.normalized_text,
+            normalize_document_text(raw_text, extension=".pdf"),
+        )

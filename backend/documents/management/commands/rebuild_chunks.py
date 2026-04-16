@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-from documents.domain.text_processing import (
-    chunk_by_structure_ru,
-    normalize_text,
-    sha256_hex,
+from documents.models import DocumentVersion
+from documents.services.ingestion import (
+    rebuild_version_chunks,
+    safe_index_version_chunks,
 )
-from documents.models import Chunk, DocumentVersion
-from documents.services.search import index_chunks
 
 
 class Command(BaseCommand):
-    help = "Rebuild normalized_text, chunks, and Qdrant index for document versions."
+    help = (
+        "Rebuild extracted_text, normalized_text, chunks, and Qdrant index "
+        "for document versions."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -20,9 +21,16 @@ class Command(BaseCommand):
             dest="version_id",
             help="Rebuild only one version by id.",
         )
+        parser.add_argument(
+            "--skip-index",
+            action="store_true",
+            dest="skip_index",
+            help="Skip optional Qdrant reindexing step.",
+        )
 
     def handle(self, *args, **options):
         version_id = options.get("version_id")
+        skip_index = options.get("skip_index", False)
 
         queryset = DocumentVersion.objects.all().order_by("id")
         if version_id is not None:
@@ -32,28 +40,13 @@ class Command(BaseCommand):
         self.stdout.write(f"Found versions: {total_versions}")
 
         for version in queryset:
-            normalized = normalize_text(version.extracted_text or "")
-            version.normalized_text = normalized
-            version.content_hash = sha256_hex(normalized)
-            version.save(update_fields=["normalized_text", "content_hash"])
-
-            deleted_count, _ = version.chunks.all().delete()
-
-            chunks = chunk_by_structure_ru(normalized)
-            created_count = 0
-
-            for chunk in chunks:
-                Chunk.objects.create(
-                    version=version,
-                    chunk_index=chunk.chunk_index,
-                    heading=chunk.heading,
-                    section_path=chunk.section_path,
-                    text=chunk.text,
-                    text_hash=chunk.text_hash,
-                )
-                created_count += 1
-
-            indexed_count = index_chunks(version.id)
+            deleted_count = version.chunks.count()
+            created_count = rebuild_version_chunks(
+                version,
+                reindex=False,
+                rematerialize_text=True,
+            )
+            indexed_count = 0 if skip_index else safe_index_version_chunks(version)
 
             self.stdout.write(
                 self.style.SUCCESS(

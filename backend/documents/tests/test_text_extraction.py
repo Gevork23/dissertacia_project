@@ -13,14 +13,22 @@ from ..domain.text_extractors import (
     extract_text_from_bytes,
     process_uploaded_file,
 )
-from ..domain.text_processing import normalize_text, sha256_hex
+from ..domain.text_processing import (
+    PDF_PAGE_BREAK,
+    normalize_document_text,
+    normalize_text,
+    sha256_hex,
+)
 
 
 class TextExtractionUnitTests(TestCase):
-    def make_docx_bytes(self) -> bytes:
+    def make_docx_bytes(self, paragraphs: list[str] | None = None) -> bytes:
         buffer = BytesIO()
         document = DocxDocument()
-        document.add_paragraph("Приказ по МФЦ")
+
+        for paragraph in paragraphs or ["Приказ по МФЦ"]:
+            document.add_paragraph(paragraph)
+
         table = document.add_table(rows=1, cols=2)
         table.rows[0].cells[0].text = "Срок"
         table.rows[0].cells[1].text = "5 дней"
@@ -28,22 +36,57 @@ class TextExtractionUnitTests(TestCase):
         return buffer.getvalue()
 
     def make_pdf_bytes(self, text: str = "Hello PDF") -> bytes:
-        safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-        stream = f"BT\n/F1 18 Tf\n50 100 Td\n({safe_text}) Tj\nET".encode("latin-1")
-        objects = [
-            b"<< /Type /Catalog /Pages 2 0 R >>",
-            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            (
-                b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] "
-                b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
-            ),
-            b"<< /Length "
-            + str(len(stream)).encode()
-            + b" >>\nstream\n"
-            + stream
-            + b"\nendstream",
-            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        ]
+        return self.make_pdf_bytes_from_pages([[text]])
+
+    def make_pdf_bytes_from_pages(self, pages: list[list[str]]) -> bytes:
+        def escape(value: str) -> str:
+            return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+        page_count = len(pages)
+        font_object_id = 3 + page_count * 2
+        objects: list[bytes] = [b"<< /Type /Catalog /Pages 2 0 R >>"]
+
+        page_object_ids = list(range(3, 3 + page_count))
+        content_object_ids = list(range(3 + page_count, 3 + page_count * 2))
+        kids = " ".join(f"{page_id} 0 R" for page_id in page_object_ids).encode()
+        objects.append(
+            b"<< /Type /Pages /Kids ["
+            + kids
+            + b"] /Count "
+            + str(page_count).encode()
+            + b" >>"
+        )
+
+        for page_id, content_id in zip(
+            page_object_ids, content_object_ids, strict=True
+        ):
+            objects.append(
+                (
+                    b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 400] "
+                    + f"/Contents {content_id} 0 R ".encode()
+                    + b"/Resources << /Font << /F1 "
+                    + f"{font_object_id} 0 R".encode()
+                    + b" >> >> >>"
+                )
+            )
+
+        for page_lines in pages:
+            commands = ["BT", "/F1 12 Tf", "50 350 Td"]
+            for index, line in enumerate(page_lines):
+                if index > 0:
+                    commands.append("0 -16 Td")
+                commands.append(f"({escape(line)}) Tj")
+            commands.append("ET")
+            stream = "\n".join(commands).encode("latin-1")
+            objects.append(
+                b"<< /Length "
+                + str(len(stream)).encode()
+                + b" >>\nstream\n"
+                + stream
+                + b"\nendstream"
+            )
+
+        objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
 
         result = bytearray(b"%PDF-1.4\n")
         offsets = [0]
@@ -84,6 +127,18 @@ class TextExtractionUnitTests(TestCase):
 
         self.assertIn("Hello PDF", extracted)
 
+    def test_extract_text_from_pdf_preserves_page_boundaries(self):
+        extracted = extract_text_from_bytes(
+            self.make_pdf_bytes_from_pages(
+                [["HEADER", "1", "first page"], ["HEADER", "2", "second page"]]
+            ),
+            "order.pdf",
+        )
+
+        self.assertIn(PDF_PAGE_BREAK, extracted)
+        self.assertIn("first page", extracted)
+        self.assertIn("second page", extracted)
+
     def test_extract_text_from_docx_rejects_corrupted_binary(self):
         with self.assertRaises(InvalidDocumentFileError):
             extract_text_from_bytes(b"not-a-valid-docx", "broken.docx")
@@ -103,9 +158,29 @@ class TextExtractionUnitTests(TestCase):
 
         self.assertEqual(processed.extracted_text, "Строка 1\n\nСтрока 2")
         self.assertEqual(
-            processed.normalized_text, normalize_text(processed.extracted_text)
+            processed.normalized_text,
+            normalize_document_text(processed.extracted_text, extension=".txt"),
         )
         self.assertEqual(processed.content_hash, sha256_hex(processed.normalized_text))
+
+    def test_process_uploaded_file_preserves_numero_sign_for_docx(self):
+        uploaded_file = SimpleUploadedFile(
+            name="law.docx",
+            content=self.make_docx_bytes(["Приказ № 3"]),
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+        )
+
+        processed = process_uploaded_file(uploaded_file)
+
+        self.assertIn("Приказ № 3", processed.normalized_text)
+        self.assertNotIn("Приказ No 3", processed.normalized_text)
+        self.assertEqual(
+            processed.content_hash,
+            sha256_hex(normalize_text(processed.normalized_text)),
+        )
 
     def test_process_uploaded_file_rejects_pdf_without_extractable_text(self):
         buffer = BytesIO()

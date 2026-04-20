@@ -187,10 +187,20 @@ class VersionChangeItemInline(admin.TabularInline):
     fields = (
         "sort_order",
         "change_type",
+        "semantic_type",
+        "significance_label",
+        "requires_manual_review",
         "old_chunk",
         "new_chunk",
+        "old_text",
+        "new_text",
         "similarity",
         "match_reason",
+    )
+    readonly_fields = (
+        "semantic_type",
+        "significance_label",
+        "requires_manual_review",
     )
 
 
@@ -202,6 +212,11 @@ class VersionComparisonAdmin(admin.ModelAdmin):
         "from_version",
         "to_version",
         "status",
+        "comparison_unit",
+        "identical",
+        "modified_count",
+        "added_count",
+        "removed_count",
         "created_at",
     )
     list_filter = ("status", "document")
@@ -216,11 +231,20 @@ class VersionChangeItemAdmin(admin.ModelAdmin):
         "id",
         "comparison",
         "change_type",
+        "semantic_type",
+        "significance_label",
+        "requires_manual_review",
         "old_chunk",
         "new_chunk",
         "sort_order",
+        "match_reason",
     )
-    list_filter = ("change_type",)
+    list_filter = (
+        "change_type",
+        "semantic_type",
+        "significance_label",
+        "requires_manual_review",
+    )
     ordering = ("comparison", "sort_order", "id")
 
 

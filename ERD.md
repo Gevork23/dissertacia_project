@@ -13,8 +13,9 @@
 - один документ имеет много версий;
 - каждая версия разбивается на чанки;
 - сравнение выполняется между двумя версиями одного документа;
-- сравнение хранит список конкретных изменений;
+- сравнение хранит список конкретных изменений и агрегированные счётчики diff;
 - по сравнению формируется summary;
+- внутри comparison materialize-ится significance-слой для change items;
 - по summary/сравнению создаётся тест;
 - тест состоит из вопросов;
 - вопрос может иметь варианты ответа;
@@ -70,6 +71,11 @@ erDiagram
         bigint id PK
         bigint version_id FK
         int chunk_index
+        string fragment_type
+        int structure_level
+        string raw_label
+        string canonical_label
+        string path_key
         string heading
         string section_path
         text text
@@ -84,6 +90,14 @@ erDiagram
         bigint from_version_id FK
         bigint to_version_id FK
         string status
+        string comparison_unit
+        string matching_strategy
+        bool identical
+        int added_count
+        int removed_count
+        int modified_count
+        int moved_count
+        int unchanged_count
         datetime created_at
         datetime updated_at
     }
@@ -94,6 +108,15 @@ erDiagram
         bigint old_chunk_id FK
         bigint new_chunk_id FK
         string change_type
+        string semantic_type
+        json extracted_entities
+        string significance_label
+        float significance_score
+        text significance_reason
+        json significance_rules
+        bool requires_manual_review
+        text old_text
+        text new_text
         float similarity
         string match_reason
         int sort_order
@@ -186,4 +209,5 @@ erDiagram
 - `GeneratedQuiz` остаётся текущим именем модели в коде, но доменно это сущность **теста**.
 - `QuizAttempt` остаётся текущим именем модели в коде, но доменно это сущность **попытки прохождения**.
 - Поля `payload` и `answers` сохранены как практичные JSON-снимки текущего прототипа, чтобы не ломать уже существующую логику.
+- `VersionChangeItem` теперь хранит не только diff-снимок, но и materialized significance-оценку, на которую опираются summary и quiz generation.
 - При этом нормализованные сущности `Question`, `Choice` и `Answer` добавлены уже сейчас, чтобы база была готова к админке, отчётам и дальнейшему развитию.

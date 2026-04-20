@@ -22,7 +22,7 @@
 
 В текущем контуре `normalized_text` формируется единым materialization-stage:
 
-**file -> extraction -> normalization -> chunks / diff / summary / quiz**
+**file -> extraction -> normalization -> chunks -> diff -> significance -> summary -> quiz**
 
 Для PDF текущий MVP делает только безопасную предобработку без OCR:
 
@@ -31,6 +31,71 @@
 - убирает standalone page numbers и machine-like stamp markers;
 - склеивает переносы слов и часть line-wrap артефактов;
 - не пытается агрессивно перестраивать юридическую структуру документа.
+
+## Structural chunks: что считается единицей анализа
+
+После Фазы 7 `normalized_text` materialize-ится не в плоские блоки, а в **структурные фрагменты** (`Chunk`) с сохранением порядка и привязки к `DocumentVersion`.
+
+В MVP поддерживаются:
+
+- `title` — заголовок документа перед основной структурой;
+- `preamble` — вводные блоки до первой статьи / главы / раздела;
+- `section` / `chapter` — контекст верхнего уровня и body-блоки, если текст расположен непосредственно под ними;
+- `article` — тело статьи, если внутри нет более мелкой нумерации;
+- `point` — пункты вида `1.` / `2.` / `Пункт 3`;
+- `subpoint` — подпункты вида `1.1.` / `1)` / `а)` / `подпункт ...`;
+- `paragraph` — явно размеченные абзацы;
+- `fallback_block` — честная деградация для слабо структурированных документов.
+
+Для каждого чанка сохраняются:
+
+- `fragment_type`;
+- `structure_level`;
+- `raw_label`;
+- `canonical_label`;
+- `path_key`;
+- `heading`;
+- `section_path`;
+- `text` и `text_hash`.
+
+`path_key` используется как машинный anchor для дальнейшего сопоставления редакций, а `heading` / `section_path` остаются человекочитаемыми полями для API, demo и отчётности.
+
+## Comparison layer: базовый version diff поверх structural chunks
+
+После Фазы 8 compare-контур работает по следующим правилам:
+
+- primary comparison unit — `Chunk`;
+- primary matching strategy — `path_key`, затем `canonical_label + fragment_type`, затем точный `section_path`-anchor;
+- exact-text fragments с устойчивым anchor считаются `unchanged`, даже если их `chunk_index` сместился из-за вставки нового пункта в середину документа;
+- `modified` строится сначала по устойчивым anchor, а затем по ограниченному fallback-matching с similarity и близостью позиции;
+- `added` / `removed` materialize-ятся только после исчерпания безопасных match-сценариев;
+- `moved` в текущем MVP не используется как основной diff-результат: exact-text renumbering/reordering трактуется как `unchanged`, чтобы не путать структурный сдвиг с содержательным изменением;
+- если chunk layer отсутствует хотя бы у одной версии, compare честно деградирует в `document_text` fallback вместо ложного `identical`.
+
+Materialized `VersionComparison` теперь хранит не только статус пары версий, но и:
+
+- `comparison_unit`;
+- `matching_strategy`;
+- `identical`;
+- агрегированные счётчики `added / removed / modified / moved / unchanged`.
+
+`VersionChangeItem` дополнен снимками `old_text` / `new_text`, поэтому materialized diff остаётся объяснимым даже в fallback-сценарии без chunk-ссылок.
+
+## Significance layer: baseline-классификация значимости изменений
+
+После Фазы 9 materialized diff дополняется отдельным explainable significance-слоем.
+
+Для каждого `VersionChangeItem` теперь материализуются:
+
+- `semantic_type` — содержательный тип изменения (`deadline`, `document`, `procedure`, `editorial`, `unclassified` и др.);
+- `significance_label` — baseline-уровень значимости (`critical`, `important`, `informational`, `editorial`);
+- `significance_score` — rule-based confidence / priority score в диапазоне `0.0..1.0`;
+- `significance_reason` и `significance_rules` — explainability-слой для demo, summary и quiz;
+- `requires_manual_review` — честный флаг для неоднозначных случаев, где baseline-эвристик недостаточно.
+
+Текущий MVP intentionally использует **deterministic rule-based baseline**, а не обязательный LLM/ML decision layer. Это делает классификацию воспроизводимой, проверяемой тестами и удобной для объяснения комиссии.
+
+Краткая выжимка и генерация квиза теперь работают не по первым diff-элементам подряд, а по **prioritized change items**: сначала `critical` / `important`, затем `informational`, а редакционные изменения используются как fallback.
 
 ## Что реально есть в текущем состоянии репозитория
 
@@ -42,6 +107,7 @@
 - извлечение текста из TXT, DOCX и PDF с текстовым слоем;
 - структурное разбиение текста на фрагменты;
 - сравнение двух версий документа;
+- baseline-классификация и приоритизация значимости изменений;
 - краткая выжимка по изменениям;
 - генерация квиза по diff;
 - approval workflow для квиза;
@@ -82,8 +148,9 @@
 
 - загрузка документа и новой версии через backend;
 - парсинг TXT / DOCX / PDF с текстовым слоем;
-- построение чанков после загрузки;
+- построение структурных чанков после загрузки;
 - compare / brief / quiz API;
+- persistent significance layer поверх materialized diff;
 - сохранение квиза;
 - утверждение квиза ответственным лицом;
 - прохождение квиза сотрудником;
@@ -117,8 +184,8 @@
 - `models.py`, `admin.py` — ORM и административный слой;
 - `api/` — DRF serializers, HTTP endpoints и viewsets;
 - `demo/` — demo UI на Django templates и deterministic demo corpus;
-- `domain/` — сравнение версий, enrichment, extraction, quiz/summary logic;
-- `services/` — ingestion, importance analysis, optional search/Qdrant, evaluation services;
+- `domain/` — сравнение версий, change enrichment, significance-aware quiz/summary logic;
+- `services/` — ingestion, significance/importance analysis, optional search/Qdrant, evaluation services;
 - `tests/` — тесты app-модуля, сгруппированные по сценариям.
 
 Такое разложение позволяет отдельно объяснять комиссии:

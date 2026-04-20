@@ -11,6 +11,7 @@ LABEL_PRIORITY = {
     "important": 3,
     "informational": 2,
     "editorial": 1,
+    "not_evaluated": 0,
 }
 
 CRITICAL_CHANGE_TYPES = {
@@ -104,6 +105,7 @@ class ImportancePrediction:
     confidence: float
     triggered_rules: list[str]
     explanation: str
+    requires_manual_review: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -163,18 +165,42 @@ def _looks_like_contact_or_reference_addition(old_text: str, new_text: str) -> b
     return has_info_now and not had_info_before
 
 
-def _build_explanation(label: str, triggered_rules: list[str]) -> str:
+def _build_explanation(
+    label: str,
+    triggered_rules: list[str],
+    *,
+    requires_manual_review: bool,
+) -> str:
     explanations = {
-        "critical": "Изменение затрагивает ключевые условия оказания услуги или обязанности/основания отказа.",
-        "important": "Изменение влияет на порядок работы или условия взаимодействия, но не является самым критичным.",
-        "informational": "Изменение в основном добавляет справочную или поясняющую информацию.",
-        "editorial": "Изменение похоже на редакционное или структурное и не меняет смысл по существу.",
+        "critical": (
+            "Изменение затрагивает ключевые условия применения документа, "
+            "обязанности, сроки или основания отказа."
+        ),
+        "important": (
+            "Изменение влияет на порядок работы или условия взаимодействия, "
+            "но не относится к наиболее критичным."
+        ),
+        "informational": (
+            "Изменение в основном добавляет справочную, контактную или "
+            "поясняющую информацию."
+        ),
+        "editorial": (
+            "Изменение похоже на редакционное или структурное и не меняет "
+            "смысл по существу."
+        ),
     }
 
+    explanation = explanations[label]
     if triggered_rules:
-        return f"{explanations[label]} Сработали правила: {', '.join(triggered_rules)}."
+        explanation = f"{explanation} Сработали правила: {', '.join(triggered_rules)}."
 
-    return explanations[label]
+    if requires_manual_review:
+        explanation = (
+            f"{explanation} Для этого изменения автоматическая оценка "
+            "недостаточно уверенная, рекомендуется ручная проверка."
+        )
+
+    return explanation
 
 
 def classify_change_importance(
@@ -199,6 +225,7 @@ def classify_change_importance(
 
     scores = {label: 0 for label in LABELS}
     reasons = {label: [] for label in LABELS}
+    requires_manual_review = False
 
     def hit(label: str, score: int, reason: str) -> None:
         if score > scores[label]:
@@ -206,7 +233,6 @@ def classify_change_importance(
         if reason not in reasons[label]:
             reasons[label].append(reason)
 
-    # 1. Явные сигналы по типу изменения
     if change_type_norm in CRITICAL_CHANGE_TYPES:
         hit("critical", 100, f"change_type={change_type_norm}")
 
@@ -219,7 +245,6 @@ def classify_change_importance(
     if change_type_norm in EDITORIAL_CHANGE_TYPES:
         hit("editorial", 100, f"change_type={change_type_norm}")
 
-    # 2. Сигналы по извлечённым сущностям
     critical_entities = entity_types & CRITICAL_ENTITY_TYPES
     important_entities = entity_types & IMPORTANT_ENTITY_TYPES
     informational_entities = entity_types & INFORMATIONAL_ENTITY_TYPES
@@ -232,12 +257,15 @@ def classify_change_importance(
         hit("important", 95, f"entities={','.join(sorted(important_entities))}")
 
     if informational_entities:
-        hit("informational", 95, f"entities={','.join(sorted(informational_entities))}")
+        hit(
+            "informational",
+            95,
+            f"entities={','.join(sorted(informational_entities))}",
+        )
 
     if editorial_entities:
         hit("editorial", 95, f"entities={','.join(sorted(editorial_entities))}")
 
-    # 3. Сигналы по тексту
     if _matches_any(CRITICAL_PATTERNS, combined_text):
         hit("critical", 90, "critical_keywords")
 
@@ -247,7 +275,6 @@ def classify_change_importance(
     if _matches_any(INFORMATIONAL_PATTERNS, combined_text):
         hit("informational", 90, "informational_keywords")
 
-    # 4. Редакционные эвристики
     if (
         old_norm
         and new_norm
@@ -258,21 +285,28 @@ def classify_change_importance(
     if _looks_like_contact_or_reference_addition(old_text, new_text):
         hit("informational", 80, "contact_or_reference_added")
 
-    # 5. Fallback
     if not any(scores.values()):
         hit("important", 51, "fallback_manual_review")
+        requires_manual_review = True
 
-    # При одинаковом score приоритет: critical > important > informational > editorial
     best_label = max(LABELS, key=lambda label: (scores[label], LABEL_PRIORITY[label]))
     best_rules = reasons[best_label] or ["fallback_manual_review"]
+    if best_rules == ["fallback_manual_review"]:
+        requires_manual_review = True
+
     confidence = round(scores[best_label] / 100, 2)
-    explanation = _build_explanation(best_label, best_rules)
+    explanation = _build_explanation(
+        best_label,
+        best_rules,
+        requires_manual_review=requires_manual_review,
+    )
 
     return ImportancePrediction(
         label=best_label,
         confidence=confidence,
         triggered_rules=best_rules,
         explanation=explanation,
+        requires_manual_review=requires_manual_review,
     )
 
 

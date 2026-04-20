@@ -284,6 +284,10 @@ class VersionComparison(DomainValidatedModel):
         COMPLETED = "completed", "Завершено"
         FAILED = "failed", "Ошибка"
 
+    class ComparisonUnit(models.TextChoices):
+        CHUNK = "chunk", "Структурный фрагмент"
+        DOCUMENT_TEXT = "document_text", "Документ целиком"
+
     document = models.ForeignKey(
         Document,
         on_delete=models.CASCADE,
@@ -304,6 +308,18 @@ class VersionComparison(DomainValidatedModel):
         choices=Status.choices,
         default=Status.DRAFT,
     )
+    comparison_unit = models.CharField(
+        max_length=32,
+        choices=ComparisonUnit.choices,
+        default=ComparisonUnit.CHUNK,
+    )
+    matching_strategy = models.CharField(max_length=64, default="structural_chunks_v2")
+    identical = models.BooleanField(default=False)
+    added_count = models.PositiveIntegerField(default=0)
+    removed_count = models.PositiveIntegerField(default=0)
+    modified_count = models.PositiveIntegerField(default=0)
+    moved_count = models.PositiveIntegerField(default=0)
+    unchanged_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -326,15 +342,12 @@ class VersionComparison(DomainValidatedModel):
         if self.from_version_id and self.to_version_id:
             if self.from_version_id == self.to_version_id:
                 errors["to_version"] = "Comparison requires two different versions."
-
             if self.from_version.document_id != self.to_version.document_id:
                 errors["to_version"] = "Versions must belong to the same document."
-
             if self.from_version.version_number >= self.to_version.version_number:
                 errors["to_version"] = (
                     "Target version must be newer than source version."
                 )
-
             expected_document_id = self.from_version.document_id
             if self.document_id and self.document_id != expected_document_id:
                 errors["document"] = "Comparison document must match both versions."
@@ -360,6 +373,26 @@ class VersionChangeItem(DomainValidatedModel):
         MODIFIED = "modified", "Изменено"
         MOVED = "moved", "Перемещено"
 
+    class SemanticType(models.TextChoices):
+        DEADLINE = "deadline", "Сроки"
+        DOCUMENT = "document", "Документы"
+        OBLIGATION = "obligation", "Обязанности"
+        PROCEDURE = "procedure", "Процедура"
+        REFUSAL = "refusal", "Основания отказа"
+        CONDITION = "condition", "Условия"
+        RESPONSIBILITY = "responsibility", "Ответственность"
+        INFORMATIONAL = "informational", "Информационное"
+        EDITORIAL = "editorial", "Редакционное"
+        STRUCTURE = "structure", "Структурное"
+        UNCLASSIFIED = "unclassified", "Не классифицировано"
+
+    class SignificanceLabel(models.TextChoices):
+        CRITICAL = "critical", "Критично"
+        IMPORTANT = "important", "Важно"
+        INFORMATIONAL = "informational", "Информационно"
+        EDITORIAL = "editorial", "Редакционно"
+        NOT_EVALUATED = "not_evaluated", "Не оценено"
+
     comparison = models.ForeignKey(
         VersionComparison,
         on_delete=models.CASCADE,
@@ -380,8 +413,25 @@ class VersionChangeItem(DomainValidatedModel):
         blank=True,
         related_name="change_items_new",
     )
+    old_text = models.TextField(blank=True, default="")
+    new_text = models.TextField(blank=True, default="")
     similarity = models.FloatField(null=True, blank=True)
     match_reason = models.CharField(max_length=128, blank=True)
+    semantic_type = models.CharField(
+        max_length=32,
+        choices=SemanticType.choices,
+        default=SemanticType.UNCLASSIFIED,
+    )
+    extracted_entities = models.JSONField(default=list, blank=True)
+    significance_label = models.CharField(
+        max_length=32,
+        choices=SignificanceLabel.choices,
+        default=SignificanceLabel.NOT_EVALUATED,
+    )
+    significance_score = models.FloatField(default=0.0)
+    significance_reason = models.TextField(blank=True, default="")
+    significance_rules = models.JSONField(default=list, blank=True)
+    requires_manual_review = models.BooleanField(default=False)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -389,6 +439,8 @@ class VersionChangeItem(DomainValidatedModel):
         ordering = ["sort_order", "id"]
         indexes = [
             models.Index(fields=["comparison", "change_type"]),
+            models.Index(fields=["comparison", "semantic_type"]),
+            models.Index(fields=["comparison", "significance_label"]),
         ]
         constraints = [
             models.CheckConstraint(
@@ -396,42 +448,61 @@ class VersionChangeItem(DomainValidatedModel):
                     (
                         Q(change_type="added")
                         & Q(old_chunk__isnull=True)
-                        & Q(new_chunk__isnull=False)
+                        & Q(old_text="")
+                        & (Q(new_chunk__isnull=False) | ~Q(new_text=""))
                     )
                     | (
                         Q(change_type="removed")
-                        & Q(old_chunk__isnull=False)
+                        & (Q(old_chunk__isnull=False) | ~Q(old_text=""))
                         & Q(new_chunk__isnull=True)
+                        & Q(new_text="")
                     )
                     | (
                         Q(change_type__in=["modified", "moved"])
-                        & Q(old_chunk__isnull=False)
-                        & Q(new_chunk__isnull=False)
+                        & (Q(old_chunk__isnull=False) | ~Q(old_text=""))
+                        & (Q(new_chunk__isnull=False) | ~Q(new_text=""))
                     )
                 ),
-                name="change_item_chunk_shape_valid",
-            )
+                name="change_item_payload_shape_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(significance_score__gte=0.0)
+                & Q(significance_score__lte=1.0),
+                name="change_item_significance_score_range_valid",
+            ),
         ]
 
     def clean(self):
         errors = {}
         old_version_id = self.old_chunk.version_id if self.old_chunk_id else None
         new_version_id = self.new_chunk.version_id if self.new_chunk_id else None
+        old_text = (self.old_text or "").strip()
+        new_text = (self.new_text or "").strip()
+        has_old_payload = self.old_chunk_id is not None or bool(old_text)
+        has_new_payload = self.new_chunk_id is not None or bool(new_text)
 
         if self.change_type == self.ChangeType.ADDED:
-            if self.old_chunk_id is not None or self.new_chunk_id is None:
+            if self.old_chunk_id is not None or old_text:
+                errors["old_chunk"] = (
+                    "Added change items must not contain a source chunk or source text."
+                )
+            if not has_new_payload:
                 errors["new_chunk"] = (
-                    "Added change items must point only to a chunk in the target version."
+                    "Added change items must contain target chunk data or target text."
                 )
         elif self.change_type == self.ChangeType.REMOVED:
-            if self.old_chunk_id is None or self.new_chunk_id is not None:
+            if self.new_chunk_id is not None or new_text:
+                errors["new_chunk"] = (
+                    "Removed change items must not contain a target chunk or target text."
+                )
+            if not has_old_payload:
                 errors["old_chunk"] = (
-                    "Removed change items must point only to a chunk in the source version."
+                    "Removed change items must contain source chunk data or source text."
                 )
         elif self.change_type in {self.ChangeType.MODIFIED, self.ChangeType.MOVED}:
-            if self.old_chunk_id is None or self.new_chunk_id is None:
+            if not has_old_payload or not has_new_payload:
                 errors["new_chunk"] = (
-                    "Modified and moved items require both source and target chunks."
+                    "Modified and moved items require source and target chunk data or text snapshots."
                 )
 
         if self.comparison_id:
@@ -444,13 +515,64 @@ class VersionChangeItem(DomainValidatedModel):
                     "New chunk must belong to the comparison target version."
                 )
 
+        semantic_type = self.semantic_type or self.SemanticType.UNCLASSIFIED
+        if semantic_type not in self.SemanticType.values:
+            errors["semantic_type"] = "Unknown semantic type for change item."
+
+        significance_label = (
+            self.significance_label or self.SignificanceLabel.NOT_EVALUATED
+        )
+        if significance_label not in self.SignificanceLabel.values:
+            errors["significance_label"] = "Unknown significance label for change item."
+
+        try:
+            significance_score = float(self.significance_score or 0.0)
+        except (TypeError, ValueError):
+            errors["significance_score"] = "Significance score must be numeric."
+        else:
+            if significance_score < 0.0 or significance_score > 1.0:
+                errors["significance_score"] = (
+                    "Significance score must be between 0.0 and 1.0."
+                )
+
+        if self.extracted_entities is not None and not isinstance(
+            self.extracted_entities, list
+        ):
+            errors["extracted_entities"] = (
+                "Extracted entities must be stored as a list."
+            )
+
+        if self.significance_rules is not None and not isinstance(
+            self.significance_rules, list
+        ):
+            errors["significance_rules"] = (
+                "Significance rules must be stored as a list."
+            )
+
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.old_chunk_id and not self.old_text:
+            self.old_text = self.old_chunk.text
+        if self.new_chunk_id and not self.new_text:
+            self.new_text = self.new_chunk.text
+        if not self.semantic_type:
+            self.semantic_type = self.SemanticType.UNCLASSIFIED
+        if not self.significance_label:
+            self.significance_label = self.SignificanceLabel.NOT_EVALUATED
+        if self.significance_score is None:
+            self.significance_score = 0.0
+        if self.extracted_entities is None:
+            self.extracted_entities = []
+        if self.significance_rules is None:
+            self.significance_rules = []
+        return super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return (
             f"ChangeItem {self.id} "
-            f"[{self.change_type}] comparison={self.comparison_id}"
+            f"[{self.change_type}/{self.significance_label}] comparison={self.comparison_id}"
         )
 
 

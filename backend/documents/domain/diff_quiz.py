@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .change_enrichment import get_significance_label, select_prioritized_change_entries
+
 GENERIC_DISTRACTORS = {
     "added": [
         "Изменений в этом разделе не обнаружено.",
@@ -165,25 +167,54 @@ def _build_choices(
     ]
 
 
+def _attach_significance_metadata(
+    question: dict[str, Any],
+    *,
+    source_change: dict[str, Any],
+) -> dict[str, Any]:
+    significance_label = get_significance_label(source_change)
+    question["semantic_type"] = source_change.get("semantic_type")
+    question["significance_label"] = significance_label
+    question["significance_score"] = source_change.get("significance_score")
+    question["significance_reason"] = source_change.get(
+        "significance_reason"
+    ) or source_change.get("importance_explanation")
+    question["requires_manual_review"] = bool(
+        source_change.get("requires_manual_review")
+    )
+
+    source_meta = question.setdefault("source", {})
+    source_meta["semantic_type"] = source_change.get("semantic_type")
+    source_meta["significance_label"] = significance_label
+    source_meta["requires_manual_review"] = bool(
+        source_change.get("requires_manual_review")
+    )
+    return question
+
+
 def build_quiz_from_diff(
     diff_payload: dict[str, Any],
     max_questions: int = 10,
 ) -> dict[str, Any]:
     questions: list[dict[str, Any]] = []
 
-    for chunk in diff_payload["added"]:
-        questions.append(build_added_question(chunk))
+    prioritized_entries = select_prioritized_change_entries(
+        diff_payload,
+        limit=max_questions,
+        prefer_non_editorial=True,
+    )
 
-    for item in diff_payload["modified"]:
-        questions.append(build_modified_question(item))
+    for change_type, payload in prioritized_entries:
+        if change_type == "added":
+            question = build_added_question(payload)
+        elif change_type == "modified":
+            question = build_modified_question(payload)
+        elif change_type == "removed":
+            question = build_removed_question(payload)
+        else:
+            question = build_moved_question(payload)
+        questions.append(_attach_significance_metadata(question, source_change=payload))
 
-    for chunk in diff_payload["removed"]:
-        questions.append(build_removed_question(chunk))
-
-    for item in diff_payload["moved"]:
-        questions.append(build_moved_question(item))
-
-    questions = questions[:max_questions]
     answer_pool = [
         question["answer"] for question in questions if question.get("answer")
     ]

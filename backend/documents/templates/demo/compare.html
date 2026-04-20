@@ -14,6 +14,13 @@
         <div class="card"><div class="muted">Перемещено</div><div class="metric">{{ diff.summary.moved }}</div></div>
         <div class="card"><div class="muted">Без изменений</div><div class="metric">{{ diff.summary.unchanged }}</div></div>
     </div>
+    <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card"><div class="muted">Critical</div><div class="metric">{{ brief.summary.by_significance.critical|default:0 }}</div></div>
+        <div class="card"><div class="muted">Important</div><div class="metric">{{ brief.summary.by_significance.important|default:0 }}</div></div>
+        <div class="card"><div class="muted">Informational</div><div class="metric">{{ brief.summary.by_significance.informational|default:0 }}</div></div>
+        <div class="card"><div class="muted">Editorial</div><div class="metric">{{ brief.summary.by_significance.editorial|default:0 }}</div></div>
+        <div class="card"><div class="muted">Manual review</div><div class="metric">{{ brief.summary.manual_review_count|default:0 }}</div></div>
+    </div>
 </section>
 
 <div class="grid grid-2" style="margin-top: 18px;">
@@ -27,8 +34,14 @@
                     {% if item.type == 'removed' %}<span class="pill danger">Удалено</span>{% endif %}
                     {% if item.type == 'modified' %}<span class="pill warning">Изменено</span>{% endif %}
                     {% if item.type == 'moved' %}<span class="pill primary">Перемещено</span>{% endif %}
+                    <span class="pill secondary">{{ item.significance_label|default:'not_evaluated' }}</span>
+                    {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
                     <h3 style="margin-top: 10px;">{{ item.title }}</h3>
+                    <p class="muted">Тип: {{ item.semantic_type|default:'unclassified' }}</p>
                     <p class="muted">{{ item.description }}</p>
+                    {% if item.significance_reason %}
+                        <p class="muted">{{ item.significance_reason }}</p>
+                    {% endif %}
                 </div>
             {% empty %}
                 <p class="muted">Значимые highlights не сформированы.</p>
@@ -38,7 +51,7 @@
 
     <section class="card">
         <h2>Создать тест по diff</h2>
-        <p class="muted">В превью уже доступно {{ quiz_preview.questions_count }} вопросов. Для демонстрации удобно сохранять тест на 3–5 вопросов.</p>
+        <p class="muted">В превью уже доступно {{ quiz_preview.questions_count }} вопросов. При генерации теста сначала отбираются наиболее значимые изменения, а редакционные используются только как fallback.</p>
         <form method="post" action="{% url 'demo-create-quiz' %}">
             {% csrf_token %}
             <input type="hidden" name="from_version" value="{{ from_version.id }}">
@@ -67,11 +80,14 @@
                 <summary>Изменённые фрагменты ({{ diff.modified|length }})</summary>
                 {% for item in diff.modified %}
                     <div class="question-card" style="margin-top: 12px;">
+                        <span class="pill warning">{{ item.significance_label|default:'not_evaluated' }}</span>
+                        {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
                         <h3>{{ item.to_chunk.heading|default:item.to_chunk.section_path }}</h3>
+                        <p class="muted">Тип: {{ item.semantic_type|default:'unclassified' }}</p>
                         <p><strong>Было:</strong> {{ item.from_chunk.text }}</p>
                         <p><strong>Стало:</strong> {{ item.to_chunk.text }}</p>
-                        {% if item.importance %}
-                            <p class="muted">Важность: {{ item.importance.label }} · confidence={{ item.importance.confidence }}</p>
+                        {% if item.significance_reason %}
+                            <p class="muted">{{ item.significance_reason }}</p>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -83,8 +99,14 @@
                 <summary>Добавленные фрагменты ({{ diff.added|length }})</summary>
                 {% for item in diff.added %}
                     <div class="question-card" style="margin-top: 12px;">
+                        <span class="pill success">{{ item.significance_label|default:'not_evaluated' }}</span>
+                        {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
                         <h3>{{ item.heading|default:item.section_path }}</h3>
+                        <p class="muted">Тип: {{ item.semantic_type|default:'unclassified' }}</p>
                         <p>{{ item.text }}</p>
+                        {% if item.significance_reason %}
+                            <p class="muted">{{ item.significance_reason }}</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </details>
@@ -95,8 +117,14 @@
                 <summary>Удалённые фрагменты ({{ diff.removed|length }})</summary>
                 {% for item in diff.removed %}
                     <div class="question-card" style="margin-top: 12px;">
+                        <span class="pill danger">{{ item.significance_label|default:'not_evaluated' }}</span>
+                        {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
                         <h3>{{ item.heading|default:item.section_path }}</h3>
+                        <p class="muted">Тип: {{ item.semantic_type|default:'unclassified' }}</p>
                         <p>{{ item.text }}</p>
+                        {% if item.significance_reason %}
+                            <p class="muted">{{ item.significance_reason }}</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </details>

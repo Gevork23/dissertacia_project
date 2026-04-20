@@ -7,7 +7,15 @@ from typing import Any
 from django.db import transaction
 from django.utils import timezone
 
-from ..domain.diff import build_version_diff
+from ..domain.change_enrichment import (
+    enrich_compare_payload,
+    select_prioritized_change_items,
+)
+from ..domain.diff import (
+    build_version_diff,
+    iter_ordered_change_entries,
+    validate_version_pair,
+)
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import (
@@ -62,13 +70,16 @@ def make_json_safe(value: Any):
     return value
 
 
-def _validate_version_pair(
-    from_version: DocumentVersion, to_version: DocumentVersion
-) -> None:
-    if from_version.document_id != to_version.document_id:
-        raise DomainWorkflowError("Versions must belong to the same document.")
-    if from_version.version_number >= to_version.version_number:
-        raise DomainWorkflowError("Target version must be newer than source version.")
+def build_comparison_payload(
+    *,
+    from_version: DocumentVersion,
+    to_version: DocumentVersion,
+) -> dict[str, Any]:
+    try:
+        validate_version_pair(from_version=from_version, to_version=to_version)
+    except ValueError as error:
+        raise DomainWorkflowError(str(error)) from error
+    return build_version_diff(from_version=from_version, to_version=to_version)
 
 
 def _get_chunk(chunk_payload: dict[str, Any] | None) -> Chunk | None:
@@ -80,6 +91,12 @@ def _get_chunk(chunk_payload: dict[str, Any] | None) -> Chunk | None:
     return Chunk.objects.get(pk=chunk_id)
 
 
+def _get_chunk_text(chunk_payload: dict[str, Any] | None) -> str:
+    if not chunk_payload:
+        return ""
+    return str(chunk_payload.get("text") or "")
+
+
 @transaction.atomic
 def materialize_comparison(
     *,
@@ -87,13 +104,14 @@ def materialize_comparison(
     to_version: DocumentVersion,
     diff_payload: dict[str, Any] | None = None,
 ) -> tuple[VersionComparison, Summary, dict[str, Any], list[VersionChangeItem]]:
-    _validate_version_pair(from_version=from_version, to_version=to_version)
-
-    diff_payload = diff_payload or build_version_diff(
+    raw_diff_payload = diff_payload or build_comparison_payload(
         from_version=from_version,
         to_version=to_version,
     )
+    diff_payload = enrich_compare_payload(raw_diff_payload)
     brief_payload = build_brief_summary(diff_payload)
+    comparison_meta = diff_payload.get("comparison_meta") or {}
+    summary_payload = diff_payload.get("summary") or {}
 
     comparison, _ = VersionComparison.objects.update_or_create(
         from_version=from_version,
@@ -101,64 +119,99 @@ def materialize_comparison(
         defaults={
             "document": from_version.document,
             "status": VersionComparison.Status.DRAFT,
+            "comparison_unit": comparison_meta.get(
+                "comparison_unit",
+                VersionComparison.ComparisonUnit.CHUNK,
+            ),
+            "matching_strategy": comparison_meta.get(
+                "matching_strategy",
+                "structural_chunks_v2",
+            ),
+            "identical": bool(diff_payload.get("identical", False)),
+            "added_count": int(summary_payload.get("added", 0)),
+            "removed_count": int(summary_payload.get("removed", 0)),
+            "modified_count": int(summary_payload.get("modified", 0)),
+            "moved_count": int(summary_payload.get("moved", 0)),
+            "unchanged_count": int(summary_payload.get("unchanged", 0)),
         },
     )
 
     comparison.change_items.all().delete()
     change_items: list[VersionChangeItem] = []
-    sort_order = 1
 
-    for chunk in diff_payload.get("added", []):
-        change_items.append(
-            VersionChangeItem.objects.create(
-                comparison=comparison,
-                change_type=VersionChangeItem.ChangeType.ADDED,
-                new_chunk=_get_chunk(chunk),
-                sort_order=sort_order,
-            )
-        )
-        sort_order += 1
+    for sort_order, (change_type, payload) in enumerate(
+        iter_ordered_change_entries(diff_payload),
+        start=1,
+    ):
+        old_payload = None
+        new_payload = None
+        if change_type in {"modified", "moved"}:
+            old_payload = payload.get("from_chunk")
+            new_payload = payload.get("to_chunk")
+        elif change_type == "removed":
+            old_payload = payload
+        else:
+            new_payload = payload
 
-    for item in diff_payload.get("modified", []):
-        change_items.append(
-            VersionChangeItem.objects.create(
-                comparison=comparison,
-                change_type=VersionChangeItem.ChangeType.MODIFIED,
-                old_chunk=_get_chunk(item.get("from_chunk")),
-                new_chunk=_get_chunk(item.get("to_chunk")),
-                similarity=item.get("similarity"),
-                match_reason=item.get("match_reason") or "",
-                sort_order=sort_order,
-            )
-        )
-        sort_order += 1
-
-    for chunk in diff_payload.get("removed", []):
-        change_items.append(
-            VersionChangeItem.objects.create(
-                comparison=comparison,
-                change_type=VersionChangeItem.ChangeType.REMOVED,
-                old_chunk=_get_chunk(chunk),
-                sort_order=sort_order,
-            )
-        )
-        sort_order += 1
-
-    for item in diff_payload.get("moved", []):
-        change_items.append(
-            VersionChangeItem.objects.create(
-                comparison=comparison,
-                change_type=VersionChangeItem.ChangeType.MOVED,
-                old_chunk=_get_chunk(item.get("from_chunk")),
-                new_chunk=_get_chunk(item.get("to_chunk")),
-                match_reason="moved",
-                sort_order=sort_order,
-            )
-        )
-        sort_order += 1
+        item_kwargs = {
+            "comparison": comparison,
+            "change_type": CHANGE_TYPE_TO_MODEL[change_type],
+            "old_chunk": _get_chunk(old_payload),
+            "new_chunk": _get_chunk(new_payload),
+            "old_text": _get_chunk_text(old_payload),
+            "new_text": _get_chunk_text(new_payload),
+            "semantic_type": payload.get("semantic_type")
+            or VersionChangeItem.SemanticType.UNCLASSIFIED,
+            "extracted_entities": make_json_safe(
+                payload.get("extracted_entities") or []
+            ),
+            "significance_label": payload.get("significance_label")
+            or VersionChangeItem.SignificanceLabel.NOT_EVALUATED,
+            "significance_score": float(payload.get("significance_score") or 0.0),
+            "significance_reason": payload.get("significance_reason") or "",
+            "significance_rules": make_json_safe(
+                payload.get("significance_rules")
+                or payload.get("importance_triggered_rules")
+                or []
+            ),
+            "requires_manual_review": bool(
+                payload.get("requires_manual_review", False)
+            ),
+            "sort_order": sort_order,
+        }
+        if change_type in {"modified", "moved"}:
+            item_kwargs["similarity"] = payload.get("similarity")
+            item_kwargs["match_reason"] = payload.get("match_reason") or change_type
+        change_items.append(VersionChangeItem.objects.create(**item_kwargs))
 
     comparison.status = VersionComparison.Status.COMPLETED
-    comparison.save(update_fields=["document", "status", "updated_at"])
+    comparison.comparison_unit = comparison_meta.get(
+        "comparison_unit", comparison.comparison_unit
+    )
+    comparison.matching_strategy = comparison_meta.get(
+        "matching_strategy", comparison.matching_strategy
+    )
+    comparison.identical = bool(diff_payload.get("identical", False))
+    comparison.added_count = int(summary_payload.get("added", 0))
+    comparison.removed_count = int(summary_payload.get("removed", 0))
+    comparison.modified_count = int(summary_payload.get("modified", 0))
+    comparison.moved_count = int(summary_payload.get("moved", 0))
+    comparison.unchanged_count = int(summary_payload.get("unchanged", 0))
+    comparison.save(
+        update_fields=[
+            "document",
+            "status",
+            "comparison_unit",
+            "matching_strategy",
+            "identical",
+            "added_count",
+            "removed_count",
+            "modified_count",
+            "moved_count",
+            "unchanged_count",
+            "updated_at",
+        ]
+    )
 
     summary, _ = Summary.objects.update_or_create(
         comparison=comparison,
@@ -179,7 +232,9 @@ def create_quiz_from_versions(
     title: str,
     max_questions: int = 10,
 ) -> GeneratedQuiz:
-    diff_payload = build_version_diff(from_version=from_version, to_version=to_version)
+    diff_payload = build_comparison_payload(
+        from_version=from_version, to_version=to_version
+    )
     comparison, summary, diff_payload, change_items = materialize_comparison(
         from_version=from_version,
         to_version=to_version,
@@ -204,7 +259,11 @@ def create_quiz_from_versions(
         questions_count=quiz_payload["questions_count"],
     )
 
-    materialized_change_items = change_items[: quiz_payload["questions_count"]]
+    materialized_change_items = select_prioritized_change_items(
+        change_items,
+        limit=quiz_payload["questions_count"],
+        prefer_non_editorial=True,
+    )
 
     for index, (question_payload, change_item) in enumerate(
         zip(quiz_payload.get("questions", []), materialized_change_items),
@@ -220,7 +279,10 @@ def create_quiz_from_versions(
             ),
             prompt=question_payload.get("question", ""),
             correct_text_answer=question_payload.get("answer", ""),
-            explanation=question_payload.get("type", ""),
+            explanation=(
+                question_payload.get("significance_reason")
+                or question_payload.get("type", "")
+            ),
         )
 
         for choice_index, choice_payload in enumerate(

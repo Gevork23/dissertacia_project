@@ -42,3 +42,12 @@ class ImportanceRulesTests(SimpleTestCase):
             change_type="editorial",
         )
         self.assertEqual(prediction.label, "editorial")
+
+    def test_fallback_change_requires_manual_review(self) -> None:
+        prediction = classify_change_importance(
+            old_text="Специалист выполняет действие по установленному маршруту.",
+            new_text="Специалист выполняет действие по согласованному маршруту.",
+            change_type="unclassified",
+        )
+        self.assertEqual(prediction.label, "important")
+        self.assertTrue(prediction.requires_manual_review)

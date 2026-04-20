@@ -10,13 +10,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from ..domain.change_enrichment import enrich_compare_payload
-from ..domain.diff import build_version_diff
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import DocumentVersion, GeneratedQuiz
 from ..services.search import search_chunks
 from ..services.workflows import (
+    DomainWorkflowError,
     EmptyQuizError,
+    build_comparison_payload,
     create_quiz_from_versions,
     record_quiz_attempt,
 )
@@ -183,6 +184,16 @@ def _get_versions_for_compare(request):
             ),
         )
 
+    if version_from.version_number >= version_to.version_number:
+        return (
+            None,
+            None,
+            Response(
+                {"detail": "Target version must be newer than source version."},
+                status=status.HTTP_400_BAD_REQUEST,
+            ),
+        )
+
     return version_from, version_to, None
 
 
@@ -199,10 +210,13 @@ def compare_versions(request):
         version_from.document_id,
     )
 
-    diff_payload = build_version_diff(
-        from_version=version_from,
-        to_version=version_to,
-    )
+    try:
+        diff_payload = build_comparison_payload(
+            from_version=version_from,
+            to_version=version_to,
+        )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
     serializer = VersionDiffSerializer(diff_payload)
     response_payload = enrich_compare_payload(serializer.data)
 
@@ -235,10 +249,13 @@ def compare_versions_brief(request):
         version_from.document_id,
     )
 
-    diff_payload = build_version_diff(
-        from_version=version_from,
-        to_version=version_to,
-    )
+    try:
+        diff_payload = build_comparison_payload(
+            from_version=version_from,
+            to_version=version_to,
+        )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
     brief_payload = build_brief_summary(diff_payload)
 
     logger.info(
@@ -274,10 +291,13 @@ def compare_versions_quiz(request):
         max_questions,
     )
 
-    diff_payload = build_version_diff(
-        from_version=version_from,
-        to_version=version_to,
-    )
+    try:
+        diff_payload = build_comparison_payload(
+            from_version=version_from,
+            to_version=version_to,
+        )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
     quiz_payload = build_quiz_from_diff(
         diff_payload=diff_payload,
         max_questions=max_questions,

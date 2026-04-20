@@ -13,12 +13,13 @@ from django.views.decorators.http import require_GET, require_http_methods
 from ..api.endpoints import build_quiz_report_payload
 from ..api.serializers import VersionDiffSerializer
 from ..domain.change_enrichment import enrich_compare_payload
-from ..domain.diff import build_version_diff
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
 from ..services.workflows import (
+    DomainWorkflowError,
     EmptyQuizError,
+    build_comparison_payload,
     create_quiz_from_versions,
     record_quiz_attempt,
 )
@@ -41,11 +42,13 @@ def _build_compare_context(
     from_version: DocumentVersion,
     to_version: DocumentVersion,
 ) -> dict[str, Any]:
-    diff_payload = build_version_diff(from_version=from_version, to_version=to_version)
+    diff_payload = build_comparison_payload(
+        from_version=from_version, to_version=to_version
+    )
     serialized_diff = VersionDiffSerializer(diff_payload).data
     enriched_diff = enrich_compare_payload(serialized_diff)
     brief_payload = build_brief_summary(enriched_diff)
-    quiz_preview = build_quiz_from_diff(diff_payload, max_questions=10)
+    quiz_preview = build_quiz_from_diff(enriched_diff, max_questions=10)
 
     return {
         "diff": enriched_diff,
@@ -139,7 +142,17 @@ def compare_page(request: HttpRequest) -> HttpResponse:
         messages.error(request, "Сравнивать можно только версии одного документа.")
         return redirect("demo-dashboard")
 
-    context = _build_compare_context(from_version=from_version, to_version=to_version)
+    if from_version.version_number >= to_version.version_number:
+        messages.error(request, "Новая версия должна быть выбрана как целевая.")
+        return redirect("demo-dashboard")
+
+    try:
+        context = _build_compare_context(
+            from_version=from_version, to_version=to_version
+        )
+    except DomainWorkflowError as error:
+        messages.error(request, str(error))
+        return redirect("demo-dashboard")
     context.update(
         {
             "document": from_version.document,
@@ -159,6 +172,10 @@ def create_quiz(request: HttpRequest) -> HttpResponse:
 
     if from_version.document_id != to_version.document_id:
         messages.error(request, "Нельзя создать тест для версий из разных документов.")
+        return redirect("demo-dashboard")
+
+    if from_version.version_number >= to_version.version_number:
+        messages.error(request, "Новая версия должна быть выбрана как целевая.")
         return redirect("demo-dashboard")
 
     try:

@@ -160,8 +160,16 @@ class ChangeClassificationSerializer(serializers.Serializer):
     rationale = serializers.ListField(child=serializers.CharField())
 
 
+class SignificanceSerializer(serializers.Serializer):
+    label = serializers.CharField()
+    confidence = serializers.FloatField()
+    triggered_rules = serializers.ListField(child=serializers.CharField())
+    explanation = serializers.CharField()
+    requires_manual_review = serializers.BooleanField(required=False)
+
+
 class ChunkDiffSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required=False, allow_null=True)
     chunk_index = serializers.IntegerField()
     fragment_type = serializers.CharField(allow_blank=True)
     structure_level = serializers.IntegerField(required=False)
@@ -173,6 +181,14 @@ class ChunkDiffSerializer(serializers.Serializer):
     text = serializers.CharField()
     text_hash = serializers.CharField(allow_blank=True)
     change_classification = ChangeClassificationSerializer(required=False)
+    semantic_type = serializers.CharField(required=False)
+    extracted_entities = serializers.JSONField(required=False)
+    significance = SignificanceSerializer(required=False)
+    significance_label = serializers.CharField(required=False)
+    significance_score = serializers.FloatField(required=False)
+    significance_reason = serializers.CharField(required=False)
+    significance_rules = serializers.JSONField(required=False)
+    requires_manual_review = serializers.BooleanField(required=False)
 
 
 class ModifiedChunkDiffSerializer(serializers.Serializer):
@@ -181,12 +197,28 @@ class ModifiedChunkDiffSerializer(serializers.Serializer):
     similarity = serializers.FloatField()
     match_reason = serializers.CharField()
     change_classification = ChangeClassificationSerializer(required=False)
+    semantic_type = serializers.CharField(required=False)
+    extracted_entities = serializers.JSONField(required=False)
+    significance = SignificanceSerializer(required=False)
+    significance_label = serializers.CharField(required=False)
+    significance_score = serializers.FloatField(required=False)
+    significance_reason = serializers.CharField(required=False)
+    significance_rules = serializers.JSONField(required=False)
+    requires_manual_review = serializers.BooleanField(required=False)
 
 
 class MovedChunkDiffSerializer(serializers.Serializer):
     from_chunk = ChunkDiffSerializer()
     to_chunk = ChunkDiffSerializer()
     change_classification = ChangeClassificationSerializer(required=False)
+    semantic_type = serializers.CharField(required=False)
+    extracted_entities = serializers.JSONField(required=False)
+    significance = SignificanceSerializer(required=False)
+    significance_label = serializers.CharField(required=False)
+    significance_score = serializers.FloatField(required=False)
+    significance_reason = serializers.CharField(required=False)
+    significance_rules = serializers.JSONField(required=False)
+    requires_manual_review = serializers.BooleanField(required=False)
 
 
 class VersionShortSerializer(serializers.Serializer):
@@ -196,6 +228,11 @@ class VersionShortSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
+class ComparisonMetaSerializer(serializers.Serializer):
+    comparison_unit = serializers.CharField()
+    matching_strategy = serializers.CharField()
+
+
 class VersionDiffSummarySerializer(serializers.Serializer):
     added = serializers.IntegerField()
     removed = serializers.IntegerField()
@@ -203,11 +240,16 @@ class VersionDiffSummarySerializer(serializers.Serializer):
     moved = serializers.IntegerField()
     unchanged = serializers.IntegerField()
     by_type = serializers.DictField(child=serializers.IntegerField(), required=False)
+    by_significance = serializers.DictField(
+        child=serializers.IntegerField(), required=False
+    )
+    manual_review_count = serializers.IntegerField(required=False)
 
 
 class VersionDiffSerializer(serializers.Serializer):
     from_version = VersionShortSerializer()
     to_version = VersionShortSerializer()
+    comparison_meta = ComparisonMetaSerializer(required=False)
     identical = serializers.BooleanField()
     summary = VersionDiffSummarySerializer()
     added = ChunkDiffSerializer(many=True)

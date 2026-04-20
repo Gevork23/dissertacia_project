@@ -71,15 +71,18 @@ class CompareVersionsAPITests(APITestCase):
         heading: str,
         section_path: str,
         text: str,
+        **extra,
     ) -> Chunk:
-        return Chunk.objects.create(
-            version=version,
-            chunk_index=chunk_index,
-            heading=heading,
-            section_path=section_path,
-            text=text,
-            text_hash=sha256_hex(text),
-        )
+        payload = {
+            "version": version,
+            "chunk_index": chunk_index,
+            "heading": heading,
+            "section_path": section_path,
+            "text": text,
+            "text_hash": sha256_hex(text),
+        }
+        payload.update(extra)
+        return Chunk.objects.create(**payload)
 
     def test_compare_versions_requires_query_params(self):
         url = reverse("compare-versions")
@@ -253,10 +256,122 @@ class CompareVersionsAPITests(APITestCase):
         self.assertGreater(response.data["modified"][0]["similarity"], 0.5)
 
         self.assertEqual(response.data["moved"], [])
+        self.assertEqual(response.data["comparison_meta"]["comparison_unit"], "chunk")
+        self.assertEqual(
+            response.data["comparison_meta"]["matching_strategy"],
+            "structural_chunks_v2",
+        )
         self.assertIn("--- from_version", response.data["text_diff"])
         self.assertIn("+++ to_version", response.data["text_diff"])
 
-    def test_compare_versions_detects_moved_chunk(self):
+    def test_compare_versions_treats_insert_then_renumber_as_added_plus_unchanged(self):
+        document = Document.objects.create(
+            title="Перенумерация после вставки",
+            description="",
+        )
+
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Первая версия текста",
+            filename="renumber1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Вторая версия текста",
+            filename="renumber2.txt",
+        )
+
+        stable_text = "Общие положения без изменений"
+        shifted_text = "Документы принимаются специалистом МФЦ по описи."
+        inserted_text = "При наличии представителя дополнительно представляется документ, подтверждающий полномочия представителя."
+
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Статья 2 · Пункт 1",
+            section_path="Статья 2 > Пункт 1",
+            text=stable_text,
+            fragment_type=Chunk.FragmentType.POINT,
+            structure_level=4,
+            raw_label="1.",
+            canonical_label="Пункт 1",
+            path_key="section:ii/article:2/point:1",
+        )
+        self.make_chunk(
+            version=version_one,
+            chunk_index=2,
+            heading="Статья 2 · Пункт 2",
+            section_path="Статья 2 > Пункт 2",
+            text=shifted_text,
+            fragment_type=Chunk.FragmentType.POINT,
+            structure_level=4,
+            raw_label="2.",
+            canonical_label="Пункт 2",
+            path_key="section:ii/article:2/point:2",
+        )
+
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Статья 2 · Пункт 1",
+            section_path="Статья 2 > Пункт 1",
+            text=stable_text,
+            fragment_type=Chunk.FragmentType.POINT,
+            structure_level=4,
+            raw_label="1.",
+            canonical_label="Пункт 1",
+            path_key="section:ii/article:2/point:1",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=2,
+            heading="Статья 2 · Пункт 2",
+            section_path="Статья 2 > Пункт 2",
+            text=inserted_text,
+            fragment_type=Chunk.FragmentType.POINT,
+            structure_level=4,
+            raw_label="2.",
+            canonical_label="Пункт 2",
+            path_key="section:ii/article:2/point:2",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=3,
+            heading="Статья 2 · Пункт 3",
+            section_path="Статья 2 > Пункт 3",
+            text=shifted_text,
+            fragment_type=Chunk.FragmentType.POINT,
+            structure_level=4,
+            raw_label="3.",
+            canonical_label="Пункт 3",
+            path_key="section:ii/article:2/point:3",
+        )
+
+        url = reverse("compare-versions")
+        response = self.client.get(
+            url,
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["identical"])
+        self.assertEqual(response.data["summary"]["added"], 1)
+        self.assertEqual(response.data["summary"]["removed"], 0)
+        self.assertEqual(response.data["summary"]["modified"], 0)
+        self.assertEqual(response.data["summary"]["moved"], 0)
+        self.assertEqual(response.data["summary"]["unchanged"], 2)
+        self.assertEqual(len(response.data["added"]), 1)
+        self.assertEqual(response.data["added"][0]["canonical_label"], "Пункт 2")
+        self.assertEqual(response.data["moved"], [])
+        self.assertEqual(response.data["removed"], [])
+        self.assertEqual(response.data["modified"], [])
+
+    def test_compare_versions_treats_stable_anchor_reordering_as_unchanged(self):
         document = Document.objects.create(
             title="Перемещение раздела",
             description="",
@@ -318,18 +433,18 @@ class CompareVersionsAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data["identical"])
+        self.assertTrue(response.data["identical"])
         self.assertEqual(response.data["summary"]["added"], 0)
         self.assertEqual(response.data["summary"]["removed"], 0)
         self.assertEqual(response.data["summary"]["modified"], 0)
-        self.assertEqual(response.data["summary"]["moved"], 2)
-        self.assertEqual(response.data["summary"]["unchanged"], 0)
+        self.assertEqual(response.data["summary"]["moved"], 0)
+        self.assertEqual(response.data["summary"]["unchanged"], 2)
         self.assertIn("by_type", response.data["summary"])
         self.assertEqual(
             response.data["summary"]["by_type"][ChangeType.STRUCTURAL.value],
-            2,
+            0,
         )
-        self.assertEqual(len(response.data["moved"]), 2)
+        self.assertEqual(response.data["moved"], [])
         self.assertEqual(response.data["added"], [])
         self.assertEqual(response.data["removed"], [])
         self.assertEqual(response.data["modified"], [])
@@ -468,8 +583,8 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(response.data["summary"]["added"], 1)
         self.assertEqual(response.data["summary"]["modified"], 1)
         self.assertEqual(len(response.data["highlights"]), 2)
-        self.assertEqual(response.data["highlights"][0]["type"], "added")
-        self.assertEqual(response.data["highlights"][1]["type"], "modified")
+        self.assertEqual(response.data["highlights"][0]["type"], "modified")
+        self.assertEqual(response.data["highlights"][1]["type"], "added")
 
     def test_compare_versions_quiz_returns_questions(self):
         document = Document.objects.create(
@@ -525,10 +640,186 @@ class CompareVersionsAPITests(APITestCase):
         self.assertFalse(response.data["identical"])
         self.assertEqual(response.data["questions_count"], 2)
         self.assertEqual(len(response.data["questions"]), 2)
-        self.assertEqual(response.data["questions"][0]["type"], "added")
-        self.assertEqual(response.data["questions"][1]["type"], "modified")
-        self.assertIn("Что нового добавлено", response.data["questions"][0]["question"])
-        self.assertIn("Что изменилось", response.data["questions"][1]["question"])
+        self.assertEqual(response.data["questions"][0]["type"], "modified")
+        self.assertEqual(response.data["questions"][1]["type"], "added")
+        self.assertIn("Что изменилось", response.data["questions"][0]["question"])
+        self.assertIn("Что нового добавлено", response.data["questions"][1]["question"])
+
+    def test_compare_versions_rejects_reverse_pair_order(self):
+        document = Document.objects.create(title="Порядок версий", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Первая редакция",
+            filename="order1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Вторая редакция",
+            filename="order2.txt",
+        )
+
+        url = reverse("compare-versions")
+        response = self.client.get(
+            url,
+            {
+                "from_version": version_two.id,
+                "to_version": version_one.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["detail"],
+            "Target version must be newer than source version.",
+        )
+
+    def test_compare_versions_uses_document_fallback_when_chunks_are_missing(self):
+        document = Document.objects.create(title="Fallback compare", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая редакция документа целиком",
+            filename="fallback1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая редакция документа целиком",
+            filename="fallback2.txt",
+        )
+
+        url = reverse("compare-versions")
+        response = self.client.get(
+            url,
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["comparison_meta"]["comparison_unit"], "document_text"
+        )
+        self.assertEqual(
+            response.data["comparison_meta"]["matching_strategy"],
+            "document_text_fallback_v1",
+        )
+        self.assertEqual(response.data["summary"]["modified"], 1)
+        self.assertEqual(response.data["summary"]["unchanged"], 0)
+        self.assertEqual(
+            response.data["modified"][0]["match_reason"], "document_text_fallback"
+        )
+        self.assertIsNone(response.data["modified"][0]["from_chunk"]["id"])
+        self.assertIsNone(response.data["modified"][0]["to_chunk"]["id"])
+
+    def test_save_versions_quiz_materializes_text_snapshot_without_chunks(self):
+        document = Document.objects.create(title="Fallback quiz", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая редакция документа целиком",
+            filename="fallback_quiz1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая редакция документа целиком",
+            filename="fallback_quiz2.txt",
+        )
+
+        save_url = reverse("save-versions-quiz")
+        response = self.client.post(
+            save_url,
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+                "title": "Fallback quiz",
+                "limit": 3,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        comparison = VersionComparison.objects.get()
+        self.assertEqual(comparison.comparison_unit, "document_text")
+        self.assertEqual(comparison.matching_strategy, "document_text_fallback_v1")
+        self.assertEqual(comparison.modified_count, 1)
+        change_item = comparison.change_items.get()
+        self.assertIsNone(change_item.old_chunk)
+        self.assertIsNone(change_item.new_chunk)
+        self.assertIn("Старая редакция", change_item.old_text)
+        self.assertIn("Новая редакция", change_item.new_text)
+
+    def test_compare_versions_insert_in_middle_keeps_existing_chunk_unchanged(self):
+        document = Document.objects.create(title="Вставка в середину", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="v1",
+            filename="insert1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="v2",
+            filename="insert2.txt",
+        )
+
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Пункт 1",
+            section_path="Статья 1 > Пункт 1",
+            text="Стабильный текст пункта 1",
+        )
+        self.make_chunk(
+            version=version_one,
+            chunk_index=2,
+            heading="Пункт 2",
+            section_path="Статья 1 > Пункт 2",
+            text="Стабильный текст пункта 2",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Пункт 1",
+            section_path="Статья 1 > Пункт 1",
+            text="Стабильный текст пункта 1",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=2,
+            heading="Пункт 1.1",
+            section_path="Статья 1 > Пункт 1.1",
+            text="Новый текст вставленного пункта",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=3,
+            heading="Пункт 2",
+            section_path="Статья 1 > Пункт 2",
+            text="Стабильный текст пункта 2",
+        )
+
+        url = reverse("compare-versions")
+        response = self.client.get(
+            url,
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["identical"])
+        self.assertEqual(response.data["summary"]["added"], 1)
+        self.assertEqual(response.data["summary"]["removed"], 0)
+        self.assertEqual(response.data["summary"]["modified"], 0)
+        self.assertEqual(response.data["summary"]["moved"], 0)
+        self.assertEqual(response.data["summary"]["unchanged"], 2)
 
     def test_save_versions_quiz_and_list_saved_quizzes(self):
         document = Document.objects.create(
@@ -597,6 +888,39 @@ class CompareVersionsAPITests(APITestCase):
         self.assertIsNotNone(saved_quiz.summary_id)
         self.assertEqual(saved_quiz.comparison.change_items.count(), 2)
         self.assertEqual(saved_quiz.questions.count(), 2)
+        self.assertTrue(
+            saved_quiz.comparison.change_items.filter(
+                significance_label__in=[
+                    "critical",
+                    "important",
+                    "informational",
+                    "editorial",
+                ]
+            ).exists()
+        )
+        first_question = saved_quiz.questions.order_by("order", "id").first()
+        self.assertIsNotNone(first_question)
+        self.assertIsNotNone(first_question.source_change_item)
+        self.assertEqual(
+            first_question.source_change_item.significance_label,
+            saved_quiz.payload["questions"][0]["significance_label"],
+        )
+        self.assertEqual(saved_quiz.comparison.comparison_unit, "chunk")
+        self.assertEqual(
+            saved_quiz.comparison.matching_strategy, "structural_chunks_v2"
+        )
+        self.assertFalse(saved_quiz.comparison.identical)
+        self.assertEqual(saved_quiz.comparison.added_count, 1)
+        self.assertEqual(saved_quiz.comparison.modified_count, 1)
+        self.assertEqual(saved_quiz.comparison.removed_count, 0)
+        self.assertEqual(saved_quiz.comparison.unchanged_count, 0)
+        self.assertTrue(
+            saved_quiz.comparison.change_items.filter(
+                change_type="modified",
+                old_text__icontains="Старый текст процедуры",
+                new_text__icontains="Новый текст процедуры",
+            ).exists()
+        )
 
         list_url = reverse("list-saved-quizzes")
         list_response = self.client.get(list_url)
@@ -937,15 +1261,18 @@ class BaselineEntityExtractionTests(APITestCase):
         heading: str,
         section_path: str,
         text: str,
+        **extra,
     ) -> Chunk:
-        return Chunk.objects.create(
-            version=version,
-            chunk_index=chunk_index,
-            heading=heading,
-            section_path=section_path,
-            text=text,
-            text_hash=sha256_hex(text),
-        )
+        payload = {
+            "version": version,
+            "chunk_index": chunk_index,
+            "heading": heading,
+            "section_path": section_path,
+            "text": text,
+            "text_hash": sha256_hex(text),
+        }
+        payload.update(extra)
+        return Chunk.objects.create(**payload)
 
     def test_extract_entities_from_text_returns_expected_domain_entities(self):
         text = (
@@ -1180,15 +1507,18 @@ class LLMEntityExtractionModeTests(APITestCase):
         heading: str,
         section_path: str,
         text: str,
+        **extra,
     ) -> Chunk:
-        return Chunk.objects.create(
-            version=version,
-            chunk_index=chunk_index,
-            heading=heading,
-            section_path=section_path,
-            text=text,
-            text_hash=sha256_hex(text),
-        )
+        payload = {
+            "version": version,
+            "chunk_index": chunk_index,
+            "heading": heading,
+            "section_path": section_path,
+            "text": text,
+            "text_hash": sha256_hex(text),
+        }
+        payload.update(extra)
+        return Chunk.objects.create(**payload)
 
     def test_extract_entities_by_mode_llm_uses_llm_extractor(self):
         fake_llm_extractor = Mock()
@@ -1597,15 +1927,18 @@ class ChangeClassificationIntegrationTests(APITestCase):
         heading: str,
         section_path: str,
         text: str,
+        **extra,
     ) -> Chunk:
-        return Chunk.objects.create(
-            version=version,
-            chunk_index=chunk_index,
-            heading=heading,
-            section_path=section_path,
-            text=text,
-            text_hash=sha256_hex(text),
-        )
+        payload = {
+            "version": version,
+            "chunk_index": chunk_index,
+            "heading": heading,
+            "section_path": section_path,
+            "text": text,
+            "text_hash": sha256_hex(text),
+        }
+        payload.update(extra)
+        return Chunk.objects.create(**payload)
 
     def test_build_version_diff_contains_change_types_summary(self):
         document = Document.objects.create(

@@ -47,3 +47,16 @@ class ChangeEnrichmentTests(SimpleTestCase):
 
         self.assertEqual(enriched["change_type"], "procedure")
         self.assertEqual(enriched["importance_label"], "important")
+
+    def test_fallback_change_sets_manual_review_flag(self) -> None:
+        change = {
+            "old_text": "Специалист выполняет действие по установленному маршруту.",
+            "new_text": "Специалист выполняет действие по согласованному маршруту.",
+        }
+
+        enriched = enrich_change(change)
+
+        self.assertEqual(enriched["semantic_type"], "unclassified")
+        self.assertEqual(enriched["significance_label"], "important")
+        self.assertTrue(enriched["requires_manual_review"])
+        self.assertEqual(enriched["importance_label"], enriched["significance_label"])

@@ -103,6 +103,8 @@ class DemoViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Сравнение версий")
+        self.assertContains(response, "Critical")
+        self.assertContains(response, "Manual review")
 
     def test_approved_quiz_can_be_taken_from_demo_ui(self):
         self.quiz.status = GeneratedQuiz.Status.APPROVED

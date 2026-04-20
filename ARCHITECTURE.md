@@ -18,11 +18,12 @@
 4. разбить текст на структурные фрагменты;
 5. сравнить две версии;
 6. выделить изменения;
-7. сформировать краткую выжимку;
-8. сгенерировать квиз;
-9. утвердить квиз;
-10. дать сотруднику пройти квиз;
-11. сохранить результаты и показать отчёт.
+7. оценить значимость и приоритет изменений;
+8. сформировать краткую выжимку;
+9. сгенерировать квиз;
+10. утвердить квиз;
+11. дать сотруднику пройти квиз;
+12. сохранить результаты и показать отчёт.
 
 ## 3. Архитектурные принципы
 
@@ -116,33 +117,62 @@ LLM, embeddings и semantic search допустимы только как уси
 - TXT / DOCX / PDF с текстовым слоем;
 - формирование `extracted_text`;
 - безопасную и воспроизводимую нормализацию в `normalized_text`;
-- построение чанков.
+- построение структурных чанков.
 
 Внутри текущего backend-контракта фиксируются стадии:
 
 - `file` — исходный артефакт версии;
 - `extracted_text` — format-aware extraction output;
-- `normalized_text` — downstream-ready текст для chunking, diff и дальнейшей аналитики.
+- `normalized_text` — downstream-ready текст для chunking, diff и дальнейшей аналитики;
+- `chunks` — структурные фрагменты версии документа.
 
 Нормализация не должна уничтожать юридически значимую структуру. Для PDF допускается только безопасная предобработка: page number cleanup, header/footer deduplication при повторении, удаление machine-like stamp markers, склейка переносов слов и части line-wrap артефактов.
+
+Слой `Chunk` в MVP хранит не только текст фрагмента, но и его структуру:
+
+- `fragment_type` (`title`, `preamble`, `section`, `chapter`, `article`, `point`, `subpoint`, `paragraph`, `fallback_block`);
+- `structure_level`;
+- `raw_label` и `canonical_label`;
+- `path_key` как машинный anchor;
+- `heading` и `section_path` как display-представление для человека.
+
+Chunking вызывается централизованно при materialization версии и при команде `rebuild_chunks`. Пересборка chunk layer инвалидирует materialized `VersionComparison`, потому что старые change items и summaries относятся к прежней структуре документа и должны быть построены заново.
 
 Ограничение текущей версии: **OCR для сканированных PDF не входит в текущий контур**.
 
 ### 4.3. Сравнение версий
 
 Отвечает за:
-- matching чанков;
-- added / removed / modified / moved;
-- similarity-based сопоставление;
-- текстовый diff;
-- классификацию изменений.
+- направленное сравнение `from_version -> to_version` только внутри одного `Document`;
+- primary comparison unit = `Chunk`;
+- matching чанков по приоритету `path_key` -> `canonical_label + fragment_type` -> `section_path`-anchor;
+- консервативное различение `unchanged / added / removed / modified`;
+- `moved` не считается опорным типом MVP: exact-text renumbering/reordering трактуется как `unchanged`, чтобы не шуметь на вставках и перенумерации;
+- text diff на уровне всей версии как explainability-слой;
+- fallback `document_text`, если chunk layer отсутствует у одной из версий;
+- materialization результата в `VersionComparison` и `VersionChangeItem`;
+- классификацию изменений;
+- сохранение baseline significance-атрибутов (`semantic_type`, `significance_label`, `significance_score`, `significance_reason`, `requires_manual_review`).
+
+Важно: в текущем MVP не только изменение `chunk_index`, но и exact-text renumbering/reordering **не** поднимаются до `moved`. Если фрагмент сохраняет тот же текст и меняется только его структурная позиция после вставки нового пункта, он трактуется как `unchanged`. Это уменьшает шум и делает comparison более объяснимым для demo и последующих фаз.
 
 ### 4.4. Разъяснения и значимость изменений
 
 Отвечает за:
+- rule-based baseline-классификацию значимости изменений;
+- различение `semantic_type` и `significance_label`;
+- explainable rationale (`significance_reason`, `significance_rules`);
+- честную деградацию в `requires_manual_review` для неоднозначных кейсов;
 - краткую выжимку по diff;
-- rule-based признаки значимости;
-- подготовку материала для пользователя и квиза.
+- significance-aware подготовку материала для пользователя и квиза.
+
+Текущая шкала значимости в MVP:
+- `critical` — сроки, перечни документов, обязанности, основания отказа, ответственность;
+- `important` — процедура, условия, организационно значимые изменения;
+- `informational` — справочная/контактная информация;
+- `editorial` — редакционные и технические правки.
+
+При отсутствии достаточно сильных сигналов изменение не маскируется под editorial: оно может получить `important` с флагом `requires_manual_review`, чтобы не создавать ложную уверенность.
 
 ### 4.5. Подсистема тестирования
 
@@ -180,7 +210,8 @@ LLM, embeddings и semantic search допустимы только как уси
 - ingestion pipeline;
 - compare API;
 - brief API;
-- quiz save / approve / attempt / report flow;
+- persistent significance materialization;
+- significance-aware quiz save / approve / attempt / report flow;
 - demo UI;
 - demo corpus;
 - backend test suite.

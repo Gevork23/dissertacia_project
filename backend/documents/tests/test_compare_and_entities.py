@@ -647,10 +647,12 @@ class CompareVersionsAPITests(APITestCase):
         self.assertFalse(response.data["identical"])
         self.assertEqual(response.data["questions_count"], 2)
         self.assertEqual(len(response.data["questions"]), 2)
+        self.assertEqual(response.data["generation_strategy"], "summary_highlights_v1")
         self.assertEqual(response.data["questions"][0]["type"], "modified")
         self.assertEqual(response.data["questions"][1]["type"], "added")
-        self.assertIn("Что изменилось", response.data["questions"][0]["question"])
-        self.assertIn("Что нового добавлено", response.data["questions"][1]["question"])
+        self.assertIn("Раздел 1", response.data["questions"][0]["question"])
+        self.assertIn("Раздел 2", response.data["questions"][1]["question"])
+        self.assertTrue(response.data["questions"][0]["choices"])
 
     def test_compare_versions_rejects_reverse_pair_order(self):
         document = Document.objects.create(title="Порядок версий", description="")
@@ -994,6 +996,16 @@ class CompareVersionsAPITests(APITestCase):
 
         self.assertEqual(save_response.status_code, status.HTTP_201_CREATED)
         quiz_id = save_response.data["id"]
+        self.assertEqual(save_response.data["status"], GeneratedQuiz.Status.DRAFT)
+
+        submit_review_url = reverse("submit-quiz-review", kwargs={"quiz_id": quiz_id})
+        submit_review_response = self.client.post(submit_review_url, {}, format="json")
+
+        self.assertEqual(submit_review_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            submit_review_response.data["status"],
+            GeneratedQuiz.Status.PENDING_REVIEW,
+        )
 
         approve_url = reverse("approve-quiz", kwargs={"quiz_id": quiz_id})
         approve_response = self.client.post(
@@ -1169,7 +1181,7 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["detail"],
-            "Quiz must be approved before it can be assigned.",
+            "Quiz is still a draft and must be submitted for review first.",
         )
 
     def test_submit_quiz_attempt_rejects_empty_quiz(self):
@@ -1213,8 +1225,7 @@ class CompareVersionsAPITests(APITestCase):
                 "questions": [],
             },
             questions_count=0,
-            status=GeneratedQuiz.Status.APPROVED,
-            approved_by_name="Иванова Е.А.",
+            status=GeneratedQuiz.Status.DRAFT,
         )
 
         url = reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz.id})
@@ -1232,6 +1243,151 @@ class CompareVersionsAPITests(APITestCase):
             response.data["detail"],
             "Cannot submit an attempt for an empty quiz.",
         )
+
+    def test_quiz_can_be_rejected_and_resubmitted_for_review(self):
+        document = Document.objects.create(title="Отклоняемый квиз", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая процедура",
+            filename="reject1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая процедура с контролем",
+            filename="reject2.txt",
+        )
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Старый порядок согласования",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Новый порядок согласования с контролем",
+        )
+        save_response = self.client.post(
+            reverse("save-versions-quiz"),
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+                "title": "Квиз на проверке",
+                "limit": 5,
+            },
+            format="json",
+        )
+        quiz_id = save_response.data["id"]
+        self.client.post(
+            reverse("submit-quiz-review", kwargs={"quiz_id": quiz_id}),
+            {},
+            format="json",
+        )
+        reject_response = self.client.post(
+            reverse("reject-quiz", kwargs={"quiz_id": quiz_id}),
+            {
+                "rejected_by_name": "Иванова Е.А.",
+                "rejection_comment": "Нужно уточнить формулировки вопросов.",
+            },
+            format="json",
+        )
+        self.assertEqual(reject_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(reject_response.data["status"], GeneratedQuiz.Status.REJECTED)
+        blocked_attempt_response = self.client.post(
+            reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz_id}),
+            {"participant_name": "Tester", "answers": []},
+            format="json",
+        )
+        self.assertEqual(
+            blocked_attempt_response.status_code, status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(
+            blocked_attempt_response.data["detail"],
+            "Rejected quiz cannot be assigned until it is resubmitted and approved.",
+        )
+        resubmit_response = self.client.post(
+            reverse("submit-quiz-review", kwargs={"quiz_id": quiz_id}),
+            {},
+            format="json",
+        )
+        self.assertEqual(resubmit_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            resubmit_response.data["status"], GeneratedQuiz.Status.PENDING_REVIEW
+        )
+
+    def test_regeneration_supersedes_previous_approved_quiz_for_same_version_pair(self):
+        document = Document.objects.create(title="Регенерация квиза", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старый регламент",
+            filename="regen1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новый регламент с изменением срока",
+            filename="regen2.txt",
+        )
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Срок составляет 10 дней.",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Срок составляет 7 дней.",
+        )
+        first_save = self.client.post(
+            reverse("save-versions-quiz"),
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+                "title": "Первая редакция теста",
+                "limit": 5,
+            },
+            format="json",
+        )
+        first_quiz_id = first_save.data["id"]
+        self.client.post(
+            reverse("submit-quiz-review", kwargs={"quiz_id": first_quiz_id}),
+            {},
+            format="json",
+        )
+        self.client.post(
+            reverse("approve-quiz", kwargs={"quiz_id": first_quiz_id}),
+            {
+                "approved_by_name": "Иванова Е.А.",
+                "approval_comment": "Первая версия утверждена.",
+            },
+            format="json",
+        )
+        second_save = self.client.post(
+            reverse("save-versions-quiz"),
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+                "title": "Повторная генерация теста",
+                "limit": 5,
+            },
+            format="json",
+        )
+        self.assertEqual(second_save.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second_save.data["status"], GeneratedQuiz.Status.DRAFT)
+        first_quiz = GeneratedQuiz.objects.get(pk=first_quiz_id)
+        self.assertEqual(first_quiz.status, GeneratedQuiz.Status.SUPERSEDED)
+        self.assertIsNotNone(first_quiz.superseded_at)
+        self.assertIn("newer quiz draft", first_quiz.superseded_reason)
 
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)

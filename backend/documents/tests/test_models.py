@@ -17,6 +17,11 @@ from ..models import (
     VersionChangeItem,
     VersionComparison,
 )
+from ..services.workflows import (
+    approve_generated_quiz,
+    reject_generated_quiz,
+    submit_quiz_for_review,
+)
 
 
 class Phase3DomainModelTests(TestCase):
@@ -251,6 +256,86 @@ class Phase3DomainModelTests(TestCase):
         )
 
         self.assertIsNotNone(quiz.approved_at)
+
+    def test_pending_review_quiz_auto_sets_submission_timestamp(self):
+        document = Document.objects.create(title="Инструкция")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест",
+            questions_count=1,
+            status=GeneratedQuiz.Status.PENDING_REVIEW,
+        )
+
+        self.assertIsNotNone(quiz.submitted_for_review_at)
+
+    def test_rejected_quiz_auto_sets_rejection_timestamp(self):
+        document = Document.objects.create(title="Инструкция")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест",
+            questions_count=1,
+            status=GeneratedQuiz.Status.REJECTED,
+            rejected_by_name="Иванова Е.А.",
+        )
+
+        self.assertIsNotNone(quiz.rejected_at)
+
+    def test_quiz_workflow_service_requires_review_before_approval(self):
+        document = Document.objects.create(title="Инструкция")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест",
+            questions_count=1,
+            payload={"questions": [{"question": "Q1", "answer": "A1"}]},
+        )
+        Question.objects.create(
+            quiz=quiz,
+            order=1,
+            prompt="Q1",
+            correct_text_answer="A1",
+        )
+
+        submit_quiz_for_review(quiz)
+        self.assertEqual(quiz.status, GeneratedQuiz.Status.PENDING_REVIEW)
+
+        approve_generated_quiz(
+            quiz=quiz,
+            approved_by_name="Иванова Е.А.",
+            approval_comment="Готово.",
+        )
+        self.assertEqual(quiz.status, GeneratedQuiz.Status.APPROVED)
+
+        rejected_quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест 2",
+            questions_count=1,
+            payload={"questions": [{"question": "Q2", "answer": "A2"}]},
+        )
+        Question.objects.create(
+            quiz=rejected_quiz,
+            order=1,
+            prompt="Q2",
+            correct_text_answer="A2",
+        )
+        submit_quiz_for_review(rejected_quiz)
+        reject_generated_quiz(
+            quiz=rejected_quiz,
+            rejected_by_name="Иванова Е.А.",
+            rejection_comment="Нужна правка.",
+        )
+        self.assertEqual(rejected_quiz.status, GeneratedQuiz.Status.REJECTED)
 
     def test_answer_is_unique_per_attempt_and_question(self):
         document = Document.objects.create(title="Инструкция")

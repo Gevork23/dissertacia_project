@@ -4,7 +4,6 @@ import logging
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -17,9 +16,13 @@ from ..services.search import search_chunks
 from ..services.workflows import (
     DomainWorkflowError,
     EmptyQuizError,
+    approve_generated_quiz,
     build_comparison_payload,
     create_quiz_from_versions,
+    get_quiz_attempt_block_reason,
     record_quiz_attempt,
+    reject_generated_quiz,
+    submit_quiz_for_review,
 )
 from .serializers import (
     GeneratedQuizSerializer,
@@ -372,32 +375,53 @@ def list_saved_quizzes(request):
 
 
 @api_view(["POST"])
+def submit_quiz_review(request, quiz_id: int):
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+
+    try:
+        submit_quiz_for_review(quiz)
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    logger.info("Quiz submitted for review: quiz_id=%s", quiz.id)
+    return Response(GeneratedQuizSerializer(quiz).data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
 def approve_quiz(request, quiz_id: int):
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
     approved_by_name = (request.data.get("approved_by_name") or "").strip()
     approval_comment = (request.data.get("approval_comment") or "").strip()
 
-    if not approved_by_name:
-        return Response(
-            {"detail": "Field 'approved_by_name' is required."},
-            status=status.HTTP_400_BAD_REQUEST,
+    try:
+        approve_generated_quiz(
+            quiz=quiz,
+            approved_by_name=approved_by_name,
+            approval_comment=approval_comment,
         )
-
-    quiz.status = GeneratedQuiz.Status.APPROVED
-    quiz.approved_by_name = approved_by_name
-    quiz.approved_at = timezone.now()
-    quiz.approval_comment = approval_comment
-    quiz.save(
-        update_fields=[
-            "status",
-            "approved_by_name",
-            "approved_at",
-            "approval_comment",
-            "updated_at",
-        ]
-    )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     logger.info("Quiz approved: quiz_id=%s approved_by=%s", quiz.id, approved_by_name)
+    return Response(GeneratedQuizSerializer(quiz).data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def reject_quiz(request, quiz_id: int):
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+    rejected_by_name = (request.data.get("rejected_by_name") or "").strip()
+    rejection_comment = (request.data.get("rejection_comment") or "").strip()
+
+    try:
+        reject_generated_quiz(
+            quiz=quiz,
+            rejected_by_name=rejected_by_name,
+            rejection_comment=rejection_comment,
+        )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    logger.info("Quiz rejected: quiz_id=%s rejected_by=%s", quiz.id, rejected_by_name)
     return Response(GeneratedQuizSerializer(quiz).data, status=status.HTTP_200_OK)
 
 
@@ -405,15 +429,10 @@ def approve_quiz(request, quiz_id: int):
 def submit_quiz_attempt(request, quiz_id: int):
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
 
-    if quiz.status != GeneratedQuiz.Status.APPROVED:
+    blocked_reason = get_quiz_attempt_block_reason(quiz)
+    if blocked_reason is not None:
         return Response(
-            {"detail": "Quiz must be approved before it can be assigned."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if quiz.questions_count == 0:
-        return Response(
-            {"detail": "Cannot submit an attempt for an empty quiz."},
+            {"detail": blocked_reason},
             status=status.HTTP_400_BAD_REQUEST,
         )
 

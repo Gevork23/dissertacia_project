@@ -95,7 +95,7 @@ Materialized `VersionComparison` теперь хранит не только с�
 
 Текущий MVP intentionally использует **deterministic rule-based baseline**, а не обязательный LLM/ML decision layer. Это делает классификацию воспроизводимой, проверяемой тестами и удобной для объяснения комиссии.
 
-Краткая выжимка и генерация квиза теперь работают не по первым diff-элементам подряд, а по **prioritized change items**: сначала `critical` / `important`, затем `informational`, а редакционные изменения используются как fallback.
+Краткая выжимка и генерация квиза теперь работают не по первым diff-элементам подряд. Summary materializes prioritized change items, а quiz generation опирается прежде всего на `Summary.highlights`: сначала используются `critical` / `important`, затем `informational`. Если significance-слой не нашёл содержательных изменений, квиз не строится; ограниченный fallback допускается только для явно содержательных `added` / `removed` / `modified` фрагментов, чтобы компенсировать консервативную baseline-классификацию без возврата к шумовым редакционным тестам.
 
 Summary layer в текущем MVP реализован как materialized human-readable слой поверх `VersionComparison`:
 
@@ -103,6 +103,18 @@ Summary layer в текущем MVP реализован как materialized hum
 - `Summary.highlights` хранит структурированные пункты brief, а не просто текстовые строки;
 - каждый пункт brief содержит `type`, `title`, `concise_explanation`, `semantic_type`, `significance_label`, `requires_manual_review`;
 - в materialized summary дополнительно сохраняется `source_change_item_id`, что позволяет прозрачно связать пункт выжимки с `VersionChangeItem` и использовать этот bridge в следующих фазах.
+
+## Workflow теста после Фазы 12
+
+`GeneratedQuiz` больше не трактуется как просто сохранённый downstream-артефакт. В MVP у теста теперь есть управляемый lifecycle:
+
+- `draft` — тест сгенерирован, но ещё не передан на проверку;
+- `pending_review` — тест передан ответственному лицу и ожидает решения;
+- `approved` — тест официально утверждён и доступен для прохождения;
+- `rejected` — тест отклонён и не может использоваться до повторной отправки на проверку;
+- `superseded` — тест заменён более новой генерацией для той же пары версий и больше не считается актуальным.
+
+Попытка прохождения разрешена только для `approved`. Повторная генерация для той же пары версий создаёт новый `draft` и переводит предыдущий активный тест в `superseded`, чтобы в системе не оставалось двух конкурирующих «актуальных» тестов.
 
 ## Что реально есть в текущем состоянии репозитория
 
@@ -116,8 +128,8 @@ Summary layer в текущем MVP реализован как materialized hum
 - сравнение двух версий документа;
 - baseline-классификация и приоритизация значимости изменений;
 - краткая выжимка по изменениям;
-- генерация квиза по diff;
-- approval workflow для квиза;
+- генерация квиза по materialized summary/highlights;
+- lifecycle/workflow для квиза (`draft -> pending_review -> approved`, а также `rejected` и `superseded`);
 - прохождение квиза сотрудником;
 - отчёт по результату попытки;
 - demo UI на Django templates;
@@ -159,7 +171,7 @@ Summary layer в текущем MVP реализован как materialized hum
 - compare / brief / quiz API;
 - persistent significance layer поверх materialized diff;
 - сохранение квиза;
-- утверждение квиза ответственным лицом;
+- перевод квиза в review, утверждение или отклонение ответственным лицом;
 - прохождение квиза сотрудником;
 - просмотр попыток и отчёта;
 - demo-сценарий на подготовленном наборе документов;

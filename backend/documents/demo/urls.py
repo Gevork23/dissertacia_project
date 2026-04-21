@@ -9,7 +9,9 @@ from .views import (
     document_detail,
     quiz_detail,
     quizzes_page,
+    reject_quiz_view,
     report_page,
+    submit_quiz_review_view,
     take_quiz,
 )
 
@@ -21,9 +23,19 @@ urlpatterns = [
     path("quizzes/", quizzes_page, name="demo-quizzes"),
     path("quizzes/<int:quiz_id>/", quiz_detail, name="demo-quiz-detail"),
     path(
+        "quizzes/<int:quiz_id>/submit-review/",
+        submit_quiz_review_view,
+        name="demo-submit-review-quiz",
+    ),
+    path(
         "quizzes/<int:quiz_id>/approve/",
         approve_quiz_view,
         name="demo-approve-quiz",
+    ),
+    path(
+        "quizzes/<int:quiz_id>/reject/",
+        reject_quiz_view,
+        name="demo-reject-quiz",
     ),
     path("quizzes/<int:quiz_id>/take/", take_quiz, name="demo-take-quiz"),
     path("quizzes/<int:quiz_id>/report/", report_page, name="demo-report"),

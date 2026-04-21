@@ -142,9 +142,15 @@ erDiagram
         json payload
         int questions_count
         string status
+        datetime submitted_for_review_at
         string approved_by_name
         datetime approved_at
         text approval_comment
+        string rejected_by_name
+        datetime rejected_at
+        text rejection_comment
+        datetime superseded_at
+        text superseded_reason
         datetime created_at
         datetime updated_at
     }
@@ -207,6 +213,7 @@ erDiagram
 ## Примечания по MVP
 
 - `GeneratedQuiz` остаётся текущим именем модели в коде, но доменно это сущность **теста**.
+- Lifecycle `GeneratedQuiz` в MVP: `draft`, `pending_review`, `approved`, `rejected`, `superseded`; попытка прохождения допустима только для `approved`.
 - `QuizAttempt` остаётся текущим именем модели в коде, но доменно это сущность **попытки прохождения**.
 - Поля `payload` и `answers` сохранены как практичные JSON-снимки текущего прототипа, чтобы не ломать уже существующую логику.
 - `VersionChangeItem` теперь хранит не только diff-снимок, но и materialized significance-оценку, на которую опираются summary и quiz generation.

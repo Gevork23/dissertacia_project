@@ -7,16 +7,13 @@ from typing import Any
 from django.db import transaction
 from django.utils import timezone
 
-from ..domain.change_enrichment import (
-    enrich_compare_payload,
-    select_prioritized_change_items,
-)
+from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff import (
     build_version_diff,
     iter_ordered_change_entries,
     validate_version_pair,
 )
-from ..domain.diff_quiz import build_quiz_from_diff
+from ..domain.diff_quiz import build_quiz_from_summary
 from ..domain.diff_summary import build_brief_summary
 from ..models import (
     Answer,
@@ -53,6 +50,14 @@ CHANGE_TYPE_TO_MODEL = {
     "removed": VersionChangeItem.ChangeType.REMOVED,
     "modified": VersionChangeItem.ChangeType.MODIFIED,
     "moved": VersionChangeItem.ChangeType.MOVED,
+}
+
+QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES = {
+    GeneratedQuiz.Status.DRAFT: "Quiz is still a draft and must be submitted for review first.",
+    GeneratedQuiz.Status.PENDING_REVIEW: "Quiz is pending review and cannot be assigned yet.",
+    GeneratedQuiz.Status.REJECTED: "Rejected quiz cannot be assigned until it is resubmitted and approved.",
+    GeneratedQuiz.Status.SUPERSEDED: "Superseded quiz cannot be assigned because a newer quiz replaced it.",
+    GeneratedQuiz.Status.ARCHIVED: "Archived quiz cannot be assigned.",
 }
 
 
@@ -95,6 +100,160 @@ def _get_chunk_text(chunk_payload: dict[str, Any] | None) -> str:
     if not chunk_payload:
         return ""
     return str(chunk_payload.get("text") or "")
+
+
+def _quiz_has_materialized_questions(quiz: GeneratedQuiz) -> bool:
+    payload_questions = quiz.payload.get("questions", [])
+    if not isinstance(payload_questions, list) or not payload_questions:
+        return False
+    return quiz.questions.exists()
+
+
+def _ensure_quiz_can_enter_review(quiz: GeneratedQuiz) -> None:
+    if quiz.questions_count <= 0 or not _quiz_has_materialized_questions(quiz):
+        raise DomainWorkflowError(
+            "Quiz must contain materialized questions before it can enter the approval workflow."
+        )
+
+
+def get_quiz_attempt_block_reason(quiz: GeneratedQuiz) -> str | None:
+    if quiz.questions_count == 0:
+        return "Cannot submit an attempt for an empty quiz."
+    if quiz.status == GeneratedQuiz.Status.APPROVED:
+        return None
+    return QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES.get(
+        quiz.status,
+        "Quiz must be approved before it can be assigned.",
+    )
+
+
+def ensure_quiz_attempt_allowed(quiz: GeneratedQuiz) -> None:
+    reason = get_quiz_attempt_block_reason(quiz)
+    if reason is not None:
+        raise DomainWorkflowError(reason)
+
+
+def submit_quiz_for_review(quiz: GeneratedQuiz) -> GeneratedQuiz:
+    if quiz.status not in {GeneratedQuiz.Status.DRAFT, GeneratedQuiz.Status.REJECTED}:
+        raise DomainWorkflowError(
+            f"Quiz in status '{quiz.status}' cannot be submitted for review."
+        )
+
+    _ensure_quiz_can_enter_review(quiz)
+
+    quiz.status = GeneratedQuiz.Status.PENDING_REVIEW
+    quiz.submitted_for_review_at = timezone.now()
+    quiz.rejected_by_name = ""
+    quiz.rejected_at = None
+    quiz.rejection_comment = ""
+    quiz.save(
+        update_fields=[
+            "status",
+            "submitted_for_review_at",
+            "rejected_by_name",
+            "rejected_at",
+            "rejection_comment",
+            "updated_at",
+        ]
+    )
+    return quiz
+
+
+def approve_generated_quiz(
+    *,
+    quiz: GeneratedQuiz,
+    approved_by_name: str,
+    approval_comment: str = "",
+) -> GeneratedQuiz:
+    approved_by_name = (approved_by_name or "").strip()
+    if not approved_by_name:
+        raise DomainWorkflowError("Field 'approved_by_name' is required.")
+    if quiz.status != GeneratedQuiz.Status.PENDING_REVIEW:
+        raise DomainWorkflowError(f"Quiz in status '{quiz.status}' cannot be approved.")
+
+    _ensure_quiz_can_enter_review(quiz)
+
+    quiz.status = GeneratedQuiz.Status.APPROVED
+    quiz.approved_by_name = approved_by_name
+    quiz.approved_at = timezone.now()
+    quiz.approval_comment = (approval_comment or "").strip()
+    quiz.save(
+        update_fields=[
+            "status",
+            "approved_by_name",
+            "approved_at",
+            "approval_comment",
+            "updated_at",
+        ]
+    )
+    return quiz
+
+
+def reject_generated_quiz(
+    *,
+    quiz: GeneratedQuiz,
+    rejected_by_name: str,
+    rejection_comment: str = "",
+) -> GeneratedQuiz:
+    rejected_by_name = (rejected_by_name or "").strip()
+    if not rejected_by_name:
+        raise DomainWorkflowError("Field 'rejected_by_name' is required.")
+    if quiz.status != GeneratedQuiz.Status.PENDING_REVIEW:
+        raise DomainWorkflowError(f"Quiz in status '{quiz.status}' cannot be rejected.")
+
+    quiz.status = GeneratedQuiz.Status.REJECTED
+    quiz.rejected_by_name = rejected_by_name
+    quiz.rejected_at = timezone.now()
+    quiz.rejection_comment = (rejection_comment or "").strip()
+    quiz.save(
+        update_fields=[
+            "status",
+            "rejected_by_name",
+            "rejected_at",
+            "rejection_comment",
+            "updated_at",
+        ]
+    )
+    return quiz
+
+
+def mark_quiz_superseded(quiz: GeneratedQuiz, *, reason: str = "") -> GeneratedQuiz:
+    if quiz.status in {GeneratedQuiz.Status.SUPERSEDED, GeneratedQuiz.Status.ARCHIVED}:
+        return quiz
+
+    quiz.status = GeneratedQuiz.Status.SUPERSEDED
+    quiz.superseded_at = timezone.now()
+    quiz.superseded_reason = (reason or "").strip()
+    quiz.save(
+        update_fields=[
+            "status",
+            "superseded_at",
+            "superseded_reason",
+            "updated_at",
+        ]
+    )
+    return quiz
+
+
+def _supersede_existing_quizzes_for_version_pair(
+    *,
+    from_version: DocumentVersion,
+    to_version: DocumentVersion,
+    exclude_quiz_id: int,
+    reason: str,
+) -> None:
+    queryset = GeneratedQuiz.objects.filter(
+        from_version=from_version,
+        to_version=to_version,
+        status__in=[
+            GeneratedQuiz.Status.DRAFT,
+            GeneratedQuiz.Status.PENDING_REVIEW,
+            GeneratedQuiz.Status.APPROVED,
+        ],
+    ).exclude(pk=exclude_quiz_id)
+
+    for existing_quiz in queryset:
+        mark_quiz_superseded(existing_quiz, reason=reason)
 
 
 def _attach_summary_source_refs(
@@ -276,12 +435,18 @@ def create_quiz_from_versions(
         diff_payload=diff_payload,
     )
     quiz_payload = make_json_safe(
-        build_quiz_from_diff(diff_payload=diff_payload, max_questions=max_questions)
+        build_quiz_from_summary(
+            summary_payload={"highlights": summary.highlights},
+            from_version=diff_payload["from_version"],
+            to_version=diff_payload["to_version"],
+            identical=bool(diff_payload.get("identical", False)),
+            max_questions=max_questions,
+        )
     )
 
     if quiz_payload["questions_count"] == 0:
         raise EmptyQuizError(
-            "Quiz was not saved because there are no changes between the selected versions."
+            "Quiz was not saved because there are no changes or not enough significant changes for a meaningful knowledge check between the selected versions."
         )
 
     quiz = GeneratedQuiz.objects.create(
@@ -292,18 +457,22 @@ def create_quiz_from_versions(
         title=title,
         payload=quiz_payload,
         questions_count=quiz_payload["questions_count"],
+        status=GeneratedQuiz.Status.DRAFT,
     )
 
-    materialized_change_items = select_prioritized_change_items(
-        change_items,
-        limit=quiz_payload["questions_count"],
-        prefer_non_editorial=True,
-    )
+    materialized_change_items_by_id = {item.id: item for item in change_items}
+    fallback_change_items = iter(change_items)
 
-    for index, (question_payload, change_item) in enumerate(
-        zip(quiz_payload.get("questions", []), materialized_change_items),
+    for index, question_payload in enumerate(
+        quiz_payload.get("questions", []),
         start=1,
     ):
+        change_item = materialized_change_items_by_id.get(
+            question_payload.get("source_change_item_id")
+        )
+        if change_item is None:
+            change_item = next(fallback_change_items, None)
+
         question = Question.objects.create(
             quiz=quiz,
             source_change_item=change_item,
@@ -315,7 +484,8 @@ def create_quiz_from_versions(
             prompt=question_payload.get("question", ""),
             correct_text_answer=question_payload.get("answer", ""),
             explanation=(
-                question_payload.get("significance_reason")
+                question_payload.get("explanation")
+                or question_payload.get("significance_reason")
                 or question_payload.get("type", "")
             ),
         )
@@ -333,6 +503,13 @@ def create_quiz_from_versions(
                 is_correct=bool(choice_payload.get("is_correct", False)),
             )
 
+    _supersede_existing_quizzes_for_version_pair(
+        from_version=from_version,
+        to_version=to_version,
+        exclude_quiz_id=quiz.id,
+        reason="A newer quiz draft was generated for the same version pair.",
+    )
+
     return quiz
 
 
@@ -343,6 +520,8 @@ def record_quiz_attempt(
     participant_name: str,
     submitted_answers: list[dict[str, Any]],
 ) -> tuple[QuizAttempt, dict[str, Any]]:
+    ensure_quiz_attempt_allowed(quiz)
+
     evaluation = evaluate_quiz_answers(
         quiz_payload=quiz.payload,
         submitted_answers=submitted_answers,

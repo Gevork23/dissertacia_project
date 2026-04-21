@@ -9,7 +9,11 @@ from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..domain.text_processing import sha256_hex
 from ..models import Chunk, Document, DocumentVersion
-from ..services.workflows import create_quiz_from_versions, materialize_comparison
+from ..services.workflows import (
+    EmptyQuizError,
+    create_quiz_from_versions,
+    materialize_comparison,
+)
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -246,4 +250,52 @@ class SignificancePipelineTests(TestCase):
         self.assertIsNotNone(question.source_change_item)
         self.assertEqual(question.source_change_item.semantic_type, "deadline")
         self.assertEqual(question.source_change_item.significance_label, "critical")
-        self.assertIn("ключевые условия", question.explanation)
+        self.assertEqual(
+            question.source_change_item_id,
+            quiz.payload["questions"][0]["source_change_item_id"],
+        )
+        self.assertIn("Проверяет понимание изменения", question.explanation)
+
+    def test_editorial_only_changes_do_not_create_quiz(self):
+        document = Document.objects.create(title="Редакционный квиз", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Прием документов осуществляется ежедневно.",
+            filename="editorial_only_v1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Приём документов осуществляется ежедневно.",
+            filename="editorial_only_v2.txt",
+        )
+
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Статья 1",
+            section_path="Статья 1",
+            text="Прием документов осуществляется ежедневно.",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Статья 1",
+            section_path="Статья 1",
+            text="Приём документов осуществляется ежедневно.",
+        )
+
+        diff_payload = build_version_diff(version_one, version_two)
+        quiz_payload = build_quiz_from_diff(diff_payload, max_questions=5)
+
+        self.assertEqual(quiz_payload["questions_count"], 0)
+        self.assertEqual(quiz_payload["questions"], [])
+
+        with self.assertRaises(EmptyQuizError):
+            create_quiz_from_versions(
+                from_version=version_one,
+                to_version=version_two,
+                title="Пустой quiz",
+                max_questions=5,
+            )

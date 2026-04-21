@@ -86,7 +86,7 @@ LLM, embeddings и semantic search допустимы только как уси
 
 Для app `documents` принят практический, а не академический вариант разбиения:
 
-- `domain/` — детерминированная предметная логика сравнения редакций, enrichment, summary и quiz generation;
+- `domain/` — детерминированная предметная логика сравнения редакций, enrichment, summary и summary-aware quiz generation;
 - `services/` — orchestration и интеграции: ingestion, importance analysis, optional search/Qdrant, evaluation services;
 - `api/` — HTTP/DRF слой: serializers, endpoints, viewsets, url routing;
 - `demo/` — демонстрационный presentation-слой и demo corpus;
@@ -190,6 +190,19 @@ Summary-слой в текущей фазе трактуется не как п�
 - прохождение сотрудником;
 - фиксацию score и ответов.
 
+В Фазах 11–12 quiz layer трактуется как **summary-aware knowledge-check layer с управляемым lifecycle**, а не как прямой diff-to-question transform. Базовый контракт MVP:
+- квиз строится по `Summary.highlights`, а не по всему diff подряд;
+- в квиз попадают прежде всего значимые изменения (`critical` / `important` / `informational`);
+- `editorial` и `structure` не используются как основной источник вопросов;
+- если significance-классификация оказалась слишком консервативной, допускается ограниченный fallback только для явно содержательных `added` / `removed` / `modified` фрагментов;
+- если meaningful material нет, квиз не генерируется и система честно возвращает пустой результат или ошибку сохранения;
+- сгенерированный тест не становится официальным автоматически: он проходит состояния `draft -> pending_review -> approved` либо `rejected`;
+- повторная генерация для той же пары версий переводит прежний активный тест в `superseded`, чтобы не было двух конкурирующих актуальных артефактов.
+
+Попытки прохождения разрешены только для `approved`. Сами переходы состояний вынесены в service-layer, поэтому demo UI и API используют единые доменные правила, а не прямое присваивание `status` из transport-слоя.
+
+В текущем MVP генератор стабильно поддерживает `single_choice`. Более богатые типы вопросов остаются заделом ORM-модели, но не объявляются как полностью поддерживаемый runtime-контур.
+
 ### 4.6. Отчётность
 
 Отвечает за:
@@ -218,12 +231,12 @@ Summary-слой в текущей фазе трактуется не как п�
 - compare API;
 - brief API;
 - persistent significance materialization;
-- significance-aware quiz save / approve / attempt / report flow;
+- significance-aware quiz save / submit-review / approve-or-reject / attempt / report flow;
 - demo UI;
 - demo corpus;
 - backend test suite.
 
-Важно: часть более богатой доменной модели уже существует в ORM, но реальный рабочий runtime-контур в нескольких сценариях опирается на JSON payload внутри `GeneratedQuiz` и `QuizAttempt`. Это допустимо для текущего MVP, но должно описываться честно.
+Важно: часть более богатой доменной модели уже существует в ORM, но реальный рабочий runtime-контур по-прежнему опирается на JSON payload внутри `GeneratedQuiz` и `QuizAttempt`. В Фазе 11 этот риск снижен тем, что payload и materialized `Question` / `Choice` создаются из одного summary-aware generation результата, а `source_change_item_id` переносится из highlights в persistent question layer.
 
 ## 7. Что считается опциональным слоем
 

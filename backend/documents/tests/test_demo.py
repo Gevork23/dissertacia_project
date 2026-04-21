@@ -6,7 +6,14 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from ..domain.text_processing import sha256_hex
-from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
+from ..models import (
+    Choice,
+    Document,
+    DocumentVersion,
+    GeneratedQuiz,
+    Question,
+    QuizAttempt,
+)
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -68,6 +75,19 @@ class DemoViewsTests(TestCase):
                 ],
             },
         )
+        question = Question.objects.create(
+            quiz=self.quiz,
+            order=1,
+            question_type=Question.QuestionType.SINGLE_CHOICE,
+            prompt="Какой срок установлен в новой редакции?",
+            correct_text_answer="7 рабочих дней",
+        )
+        Choice.objects.create(
+            question=question, order=0, text="7 рабочих дней", is_correct=True
+        )
+        Choice.objects.create(
+            question=question, order=1, text="10 рабочих дней", is_correct=False
+        )
 
     def _make_version(self, *, version_number: int, filename: str, text: str):
         uploaded_file = SimpleUploadedFile(
@@ -105,6 +125,22 @@ class DemoViewsTests(TestCase):
         self.assertContains(response, "Сравнение версий")
         self.assertContains(response, "Critical")
         self.assertContains(response, "Manual review")
+
+    def test_quiz_can_be_submitted_for_review_and_approved_from_demo_ui(self):
+        review_response = self.client.post(
+            reverse("demo-submit-review-quiz", kwargs={"quiz_id": self.quiz.id})
+        )
+        self.assertEqual(review_response.status_code, 302)
+        self.quiz.refresh_from_db()
+        self.assertEqual(self.quiz.status, GeneratedQuiz.Status.PENDING_REVIEW)
+        approve_response = self.client.post(
+            reverse("demo-approve-quiz", kwargs={"quiz_id": self.quiz.id}),
+            {"approved_by_name": "Иванова Е.А.", "approval_comment": "Согласовано."},
+        )
+        self.assertEqual(approve_response.status_code, 302)
+        self.quiz.refresh_from_db()
+        self.assertEqual(self.quiz.status, GeneratedQuiz.Status.APPROVED)
+        self.assertEqual(self.quiz.approved_by_name, "Иванова Е.А.")
 
     def test_approved_quiz_can_be_taken_from_demo_ui(self):
         self.quiz.status = GeneratedQuiz.Status.APPROVED

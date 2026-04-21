@@ -10,9 +10,15 @@
             <h2 style="margin-top: 12px;">{{ quiz.title }}</h2>
             <p class="muted">{{ quiz.from_version.document.title }} · v{{ quiz.from_version.version_number }} → v{{ quiz.to_version.version_number }}</p>
             {% if quiz.status == "approved" %}
-                <span class="pill success">Утверждён</span>
+                <span class="pill success">{{ quiz.get_status_display }}</span>
+            {% elif quiz.status == "pending_review" %}
+                <span class="pill warning">{{ quiz.get_status_display }}</span>
+            {% elif quiz.status == "rejected" %}
+                <span class="pill danger">{{ quiz.get_status_display }}</span>
+            {% elif quiz.status == "superseded" %}
+                <span class="pill danger">{{ quiz.get_status_display }}</span>
             {% else %}
-                <span class="pill warning">Черновик</span>
+                <span class="pill warning">{{ quiz.get_status_display }}</span>
             {% endif %}
         </div>
         <div class="actions">
@@ -27,13 +33,36 @@
 
 <div class="grid grid-2" style="margin-top: 18px;">
     <section class="card">
-        <h2>Утверждение теста</h2>
+        <h2>Workflow теста</h2>
+        <p><strong>Текущий статус:</strong> {{ quiz.get_status_display }}</p>
+        <p><strong>Вопросов:</strong> {{ quiz.questions_count }}</p>
+        {% if quiz.submitted_for_review_at %}
+            <p><strong>Передан на проверку:</strong> {{ quiz.submitted_for_review_at }}</p>
+        {% endif %}
         {% if quiz.status == "approved" %}
             <p><strong>Ответственное лицо:</strong> {{ quiz.approved_by_name }}</p>
-            <p><strong>Дата:</strong> {{ quiz.approved_at }}</p>
+            <p><strong>Дата утверждения:</strong> {{ quiz.approved_at }}</p>
             <p><strong>Комментарий:</strong> {{ quiz.approval_comment|default:"—" }}</p>
-        {% else %}
-            <form method="post" action="{% url 'demo-approve-quiz' quiz.id %}">
+        {% elif quiz.status == "rejected" %}
+            <p><strong>Отклонил:</strong> {{ quiz.rejected_by_name }}</p>
+            <p><strong>Дата отклонения:</strong> {{ quiz.rejected_at }}</p>
+            <p><strong>Причина:</strong> {{ quiz.rejection_comment|default:"—" }}</p>
+        {% elif quiz.status == "superseded" %}
+            <p><strong>Дата замены:</strong> {{ quiz.superseded_at }}</p>
+            <p><strong>Причина:</strong> {{ quiz.superseded_reason|default:"—" }}</p>
+        {% endif %}
+
+        {% if quiz.status == "draft" %}
+            <p class="muted">Черновик ещё не может использоваться как официальный проверочный материал.</p>
+            <form method="post" action="{% url 'demo-submit-review-quiz' quiz.id %}">
+                {% csrf_token %}
+                <div class="actions">
+                    <button class="btn warning" type="submit">Отправить на проверку</button>
+                </div>
+            </form>
+        {% elif quiz.status == "pending_review" %}
+            <p class="muted">Тест ожидает решения ответственного лица. До утверждения прохождение заблокировано.</p>
+            <form method="post" action="{% url 'demo-approve-quiz' quiz.id %}" style="margin-top:12px;">
                 {% csrf_token %}
                 <label>
                     ФИО ответственного лица
@@ -47,15 +76,41 @@
                     <button class="btn success" type="submit">Утвердить тест</button>
                 </div>
             </form>
+            <form method="post" action="{% url 'demo-reject-quiz' quiz.id %}" style="margin-top:16px;">
+                {% csrf_token %}
+                <label>
+                    ФИО ответственного лица
+                    <input type="text" name="rejected_by_name" value="Иванова Е.А.">
+                </label>
+                <label>
+                    Причина отклонения
+                    <textarea name="rejection_comment">Требуется переработка формулировок и повторная генерация вопросов.</textarea>
+                </label>
+                <div class="actions">
+                    <button class="btn" type="submit" style="background:#b91c1c;">Отклонить тест</button>
+                </div>
+            </form>
+        {% elif quiz.status == "rejected" %}
+            <p class="muted">Отклонённый тест нельзя выдать сотруднику. Его можно повторно отправить на проверку после корректировки.</p>
+            <form method="post" action="{% url 'demo-submit-review-quiz' quiz.id %}">
+                {% csrf_token %}
+                <div class="actions">
+                    <button class="btn warning" type="submit">Повторно отправить на проверку</button>
+                </div>
+            </form>
+        {% elif quiz.status == "approved" %}
+            <p class="muted">Это официальный и доступный к прохождению тест для выбранной пары версий.</p>
+        {% elif quiz.status == "superseded" %}
+            <p class="muted">Этот тест заменён более новым артефактом и больше не должен использоваться в качестве актуального.</p>
         {% endif %}
     </section>
 
     <section class="card">
         <h2>Краткий отчёт по тесту</h2>
-        <p><strong>Вопросов:</strong> {{ quiz.questions_count }}</p>
         <p><strong>Попыток:</strong> {{ report.attempts_count }}</p>
         <p><strong>Средний результат:</strong> {{ report.average_percentage }}%</p>
         <p><strong>Лучший балл:</strong> {{ report.best_score }}</p>
+        <p class="muted">Пока quiz не утверждён, прохождение через demo и API заблокировано.</p>
     </section>
 </div>
 
@@ -76,6 +131,8 @@
                     <p style="margin-top:12px;">{{ question.answer }}</p>
                 </details>
             </div>
+        {% empty %}
+            <p class="muted">В этом тесте нет материализованных вопросов.</p>
         {% endfor %}
     </div>
 </section>

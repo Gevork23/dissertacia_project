@@ -7,7 +7,6 @@ from django.db.models import Count, Max
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
 
 from ..api.endpoints import build_quiz_report_payload
@@ -19,9 +18,13 @@ from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
 from ..services.workflows import (
     DomainWorkflowError,
     EmptyQuizError,
+    approve_generated_quiz,
     build_comparison_payload,
     create_quiz_from_versions,
+    get_quiz_attempt_block_reason,
     record_quiz_attempt,
+    reject_generated_quiz,
+    submit_quiz_for_review,
 )
 
 DEMO_DOCUMENT_TITLE_PREFIX = "DEMO МФЦ:"
@@ -199,13 +202,18 @@ def create_quiz(request: HttpRequest) -> HttpResponse:
             max_questions=limit,
         )
     except EmptyQuizError:
-        messages.error(request, "Для выбранной пары версий нет вопросов для теста.")
+        messages.error(
+            request,
+            "Для выбранной пары версий нет достаточно значимых изменений для устойчивого теста.",
+        )
         compare_url = reverse("demo-compare")
         return redirect(
             f"{compare_url}?from_version={from_version.id}"
             f"&to_version={to_version.id}"
         )
-    messages.success(request, "Тест создан. Теперь его можно утвердить.")
+    messages.success(
+        request, "Тест создан как черновик. Следующий шаг — отправка на проверку."
+    )
     return redirect("demo-quiz-detail", quiz_id=quiz.id)
 
 
@@ -239,29 +247,55 @@ def quiz_detail(request: HttpRequest, quiz_id: int) -> HttpResponse:
 
 
 @require_http_methods(["POST"])
+def submit_quiz_review_view(request: HttpRequest, quiz_id: int) -> HttpResponse:
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+    try:
+        submit_quiz_for_review(quiz)
+    except DomainWorkflowError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, "Тест передан на проверку ответственному лицу.")
+    return redirect("demo-quiz-detail", quiz_id=quiz.id)
+
+
+@require_http_methods(["POST"])
 def approve_quiz_view(request: HttpRequest, quiz_id: int) -> HttpResponse:
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
     approved_by_name = (request.POST.get("approved_by_name") or "").strip()
     approval_comment = (request.POST.get("approval_comment") or "").strip()
 
-    if not approved_by_name:
-        messages.error(request, "Укажите ФИО ответственного лица.")
-        return redirect("demo-quiz-detail", quiz_id=quiz.id)
+    try:
+        approve_generated_quiz(
+            quiz=quiz,
+            approved_by_name=approved_by_name,
+            approval_comment=approval_comment,
+        )
+    except DomainWorkflowError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, "Тест утверждён и готов к выдаче сотруднику.")
+    return redirect("demo-quiz-detail", quiz_id=quiz.id)
 
-    quiz.status = GeneratedQuiz.Status.APPROVED
-    quiz.approved_by_name = approved_by_name
-    quiz.approved_at = timezone.now()
-    quiz.approval_comment = approval_comment
-    quiz.save(
-        update_fields=[
-            "status",
-            "approved_by_name",
-            "approved_at",
-            "approval_comment",
-            "updated_at",
-        ]
-    )
-    messages.success(request, "Тест утверждён и готов к выдаче сотруднику.")
+
+@require_http_methods(["POST"])
+def reject_quiz_view(request: HttpRequest, quiz_id: int) -> HttpResponse:
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
+    rejected_by_name = (request.POST.get("rejected_by_name") or "").strip()
+    rejection_comment = (request.POST.get("rejection_comment") or "").strip()
+
+    try:
+        reject_generated_quiz(
+            quiz=quiz,
+            rejected_by_name=rejected_by_name,
+            rejection_comment=rejection_comment,
+        )
+    except DomainWorkflowError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(
+            request,
+            "Тест отклонён. Его можно переработать и повторно отправить на проверку.",
+        )
     return redirect("demo-quiz-detail", quiz_id=quiz.id)
 
 
@@ -269,8 +303,9 @@ def approve_quiz_view(request: HttpRequest, quiz_id: int) -> HttpResponse:
 def take_quiz(request: HttpRequest, quiz_id: int) -> HttpResponse:
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
 
-    if quiz.status != GeneratedQuiz.Status.APPROVED:
-        messages.error(request, "Перед прохождением тест нужно утвердить.")
+    blocked_reason = get_quiz_attempt_block_reason(quiz)
+    if blocked_reason is not None:
+        messages.error(request, blocked_reason)
         return redirect("demo-quiz-detail", quiz_id=quiz.id)
 
     questions = quiz.payload.get("questions", [])

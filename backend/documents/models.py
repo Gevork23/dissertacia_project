@@ -613,7 +613,10 @@ class Employee(models.Model):
 class GeneratedQuiz(DomainValidatedModel):
     class Status(models.TextChoices):
         DRAFT = "draft", "Черновик"
+        PENDING_REVIEW = "pending_review", "На проверке"
         APPROVED = "approved", "Утверждён"
+        REJECTED = "rejected", "Отклонён"
+        SUPERSEDED = "superseded", "Заменён"
         ARCHIVED = "archived", "Архив"
 
     comparison = models.ForeignKey(
@@ -644,13 +647,19 @@ class GeneratedQuiz(DomainValidatedModel):
     payload = models.JSONField(default=dict, blank=True)
     questions_count = models.PositiveIntegerField(default=0)
     status = models.CharField(
-        max_length=16,
+        max_length=24,
         choices=Status.choices,
         default=Status.DRAFT,
     )
+    submitted_for_review_at = models.DateTimeField(null=True, blank=True)
     approved_by_name = models.CharField(max_length=255, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approval_comment = models.TextField(blank=True)
+    rejected_by_name = models.CharField(max_length=255, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejection_comment = models.TextField(blank=True)
+    superseded_at = models.DateTimeField(null=True, blank=True)
+    superseded_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -667,6 +676,24 @@ class GeneratedQuiz(DomainValidatedModel):
                     | (Q(approved_at__isnull=False) & ~Q(approved_by_name=""))
                 ),
                 name="generated_quiz_approval_fields_required",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~Q(status="pending_review")
+                    | Q(submitted_for_review_at__isnull=False)
+                ),
+                name="generated_quiz_review_submission_timestamp_required",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~Q(status="rejected")
+                    | (Q(rejected_at__isnull=False) & ~Q(rejected_by_name=""))
+                ),
+                name="generated_quiz_rejection_fields_required",
+            ),
+            models.CheckConstraint(
+                condition=(~Q(status="superseded") | Q(superseded_at__isnull=False)),
+                name="generated_quiz_superseded_timestamp_required",
             ),
         ]
 
@@ -699,6 +726,16 @@ class GeneratedQuiz(DomainValidatedModel):
         update_fields = kwargs.get("update_fields")
 
         if (
+            self.status == self.Status.PENDING_REVIEW
+            and self.submitted_for_review_at is None
+        ):
+            self.submitted_for_review_at = timezone.now()
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.add("submitted_for_review_at")
+                kwargs["update_fields"] = list(update_fields)
+
+        if (
             self.status == self.Status.APPROVED
             and self.approved_at is None
             and self.approved_by_name
@@ -708,6 +745,24 @@ class GeneratedQuiz(DomainValidatedModel):
             if update_fields is not None:
                 update_fields = set(update_fields)
                 update_fields.add("approved_at")
+                kwargs["update_fields"] = list(update_fields)
+
+        if (
+            self.status == self.Status.REJECTED
+            and self.rejected_at is None
+            and self.rejected_by_name
+        ):
+            self.rejected_at = timezone.now()
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.add("rejected_at")
+                kwargs["update_fields"] = list(update_fields)
+
+        if self.status == self.Status.SUPERSEDED and self.superseded_at is None:
+            self.superseded_at = timezone.now()
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.add("superseded_at")
                 kwargs["update_fields"] = list(update_fields)
 
         return super().save(*args, **kwargs)

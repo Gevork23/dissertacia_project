@@ -26,9 +26,13 @@
                     <td>v{{ quiz.from_version.version_number }} → v{{ quiz.to_version.version_number }}</td>
                     <td>
                         {% if quiz.status == "approved" %}
-                            <span class="pill success">Утверждён</span>
+                            <span class="pill success">{{ quiz.get_status_display }}</span>
+                        {% elif quiz.status == "pending_review" %}
+                            <span class="pill warning">{{ quiz.get_status_display }}</span>
+                        {% elif quiz.status == "rejected" or quiz.status == "superseded" %}
+                            <span class="pill danger">{{ quiz.get_status_display }}</span>
                         {% else %}
-                            <span class="pill warning">Черновик</span>
+                            <span class="pill warning">{{ quiz.get_status_display }}</span>
                         {% endif %}
                     </td>
                     <td><a class="btn secondary" href="{% url 'demo-quiz-detail' quiz.id %}">Открыть</a></td>

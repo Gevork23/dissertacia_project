@@ -9,9 +9,11 @@ from .endpoints import (
     list_quiz_attempts,
     list_saved_quizzes,
     quiz_report,
+    reject_quiz,
     save_versions_quiz,
     search,
     submit_quiz_attempt,
+    submit_quiz_review,
 )
 from .viewsets import DocumentVersionViewSet, DocumentViewSet
 
@@ -26,7 +28,13 @@ urlpatterns = [
     path("compare/quiz/", compare_versions_quiz, name="compare-versions-quiz"),
     path("compare/quiz/save/", save_versions_quiz, name="save-versions-quiz"),
     path("quizzes/", list_saved_quizzes, name="list-saved-quizzes"),
+    path(
+        "quizzes/<int:quiz_id>/submit-review/",
+        submit_quiz_review,
+        name="submit-quiz-review",
+    ),
     path("quizzes/<int:quiz_id>/approve/", approve_quiz, name="approve-quiz"),
+    path("quizzes/<int:quiz_id>/reject/", reject_quiz, name="reject-quiz"),
     path("quizzes/<int:quiz_id>/report/", quiz_report, name="quiz-report"),
     path(
         "quizzes/<int:quiz_id>/attempts/",

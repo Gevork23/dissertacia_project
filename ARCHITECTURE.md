@@ -163,8 +163,15 @@ Chunking вызывается централизованно при materializat
 - различение `semantic_type` и `significance_label`;
 - explainable rationale (`significance_reason`, `significance_rules`);
 - честную деградацию в `requires_manual_review` для неоднозначных кейсов;
-- краткую выжимку по diff;
+- materialized summary/brief поверх `VersionComparison`;
 - significance-aware подготовку материала для пользователя и квиза.
+
+Summary-слой в текущей фазе трактуется не как полный пересказ diff, а как **краткая объяснимая выжимка по приоритетным изменениям**. Для этого используются детерминированные baseline-правила:
+- в summary в первую очередь попадают `critical` / `important`, затем `informational`;
+- `editorial` используется только как fallback, если других содержательных изменений нет;
+- `Summary.text` хранит narrative block, пригодный для demo и быстрого ознакомления;
+- `Summary.highlights` хранит структурированные пункты с человекочитаемым `concise_explanation`;
+- materialized highlights содержат `source_change_item_id`, поэтому summary остаётся трассируемым к diff и пригодным как bridge для дальнейшего quiz-generation.
 
 Текущая шкала значимости в MVP:
 - `critical` — сроки, перечни документов, обязанности, основания отказа, ответственность;

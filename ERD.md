@@ -210,4 +210,6 @@ erDiagram
 - `QuizAttempt` остаётся текущим именем модели в коде, но доменно это сущность **попытки прохождения**.
 - Поля `payload` и `answers` сохранены как практичные JSON-снимки текущего прототипа, чтобы не ломать уже существующую логику.
 - `VersionChangeItem` теперь хранит не только diff-снимок, но и materialized significance-оценку, на которую опираются summary и quiz generation.
+- `Summary.text` хранит общий narrative по выбранной паре версий, а `Summary.highlights` — structured brief items.
+- Structured highlight сохраняет ссылку на `source_change_item_id`, поэтому summary остаётся explainable bridge между comparison/significance и последующими user-facing стадиями.
 - При этом нормализованные сущности `Question`, `Choice` и `Answer` добавлены уже сейчас, чтобы база была готова к админке, отчётам и дальнейшему развитию.

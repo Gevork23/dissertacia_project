@@ -25,8 +25,9 @@
 
 <div class="grid grid-2" style="margin-top: 18px;">
     <section class="card">
-        <h2>Краткая выжимка</h2>
+        <h2>{{ brief.overview_title|default:"Краткая выжимка" }}</h2>
         <p>{{ brief.brief_text }}</p>
+        {% if brief.truncated_highlights_count %}<p class="muted">В интерфейсе показаны наиболее приоритетные пункты; ещё {{ brief.truncated_highlights_count }} изменений не вошли в краткую выжимку.</p>{% endif %}
         <div class="stack">
             {% for item in brief.highlights %}
                 <div class="question-card">
@@ -38,7 +39,7 @@
                     {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
                     <h3 style="margin-top: 10px;">{{ item.title }}</h3>
                     <p class="muted">Тип: {{ item.semantic_type|default:'unclassified' }}</p>
-                    <p class="muted">{{ item.description }}</p>
+                    <p class="muted">{{ item.concise_explanation|default:item.description }}</p>
                     {% if item.significance_reason %}
                         <p class="muted">{{ item.significance_reason }}</p>
                     {% endif %}

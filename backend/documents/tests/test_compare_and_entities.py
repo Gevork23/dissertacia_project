@@ -582,9 +582,16 @@ class CompareVersionsAPITests(APITestCase):
         self.assertIn("Изменено фрагментов: 1.", response.data["brief_text"])
         self.assertEqual(response.data["summary"]["added"], 1)
         self.assertEqual(response.data["summary"]["modified"], 1)
-        self.assertEqual(len(response.data["highlights"]), 2)
+        self.assertIn("overview_title", response.data)
+        self.assertEqual(response.data["selection_scope"], "significant")
+        self.assertEqual(len(response.data["highlights"]), 1)
         self.assertEqual(response.data["highlights"][0]["type"], "modified")
-        self.assertEqual(response.data["highlights"][1]["type"], "added")
+        self.assertEqual(
+            response.data["highlights"][0]["significance_label"], "important"
+        )
+        self.assertIn("concise_explanation", response.data["highlights"][0])
+        self.assertIsNone(response.data["highlights"][0]["source_change_item_id"])
+        self.assertIsNotNone(response.data["highlights"][0]["source_sort_order"])
 
     def test_compare_versions_quiz_returns_questions(self):
         document = Document.objects.create(
@@ -886,6 +893,8 @@ class CompareVersionsAPITests(APITestCase):
         saved_quiz = GeneratedQuiz.objects.select_related("comparison", "summary").get()
         self.assertIsNotNone(saved_quiz.comparison_id)
         self.assertIsNotNone(saved_quiz.summary_id)
+        self.assertTrue(saved_quiz.summary.highlights)
+        self.assertIsNotNone(saved_quiz.summary.highlights[0]["source_change_item_id"])
         self.assertEqual(saved_quiz.comparison.change_items.count(), 2)
         self.assertEqual(saved_quiz.questions.count(), 2)
         self.assertTrue(

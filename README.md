@@ -97,6 +97,13 @@ Materialized `VersionComparison` теперь хранит не только с�
 
 Краткая выжимка и генерация квиза теперь работают не по первым diff-элементам подряд, а по **prioritized change items**: сначала `critical` / `important`, затем `informational`, а редакционные изменения используются как fallback.
 
+Summary layer в текущем MVP реализован как materialized human-readable слой поверх `VersionComparison`:
+
+- `Summary.text` хранит общий narrative/overview по наиболее значимым изменениям;
+- `Summary.highlights` хранит структурированные пункты brief, а не просто текстовые строки;
+- каждый пункт brief содержит `type`, `title`, `concise_explanation`, `semantic_type`, `significance_label`, `requires_manual_review`;
+- в materialized summary дополнительно сохраняется `source_change_item_id`, что позволяет прозрачно связать пункт выжимки с `VersionChangeItem` и использовать этот bridge в следующих фазах.
+
 ## Что реально есть в текущем состоянии репозитория
 
 В репозитории уже реализованы:

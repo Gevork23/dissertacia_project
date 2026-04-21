@@ -97,6 +97,36 @@ def _get_chunk_text(chunk_payload: dict[str, Any] | None) -> str:
     return str(chunk_payload.get("text") or "")
 
 
+def _attach_summary_source_refs(
+    highlights: list[dict[str, Any]],
+    change_items: list[VersionChangeItem],
+) -> list[dict[str, Any]]:
+    if not highlights:
+        return []
+
+    change_items_by_sort_order = {item.sort_order: item for item in change_items}
+    resolved: list[dict[str, Any]] = []
+
+    for highlight in highlights:
+        item = dict(highlight)
+        source_sort_order = item.get("source_sort_order")
+        try:
+            sort_order = int(source_sort_order)
+        except (TypeError, ValueError):
+            sort_order = None
+
+        source_change_item = None
+        if sort_order is not None:
+            source_change_item = change_items_by_sort_order.get(sort_order)
+
+        item["source_change_item_id"] = (
+            source_change_item.id if source_change_item is not None else None
+        )
+        resolved.append(item)
+
+    return resolved
+
+
 @transaction.atomic
 def materialize_comparison(
     *,
@@ -213,11 +243,16 @@ def materialize_comparison(
         ]
     )
 
+    resolved_highlights = _attach_summary_source_refs(
+        brief_payload["highlights"],
+        change_items,
+    )
+
     summary, _ = Summary.objects.update_or_create(
         comparison=comparison,
         defaults={
             "text": brief_payload["brief_text"],
-            "highlights": make_json_safe(brief_payload["highlights"]),
+            "highlights": make_json_safe(resolved_highlights),
         },
     )
 

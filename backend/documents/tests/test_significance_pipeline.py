@@ -154,6 +154,77 @@ class SignificancePipelineTests(TestCase):
         )
         self.assertEqual(brief_payload["highlights"][0]["semantic_type"], "deadline")
 
+    def test_brief_summary_uses_semantic_explanation_for_deadline_change(self):
+        diff_payload = build_version_diff(self.version_one, self.version_two)
+
+        brief_payload = build_brief_summary(diff_payload)
+
+        self.assertEqual(brief_payload["selection_scope"], "significant")
+        self.assertIn(
+            "Срок сокращён", brief_payload["highlights"][0]["concise_explanation"]
+        )
+        self.assertIn("Ключевое изменение", brief_payload["brief_text"])
+
+    def test_materialized_summary_links_highlights_to_change_items(self):
+        comparison, summary, _, _ = materialize_comparison(
+            from_version=self.version_one,
+            to_version=self.version_two,
+        )
+
+        self.assertTrue(summary.highlights)
+        first_highlight = summary.highlights[0]
+        self.assertIsNotNone(first_highlight["source_change_item_id"])
+        linked_item = comparison.change_items.get(
+            pk=first_highlight["source_change_item_id"]
+        )
+        self.assertEqual(linked_item.sort_order, first_highlight["source_sort_order"])
+        self.assertEqual(
+            linked_item.significance_label, first_highlight["significance_label"]
+        )
+        self.assertIn("Срок сокращён", summary.text)
+
+    def test_editorial_only_changes_use_editorial_fallback_summary(self):
+        document = Document.objects.create(title="Редакционные правки", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Прием документов осуществляется ежедневно.",
+            filename="editorial_v1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Приём документов осуществляется ежедневно.",
+            filename="editorial_v2.txt",
+        )
+
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Статья 1",
+            section_path="Статья 1",
+            text="Прием документов осуществляется ежедневно.",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Статья 1",
+            section_path="Статья 1",
+            text="Приём документов осуществляется ежедневно.",
+        )
+
+        diff_payload = build_version_diff(version_one, version_two)
+        brief_payload = build_brief_summary(diff_payload)
+
+        self.assertEqual(brief_payload["selection_scope"], "editorial_fallback")
+        self.assertEqual(
+            brief_payload["highlights"][0]["significance_label"], "editorial"
+        )
+        self.assertIn(
+            "значимых смысловых изменений не обнаружено",
+            brief_payload["brief_text"],
+        )
+
     def test_quiz_prefers_significant_changes_over_editorial(self):
         diff_payload = build_version_diff(self.version_one, self.version_two)
 

@@ -153,6 +153,9 @@ class Phase3DomainModelTests(TestCase):
             participant_name=employee.full_name,
             score=1,
             total_questions=1,
+            answered_questions=1,
+            correct_answers=1,
+            score_percent=100.0,
             status=QuizAttempt.Status.COMPLETED,
         )
         answer = Answer.objects.create(
@@ -383,3 +386,29 @@ class Phase3DomainModelTests(TestCase):
                 text_answer="Ответ 2",
                 is_correct=True,
             )
+
+    def test_completed_attempt_is_immutable(self):
+        document = Document.objects.create(title="Инструкция")
+        version_one = self.make_version(document=document, version_number=1)
+        version_two = self.make_version(document=document, version_number=2)
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест",
+            questions_count=1,
+            status=GeneratedQuiz.Status.APPROVED,
+            approved_by_name="Иванова Е.А.",
+        )
+        attempt = QuizAttempt.objects.create(
+            quiz=quiz,
+            participant_name="Петров Петр Петрович",
+            total_questions=1,
+            answered_questions=1,
+            correct_answers=1,
+            score=1,
+            score_percent=100.0,
+            status=QuizAttempt.Status.COMPLETED,
+        )
+        attempt.score = 0
+        with self.assertRaises(ValidationError):
+            attempt.save(update_fields=["score"])

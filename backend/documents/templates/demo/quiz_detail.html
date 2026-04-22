@@ -23,7 +23,7 @@
         </div>
         <div class="actions">
             {% if quiz.status == "approved" %}
-                <a class="btn success" href="{% url 'demo-take-quiz' quiz.id %}">Пройти тест</a>
+                <a class="btn success" href="{% url 'demo-take-quiz' quiz.id %}">Начать прохождение</a>
                 <a class="btn secondary" href="{% url 'demo-report' quiz.id %}">Открыть отчёт</a>
             {% endif %}
             <a class="btn secondary" href="/api/quizzes/{{ quiz.id }}/report/">JSON-отчёт</a>

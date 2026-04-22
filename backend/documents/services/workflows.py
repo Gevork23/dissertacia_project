@@ -27,14 +27,15 @@ from ..models import (
     VersionChangeItem,
     VersionComparison,
 )
-from .quiz_attempts import evaluate_quiz_answers, resolve_submitted_answer
+from .exceptions import DomainWorkflowError
+from .quiz_attempts import (
+    evaluate_quiz_answers,
+    normalize_participant_name,
+    quiz_has_materialized_questions,
+)
 
 
 class EmptyQuizError(ValueError):
-    pass
-
-
-class DomainWorkflowError(ValueError):
     pass
 
 
@@ -110,7 +111,7 @@ def _quiz_has_materialized_questions(quiz: GeneratedQuiz) -> bool:
 
 
 def _ensure_quiz_can_enter_review(quiz: GeneratedQuiz) -> None:
-    if quiz.questions_count <= 0 or not _quiz_has_materialized_questions(quiz):
+    if quiz.questions_count <= 0 or not quiz_has_materialized_questions(quiz):
         raise DomainWorkflowError(
             "Quiz must contain materialized questions before it can enter the approval workflow."
         )
@@ -513,75 +514,117 @@ def create_quiz_from_versions(
     return quiz
 
 
+def start_quiz_attempt(
+    *,
+    quiz: GeneratedQuiz,
+    participant_name: str,
+    employee=None,
+) -> tuple[QuizAttempt, bool]:
+    ensure_quiz_attempt_allowed(quiz)
+
+    participant_name = normalize_participant_name(participant_name)
+    if not participant_name:
+        raise DomainWorkflowError("Field 'participant_name' is required.")
+
+    with transaction.atomic():
+        existing_attempt = (
+            QuizAttempt.objects.select_for_update()
+            .filter(
+                quiz=quiz,
+                participant_name=participant_name,
+                status=QuizAttempt.Status.IN_PROGRESS,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if existing_attempt is not None:
+            return existing_attempt, False
+
+        attempt = QuizAttempt.objects.create(
+            quiz=quiz,
+            employee=employee,
+            participant_name=participant_name,
+            total_questions=quiz.questions.count(),
+            status=QuizAttempt.Status.IN_PROGRESS,
+        )
+    return attempt, True
+
+
 @transaction.atomic
+def submit_started_quiz_attempt(
+    *,
+    attempt: QuizAttempt,
+    submitted_answers: list[dict[str, Any]],
+) -> tuple[QuizAttempt, dict[str, Any]]:
+    locked_attempt = QuizAttempt.objects.select_for_update().select_related("quiz").get(pk=attempt.pk)
+    if locked_attempt.status != QuizAttempt.Status.IN_PROGRESS:
+        raise DomainWorkflowError("Only in-progress attempt can be submitted.")
+
+    questions = list(locked_attempt.quiz.questions.prefetch_related("choices").order_by("order", "id"))
+    if not questions:
+        raise DomainWorkflowError("Cannot submit an attempt for a quiz without materialized questions.")
+
+    evaluation = evaluate_quiz_answers(locked_attempt.quiz, submitted_answers)
+
+    Answer.objects.filter(attempt=locked_attempt).delete()
+    answer_rows = []
+    questions_by_id = {question.id: question for question in questions}
+    for result in evaluation["results"]:
+        if not result["answered"]:
+            continue
+        question = questions_by_id.get(result["question_id"])
+        if question is None:
+            continue
+        answer_rows.append(
+            Answer(
+                attempt=locked_attempt,
+                question=question,
+                selected_choice_id=result["selected_choice_id"],
+                text_answer=result["text_answer"],
+                is_correct=bool(result["is_correct"]),
+            )
+        )
+
+    if answer_rows:
+        Answer.objects.bulk_create(answer_rows)
+
+    locked_attempt.answers = make_json_safe(evaluation["results"])
+    locked_attempt.score = evaluation["score"]
+    locked_attempt.total_questions = evaluation["total_questions"]
+    locked_attempt.answered_questions = evaluation["answered_questions"]
+    locked_attempt.correct_answers = evaluation["correct_answers"]
+    locked_attempt.score_percent = evaluation["score_percent"]
+    locked_attempt.status = QuizAttempt.Status.COMPLETED
+    locked_attempt.submitted_at = timezone.now()
+    locked_attempt.completed_at = locked_attempt.submitted_at
+    locked_attempt.save(
+        update_fields=[
+            "answers",
+            "score",
+            "total_questions",
+            "answered_questions",
+            "correct_answers",
+            "score_percent",
+            "status",
+            "submitted_at",
+            "completed_at",
+        ]
+    )
+
+    return locked_attempt, evaluation
+
+
 def record_quiz_attempt(
     *,
     quiz: GeneratedQuiz,
     participant_name: str,
     submitted_answers: list[dict[str, Any]],
 ) -> tuple[QuizAttempt, dict[str, Any]]:
-    ensure_quiz_attempt_allowed(quiz)
-
-    evaluation = evaluate_quiz_answers(
-        quiz_payload=quiz.payload,
-        submitted_answers=submitted_answers,
-    )
-    stored_answers = make_json_safe(evaluation["results"])
-
-    attempt = QuizAttempt.objects.create(
+    attempt, _ = start_quiz_attempt(
         quiz=quiz,
         participant_name=participant_name,
-        answers=stored_answers,
-        score=evaluation["score"],
-        total_questions=evaluation["total_questions"],
-        status=QuizAttempt.Status.COMPLETED,
-        completed_at=timezone.now(),
     )
-
-    questions = list(quiz.questions.prefetch_related("choices").order_by("order", "id"))
-    if not questions:
-        return attempt, evaluation
-
-    payload_questions = quiz.payload.get("questions", [])
-    submitted_by_index: dict[int, dict[str, Any]] = {}
-    for item in submitted_answers:
-        try:
-            question_index = int(item.get("question_index"))
-        except (TypeError, ValueError):
-            continue
-        submitted_by_index[question_index] = item
-
-    for index, question in enumerate(questions):
-        payload_question = (
-            payload_questions[index] if index < len(payload_questions) else {}
-        )
-        submitted_item = submitted_by_index.get(index, {})
-        resolved_answer = resolve_submitted_answer(payload_question, submitted_item)
-
-        selected_choice = None
-        if question.question_type == Question.QuestionType.SINGLE_CHOICE:
-            choice_index = submitted_item.get("selected_choice_index")
-            if choice_index is not None:
-                try:
-                    selected_choice = question.choices.get(order=int(choice_index))
-                except (Choice.DoesNotExist, TypeError, ValueError):
-                    selected_choice = None
-
-            if selected_choice is None:
-                selected_choice_text = (
-                    submitted_item.get("selected_choice_text") or resolved_answer
-                )
-                if selected_choice_text:
-                    selected_choice = question.choices.filter(
-                        text=str(selected_choice_text)
-                    ).first()
-
-        Answer.objects.create(
-            attempt=attempt,
-            question=question,
-            selected_choice=selected_choice,
-            text_answer="" if selected_choice is not None else resolved_answer,
-            is_correct=bool(stored_answers[index]["is_correct"]),
-        )
-
-    return attempt, evaluation
+    return submit_started_quiz_attempt(
+        attempt=attempt,
+        submitted_answers=submitted_answers,
+    )

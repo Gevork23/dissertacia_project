@@ -6,17 +6,36 @@
 <section class="card">
     <span class="pill success">Сотрудник проходит тест</span>
     <h2 style="margin-top: 12px;">{{ quiz.title }}</h2>
-    <p class="muted">Для стабильного показа комиссии используется детерминированный single-choice режим.</p>
+    <p class="muted">Phase 13: quiz execution отделён на старт попытки и финальную отправку результата.</p>
 </section>
 
+{% if not attempt %}
 <form method="post" class="stack" style="margin-top: 18px;">
     {% csrf_token %}
+    <input type="hidden" name="action" value="start">
     <section class="card">
         <label>
             ФИО сотрудника
             <input type="text" name="participant_name" value="Петров А.А." required>
         </label>
+        <p class="muted">После старта будет создана попытка со статусом «В процессе». Повторный старт для того же сотрудника вернёт текущую активную попытку.</p>
     </section>
+    <div class="actions">
+        <button class="btn success" type="submit">Начать попытку</button>
+        <a class="btn secondary" href="{% url 'demo-quiz-detail' quiz.id %}">Назад к тесту</a>
+    </div>
+</form>
+{% else %}
+<section class="card" style="margin-top: 18px;">
+    <p><strong>Сотрудник:</strong> {{ attempt.participant_name }}</p>
+    <p><strong>Статус попытки:</strong> {{ attempt.get_status_display }}</p>
+    <p><strong>Начата:</strong> {{ attempt.started_at }}</p>
+</section>
+
+<form method="post" class="stack" style="margin-top: 18px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="submit">
+    <input type="hidden" name="attempt_id" value="{{ attempt.id }}">
 
     {% for question in questions %}
         <section class="card question-card">
@@ -24,7 +43,7 @@
             <h3>{{ question.question }}</h3>
             {% for choice in question.choices %}
                 <label class="choice">
-                    <input type="radio" name="question_{{ forloop.parentloop.counter0 }}" value="{{ choice.choice_index }}" required>
+                    <input type="radio" name="question_{{ question.question_id }}" value="{{ choice.choice_id }}">
                     <span>{{ choice.text }}</span>
                 </label>
             {% endfor %}
@@ -32,7 +51,9 @@
     {% endfor %}
 
     <div class="actions">
-        <button class="btn success" type="submit">Сохранить прохождение</button>
+        <button class="btn success" type="submit">Завершить и сохранить результат</button>
+        <a class="btn secondary" href="{% url 'demo-quiz-detail' quiz.id %}">Назад к тесту</a>
     </div>
 </form>
+{% endif %}
 {% endblock %}

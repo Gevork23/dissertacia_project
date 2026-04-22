@@ -11,16 +11,20 @@ from rest_framework.response import Response
 from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
-from ..models import DocumentVersion, GeneratedQuiz
+from ..models import DocumentVersion, GeneratedQuiz, QuizAttempt
 from ..services.search import search_chunks
+from ..services.exceptions import DomainWorkflowError
+from ..services.quiz_attempts import (
+    get_quiz_attempt_block_reason,
+    record_quiz_attempt,
+    start_quiz_attempt,
+    submit_started_quiz_attempt,
+)
 from ..services.workflows import (
-    DomainWorkflowError,
     EmptyQuizError,
     approve_generated_quiz,
     build_comparison_payload,
     create_quiz_from_versions,
-    get_quiz_attempt_block_reason,
-    record_quiz_attempt,
     reject_generated_quiz,
     submit_quiz_for_review,
 )
@@ -34,26 +38,14 @@ logger = logging.getLogger("documents.api")
 
 
 def build_quiz_report_payload(quiz: GeneratedQuiz) -> dict:
-    attempts = list(quiz.attempts.order_by("-created_at"))
+    attempts = list(
+        quiz.attempts.filter(status=QuizAttempt.Status.COMPLETED).order_by("-submitted_at", "-created_at")
+    )
     attempts_count = len(attempts)
     scores = [attempt.score for attempt in attempts]
-    totals = [
-        attempt.total_questions for attempt in attempts if attempt.total_questions
-    ]
+    percentages = [attempt.score_percent for attempt in attempts]
     average_score = round(sum(scores) / attempts_count, 2) if attempts_count else 0.0
-    average_percentage = (
-        round(
-            sum(
-                (attempt.score / attempt.total_questions) * 100
-                for attempt in attempts
-                if attempt.total_questions
-            )
-            / len(totals),
-            2,
-        )
-        if totals
-        else 0.0
-    )
+    average_percentage = round(sum(percentages) / attempts_count, 2) if attempts_count else 0.0
 
     return {
         "quiz": GeneratedQuizSerializer(quiz).data,
@@ -426,17 +418,34 @@ def reject_quiz(request, quiz_id: int):
 
 
 @api_view(["POST"])
-def submit_quiz_attempt(request, quiz_id: int):
+def start_quiz_attempt_view(request, quiz_id: int):
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
 
     blocked_reason = get_quiz_attempt_block_reason(quiz)
     if blocked_reason is not None:
-        return Response(
-            {"detail": blocked_reason},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({"detail": blocked_reason}, status=status.HTTP_400_BAD_REQUEST)
 
     participant_name = (request.data.get("participant_name") or "").strip()
+
+    try:
+        attempt, created = start_quiz_attempt(
+            quiz=quiz,
+            participant_name=participant_name,
+        )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = QuizAttemptSerializer(attempt)
+    response_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+    return Response(
+        {"attempt": serializer.data, "created": created},
+        status=response_status,
+    )
+
+
+@api_view(["POST"])
+def submit_quiz_attempt(request, quiz_id: int):
+    quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
     answers = request.data.get("answers") or []
 
     if not isinstance(answers, list):
@@ -445,11 +454,31 @@ def submit_quiz_attempt(request, quiz_id: int):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    attempt, evaluation = record_quiz_attempt(
-        quiz=quiz,
-        participant_name=participant_name,
-        submitted_answers=answers,
-    )
+    attempt_id = request.data.get("attempt_id")
+
+    try:
+        if attempt_id is not None:
+            attempt = get_object_or_404(QuizAttempt, pk=attempt_id, quiz=quiz)
+            attempt, _ = submit_started_quiz_attempt(
+                attempt=attempt,
+                submitted_answers=answers,
+            )
+        else:
+            blocked_reason = get_quiz_attempt_block_reason(quiz)
+            if blocked_reason is not None:
+                return Response(
+                    {"detail": blocked_reason},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            participant_name = (request.data.get("participant_name") or "").strip()
+            attempt, _ = record_quiz_attempt(
+                quiz=quiz,
+                participant_name=participant_name,
+                submitted_answers=answers,
+            )
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     logger.info(
         "Quiz attempt saved: attempt_id=%s quiz_id=%s score=%s total=%s",

@@ -7,14 +7,14 @@
     <span class="pill primary">Отчёт по тесту</span>
     <h2 style="margin-top: 12px;">{{ report.quiz.title }}</h2>
     <div class="grid grid-3" style="margin-top: 14px;">
-        <div class="card"><div class="muted">Попыток</div><div class="metric">{{ report.attempts_count }}</div></div>
+        <div class="card"><div class="muted">Завершённых попыток</div><div class="metric">{{ report.attempts_count }}</div></div>
         <div class="card"><div class="muted">Средний балл</div><div class="metric">{{ report.average_score }}</div></div>
         <div class="card"><div class="muted">Средний процент</div><div class="metric">{{ report.average_percentage }}%</div></div>
     </div>
 </section>
 
 <section class="card" style="margin-top: 18px;">
-    <h2>Последние попытки</h2>
+    <h2>Последние завершённые попытки</h2>
     <div class="table-wrap">
         <table>
             <thead>
@@ -28,9 +28,9 @@
             <tbody>
             {% for attempt in report.latest_attempts %}
                 <tr>
-                    <td>{{ attempt.created_at }}</td>
+                    <td>{{ attempt.submitted_at|default:attempt.completed_at|default:attempt.created_at }}</td>
                     <td>{{ attempt.participant_name|default:"—" }}</td>
-                    <td>{{ attempt.score }}/{{ attempt.total_questions }}</td>
+                    <td>{{ attempt.correct_answers }}/{{ attempt.total_questions }} ({{ attempt.score_percent }}%)</td>
                     <td><a class="btn secondary" href="{% url 'demo-attempt-detail' attempt.id %}">Открыть</a></td>
                 </tr>
             {% empty %}

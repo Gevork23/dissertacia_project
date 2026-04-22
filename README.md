@@ -307,3 +307,15 @@ DB_ENGINE=postgres
 - не помогает защите магистерской работы,
 
 то она не должна становиться приоритетом текущего контура.
+
+
+## Phase 13: quiz execution / attempts
+
+- Approved quiz now starts a real attempt lifecycle: `start -> in_progress -> submit -> completed`.
+- Attempt stores `started_at`, `submitted_at`, `answered_questions`, `correct_answers`, `score_percent`.
+- Only approved quiz can start a new attempt. Already started attempt can be submitted even if the quiz was later superseded.
+- For the same `quiz + participant_name` only one active `in_progress` attempt is allowed.
+- Completed attempt is immutable in critical fields and serves as a stable reporting snapshot.
+- Demo UI and API now support explicit attempt start and final submission.
+- Canonical attempt submission payload now uses `question_id` and `selected_choice_id`; legacy `question_index` / `selected_choice_index` payload remains supported for backward compatibility.
+- Attempt execution logic is extracted into `documents/services/quiz_attempts.py`; `workflows.py` remains focused on quiz approval lifecycle.

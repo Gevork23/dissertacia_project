@@ -147,9 +147,7 @@ class CompareVersionsAPITests(APITestCase):
         version_two = self.make_version(
             document=document,
             version_number=2,
-            text=(
-                "Глава 1\n" "Новый текст главы 1\n\n" "Глава 3\n" "Совсем новый текст"
-            ),
+            text=("Глава 1\n" "Новый текст главы 1\n\n" "Глава 3\n" "Совсем новый текст"),
             filename="v2.txt",
         )
 
@@ -1026,19 +1024,50 @@ class CompareVersionsAPITests(APITestCase):
         questions = save_response.data["payload"]["questions"]
         self.assertEqual(len(questions), 2)
 
+        start_url = reverse("start-quiz-attempt", kwargs={"quiz_id": quiz_id})
+        start_response = self.client.post(
+            start_url,
+            {"participant_name": "Tester"},
+            format="json",
+        )
+        self.assertEqual(start_response.status_code, status.HTTP_201_CREATED)
+        attempt_id = start_response.data["attempt"]["id"]
+        self.assertEqual(
+            start_response.data["attempt"]["status"],
+            QuizAttempt.Status.IN_PROGRESS,
+        )
+
+        materialized_questions = list(
+            Question.objects.filter(quiz_id=quiz_id)
+            .order_by("order", "id")
+            .prefetch_related("choices")
+        )
+        self.assertEqual(len(materialized_questions), 2)
+
+        first_correct_choice = materialized_questions[0].choices.get(is_correct=True)
+        second_incorrect_choice = (
+            materialized_questions[1]
+            .choices.filter(is_correct=False)
+            .order_by("order", "id")
+            .first()
+        )
+        self.assertIsNotNone(second_incorrect_choice)
+
         submit_url = reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz_id})
         submit_response = self.client.post(
             submit_url,
             {
-                "participant_name": "Tester",
+                "attempt_id": attempt_id,
                 "answers": [
                     {
-                        "question_index": 0,
-                        "answer": questions[0]["answer"],
+                        "question_id": materialized_questions[0].id,
+                        "selected_choice_id": first_correct_choice.id,
+                        "answer": first_correct_choice.text,
                     },
                     {
-                        "question_index": 1,
-                        "answer": "неверный ответ",
+                        "question_id": materialized_questions[1].id,
+                        "selected_choice_id": second_incorrect_choice.id,
+                        "answer": second_incorrect_choice.text,
                     },
                 ],
             },
@@ -1065,6 +1094,98 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(len(list_response.data), 1)
         self.assertEqual(list_response.data[0]["score"], 1)
         self.assertEqual(list_response.data[0]["total_questions"], 2)
+
+    def test_submit_quiz_attempt_accepts_legacy_index_payload(self):
+        document = Document.objects.create(
+            title="Legacy submit payload",
+            description="",
+        )
+
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая версия",
+            filename="legacy1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая версия",
+            filename="legacy2.txt",
+        )
+
+        self.make_chunk(
+            version=version_one,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Старый текст процедуры",
+        )
+        self.make_chunk(
+            version=version_two,
+            chunk_index=1,
+            heading="Раздел 1",
+            section_path="Раздел 1",
+            text="Новый текст процедуры",
+        )
+
+        save_response = self.client.post(
+            reverse("save-versions-quiz"),
+            {
+                "from_version": version_one.id,
+                "to_version": version_two.id,
+                "title": "Legacy quiz",
+                "limit": 5,
+            },
+            format="json",
+        )
+        quiz_id = save_response.data["id"]
+
+        self.client.post(
+            reverse("submit-quiz-review", kwargs={"quiz_id": quiz_id}),
+            {},
+            format="json",
+        )
+        self.client.post(
+            reverse("approve-quiz", kwargs={"quiz_id": quiz_id}),
+            {
+                "approved_by_name": "Иванова Е.А.",
+                "approval_comment": "Legacy OK",
+            },
+            format="json",
+        )
+
+        start_response = self.client.post(
+            reverse("start-quiz-attempt", kwargs={"quiz_id": quiz_id}),
+            {"participant_name": "Tester"},
+            format="json",
+        )
+        self.assertEqual(start_response.status_code, status.HTTP_201_CREATED)
+        attempt_id = start_response.data["attempt"]["id"]
+
+        question = Question.objects.filter(quiz_id=quiz_id).order_by("order", "id").first()
+        self.assertIsNotNone(question)
+        correct_choice = question.choices.get(is_correct=True)
+
+        submit_response = self.client.post(
+            reverse("submit-quiz-attempt", kwargs={"quiz_id": quiz_id}),
+            {
+                "attempt_id": attempt_id,
+                "answers": [
+                    {
+                        "question_index": 0,
+                        "selected_choice_index": correct_choice.order,
+                        "selected_choice_text": correct_choice.text,
+                        "answer": correct_choice.text,
+                    }
+                ],
+            },
+            format="json",
+        )
+
+        self.assertEqual(submit_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(submit_response.data["score"], 1)
+        self.assertEqual(submit_response.data["total_questions"], 1)
 
     def test_save_versions_quiz_rejects_identical_versions(self):
         document = Document.objects.create(
@@ -2223,3 +2344,43 @@ class ChangeClassificationIntegrationTests(APITestCase):
             payload["modified"][0]["change_classification"]["primary_type"],
             ChangeType.REFUSAL.value,
         )
+
+    def test_start_quiz_attempt_reuses_existing_in_progress_attempt(self):
+        document = Document.objects.create(title="Повторный старт попытки", description="")
+        version_one = self.make_version(
+            document=document,
+            version_number=1,
+            text="Старая версия",
+            filename="repeat1.txt",
+        )
+        version_two = self.make_version(
+            document=document,
+            version_number=2,
+            text="Новая версия",
+            filename="repeat2.txt",
+        )
+        quiz = GeneratedQuiz.objects.create(
+            from_version=version_one,
+            to_version=version_two,
+            title="Тест на повторный старт",
+            payload={"questions": [{"question": "Q1", "answer": "A1"}]},
+            questions_count=1,
+            status=GeneratedQuiz.Status.APPROVED,
+            approved_by_name="Иванова Е.А.",
+        )
+        Question.objects.create(
+            quiz=quiz,
+            order=1,
+            question_type=Question.QuestionType.TEXT,
+            prompt="Q1",
+            correct_text_answer="A1",
+        )
+
+        start_url = reverse("start-quiz-attempt", kwargs={"quiz_id": quiz.id})
+        first = self.client.post(start_url, {"participant_name": "Петров А.А."}, format="json")
+        second = self.client.post(start_url, {"participant_name": "Петров А.А."}, format="json")
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(QuizAttempt.objects.count(), 1)
+        self.assertEqual(first.data["attempt"]["id"], second.data["attempt"]["id"])

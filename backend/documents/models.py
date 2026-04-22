@@ -855,11 +855,16 @@ class QuizAttempt(DomainValidatedModel):
     answers = models.JSONField(default=list, blank=True)
     score = models.PositiveIntegerField(default=0)
     total_questions = models.PositiveIntegerField(default=0)
+    answered_questions = models.PositiveIntegerField(default=0)
+    correct_answers = models.PositiveIntegerField(default=0)
+    score_percent = models.FloatField(default=0.0)
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
         default=Status.IN_PROGRESS,
     )
+    started_at = models.DateTimeField(default=timezone.now)
+    submitted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -868,16 +873,113 @@ class QuizAttempt(DomainValidatedModel):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    (Q(status="completed") & Q(completed_at__isnull=False))
-                    | (Q(status="in_progress") & Q(completed_at__isnull=True))
+                    (
+                        Q(status="completed")
+                        & Q(submitted_at__isnull=False)
+                        & Q(completed_at__isnull=False)
+                    )
+                    | (
+                        Q(status="in_progress")
+                        & Q(submitted_at__isnull=True)
+                        & Q(completed_at__isnull=True)
+                    )
                 ),
                 name="quiz_attempt_status_matches_completion",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["quiz", "participant_name"],
+                condition=Q(status="in_progress"),
+                name="uniq_active_attempt_per_quiz_participant",
+            ),
         ]
 
+    def clean(self):
+        errors = {}
+        self.participant_name = " ".join((self.participant_name or "").strip().split())
+
+        if not self.participant_name:
+            errors["participant_name"] = "Participant name cannot be empty."
+
+        if self.answered_questions > self.total_questions:
+            errors["answered_questions"] = (
+                "Answered questions cannot exceed the total number of questions."
+            )
+
+        if self.correct_answers > self.answered_questions:
+            errors["correct_answers"] = (
+                "Correct answers cannot exceed the number of answered questions."
+            )
+
+        if self.score != self.correct_answers:
+            errors["score"] = "Score must match the number of correct answers."
+
+        if self.score_percent < 0 or self.score_percent > 100:
+            errors["score_percent"] = "Score percent must be between 0 and 100."
+
+        if self.status == self.Status.COMPLETED:
+            if self.submitted_at is None or self.completed_at is None:
+                errors["submitted_at"] = "Completed attempt must have submission timestamps."
+        elif self.status == self.Status.IN_PROGRESS:
+            if self.submitted_at is not None or self.completed_at is not None:
+                errors["submitted_at"] = "In-progress attempt cannot have completion timestamps."
+
+        if self.pk:
+            original = type(self).objects.filter(pk=self.pk).first()
+            if original is not None and original.status == self.Status.COMPLETED:
+                immutable_fields = {
+                    "quiz": self.quiz_id != original.quiz_id,
+                    "employee": self.employee_id != original.employee_id,
+                    "participant_name": self.participant_name != original.participant_name,
+                    "answers": self.answers != original.answers,
+                    "score": self.score != original.score,
+                    "total_questions": self.total_questions != original.total_questions,
+                    "answered_questions": self.answered_questions != original.answered_questions,
+                    "correct_answers": self.correct_answers != original.correct_answers,
+                    "score_percent": self.score_percent != original.score_percent,
+                    "status": self.status != original.status,
+                    "started_at": self.started_at != original.started_at,
+                    "submitted_at": self.submitted_at != original.submitted_at,
+                    "completed_at": self.completed_at != original.completed_at,
+                }
+                if any(immutable_fields.values()):
+                    errors["__all__"] = "Completed attempt is immutable."
+
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
-        if self.status == self.Status.COMPLETED and self.completed_at is None:
-            self.completed_at = timezone.now()
+        update_fields = kwargs.get("update_fields")
+
+        self.participant_name = " ".join((self.participant_name or "").strip().split())
+
+        if self.started_at is None:
+            self.started_at = timezone.now()
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.add("started_at")
+
+        if self.status == self.Status.COMPLETED:
+            timestamp = self.submitted_at or timezone.now()
+            if self.submitted_at is None:
+                self.submitted_at = timestamp
+                if update_fields is not None:
+                    update_fields = set(update_fields)
+                    update_fields.add("submitted_at")
+            if self.completed_at is None:
+                self.completed_at = timestamp
+                if update_fields is not None:
+                    update_fields = set(update_fields)
+                    update_fields.add("completed_at")
+        elif self.status == self.Status.IN_PROGRESS:
+            self.submitted_at = None
+            self.completed_at = None
+            if update_fields is not None:
+                update_fields = set(update_fields)
+                update_fields.update({"submitted_at", "completed_at"})
+
+        if update_fields is not None:
+            kwargs["update_fields"] = list(update_fields)
+
         return super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -914,6 +1016,36 @@ class Answer(models.Model):
                 name="uniq_answer_per_attempt_question",
             )
         ]
+
+    def clean(self):
+        errors = {}
+
+        if self.attempt_id and self.question_id:
+            if self.question.quiz_id != self.attempt.quiz_id:
+                errors["question"] = "Answer question must belong to the same quiz as the attempt."
+
+        if self.selected_choice_id and self.question_id:
+            if self.selected_choice.question_id != self.question_id:
+                errors["selected_choice"] = "Selected choice must belong to the same question."
+
+        if self.attempt_id and self.attempt.status == QuizAttempt.Status.COMPLETED:
+            if self.pk is None:
+                errors["attempt"] = "Cannot add answers to a completed attempt."
+            else:
+                original = type(self).objects.filter(pk=self.pk).first()
+                if original is not None:
+                    immutable_fields = {
+                        "attempt": self.attempt_id != original.attempt_id,
+                        "question": self.question_id != original.question_id,
+                        "selected_choice": self.selected_choice_id != original.selected_choice_id,
+                        "text_answer": self.text_answer != original.text_answer,
+                        "is_correct": self.is_correct != original.is_correct,
+                    }
+                    if any(immutable_fields.values()):
+                        errors["__all__"] = "Answers of a completed attempt are immutable."
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self) -> str:
         return f"Answer {self.id} for attempt {self.attempt_id}"

@@ -147,16 +147,31 @@ class DemoViewsTests(TestCase):
         self.quiz.approved_by_name = "Иванова Е.А."
         self.quiz.save(update_fields=["status", "approved_by_name", "updated_at"])
 
-        response = self.client.post(
+        start_response = self.client.post(
             reverse("demo-take-quiz", kwargs={"quiz_id": self.quiz.id}),
             {
+                "action": "start",
                 "participant_name": "Петров А.А.",
-                "question_0": "0",
             },
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(start_response.status_code, 302)
         self.assertEqual(QuizAttempt.objects.count(), 1)
         attempt = QuizAttempt.objects.get()
+        self.assertEqual(attempt.status, QuizAttempt.Status.IN_PROGRESS)
+        question = self.quiz.questions.get()
+        correct_choice = question.choices.get(is_correct=True)
+        submit_response = self.client.post(
+            reverse("demo-take-quiz", kwargs={"quiz_id": self.quiz.id}),
+            {
+                "action": "submit",
+                "attempt_id": attempt.id,
+                f"question_{question.id}": str(correct_choice.id),
+            },
+        )
+
+        self.assertEqual(submit_response.status_code, 302)
+        attempt.refresh_from_db()
         self.assertEqual(attempt.score, 1)
         self.assertEqual(attempt.total_questions, 1)
+        self.assertEqual(attempt.status, QuizAttempt.Status.COMPLETED)

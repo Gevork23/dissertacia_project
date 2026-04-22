@@ -15,14 +15,18 @@ from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import Document, DocumentVersion, GeneratedQuiz, QuizAttempt
+from ..services.exceptions import DomainWorkflowError
+from ..services.quiz_attempts import (
+    build_attempt_form_questions,
+    get_quiz_attempt_block_reason,
+    start_quiz_attempt,
+    submit_started_quiz_attempt,
+)
 from ..services.workflows import (
-    DomainWorkflowError,
     EmptyQuizError,
     approve_generated_quiz,
     build_comparison_payload,
     create_quiz_from_versions,
-    get_quiz_attempt_block_reason,
-    record_quiz_attempt,
     reject_generated_quiz,
     submit_quiz_for_review,
 )
@@ -303,49 +307,98 @@ def reject_quiz_view(request: HttpRequest, quiz_id: int) -> HttpResponse:
 def take_quiz(request: HttpRequest, quiz_id: int) -> HttpResponse:
     quiz = get_object_or_404(GeneratedQuiz, pk=quiz_id)
 
-    blocked_reason = get_quiz_attempt_block_reason(quiz)
-    if blocked_reason is not None:
-        messages.error(request, blocked_reason)
-        return redirect("demo-quiz-detail", quiz_id=quiz.id)
+    attempt_id = request.GET.get("attempt_id") or request.POST.get("attempt_id")
+    current_attempt = None
 
-    questions = quiz.payload.get("questions", [])
+    if attempt_id:
+        current_attempt = get_object_or_404(
+            QuizAttempt.objects.select_related("quiz"),
+            pk=attempt_id,
+            quiz=quiz,
+        )
 
     if request.method == "POST":
-        participant_name = (request.POST.get("participant_name") or "").strip()
+        action = (request.POST.get("action") or "submit").strip()
+
+        if action == "start":
+            blocked_reason = get_quiz_attempt_block_reason(quiz)
+            if blocked_reason is not None:
+                messages.error(request, blocked_reason)
+                return redirect("demo-quiz-detail", quiz_id=quiz.id)
+
+            participant_name = (request.POST.get("participant_name") or "").strip()
+            try:
+                attempt, created = start_quiz_attempt(
+                    quiz=quiz,
+                    participant_name=participant_name,
+                )
+            except DomainWorkflowError as error:
+                messages.error(request, str(error))
+                return redirect("demo-take-quiz", quiz_id=quiz.id)
+
+            if created:
+                messages.success(request, "Попытка прохождения начата. Можно отвечать на вопросы.")
+            else:
+                messages.info(request, "Найдена уже начатая попытка. Продолжайте прохождение.")
+            return redirect(f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={attempt.id}")
+
+        if current_attempt is None:
+            messages.error(request, "Попытка не найдена. Сначала начните прохождение.")
+            return redirect("demo-take-quiz", quiz_id=quiz.id)
+
+        questions = build_attempt_form_questions(quiz)
         submitted_answers: list[dict[str, Any]] = []
 
-        for index, question in enumerate(questions):
-            choice_index = request.POST.get(f"question_{index}")
-            choice_text = ""
-            if choice_index is not None:
+        for question in questions:
+            choice_id = request.POST.get(f"question_{question['question_id']}")
+            selected_choice_text = ""
+            selected_choice_index = None
+
+            if choice_id is not None:
                 for choice in question.get("choices", []):
-                    if str(choice.get("choice_index")) == str(choice_index):
-                        choice_text = str(choice.get("text", ""))
+                    if str(choice.get("choice_id")) == str(choice_id):
+                        selected_choice_text = str(choice.get("text", ""))
+                        selected_choice_index = choice.get("choice_index")
                         break
 
             submitted_answers.append(
                 {
-                    "question_index": index,
-                    "selected_choice_index": choice_index,
-                    "selected_choice_text": choice_text,
-                    "answer": choice_text,
+                    "question_id": question["question_id"],
+                    "question_index": question["question_index"],
+                    "selected_choice_id": choice_id,
+                    "selected_choice_index": selected_choice_index,
+                    "selected_choice_text": selected_choice_text,
+                    "answer": selected_choice_text,
                 }
             )
 
-        attempt, _ = record_quiz_attempt(
-            quiz=quiz,
-            participant_name=participant_name,
-            submitted_answers=submitted_answers,
-        )
+        try:
+            attempt, _ = submit_started_quiz_attempt(
+                attempt=current_attempt,
+                submitted_answers=submitted_answers,
+            )
+        except DomainWorkflowError as error:
+            messages.error(request, str(error))
+            return redirect(f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={current_attempt.id}")
+
         messages.success(request, "Результат прохождения сохранён.")
         return redirect("demo-attempt-detail", attempt_id=attempt.id)
 
+    blocked_reason = None
+    if current_attempt is None:
+        blocked_reason = get_quiz_attempt_block_reason(quiz)
+        if blocked_reason is not None:
+            messages.error(request, blocked_reason)
+            return redirect("demo-quiz-detail", quiz_id=quiz.id)
+
+    questions = build_attempt_form_questions(quiz)
     return render(
         request,
         "demo/take_quiz.html",
         {
             "quiz": quiz,
             "questions": questions,
+            "attempt": current_attempt,
         },
     )
 
@@ -356,16 +409,14 @@ def attempt_detail(request: HttpRequest, attempt_id: int) -> HttpResponse:
         QuizAttempt.objects.select_related("quiz", "quiz__from_version__document"),
         pk=attempt_id,
     )
-    percentage = 0.0
-    if attempt.total_questions:
-        percentage = round((attempt.score / attempt.total_questions) * 100, 2)
 
     return render(
         request,
         "demo/attempt_detail.html",
         {
             "attempt": attempt,
-            "percentage": percentage,
+            "percentage": attempt.score_percent,
+            "unanswered_questions": max(attempt.total_questions - attempt.answered_questions, 0),
         },
     )
 

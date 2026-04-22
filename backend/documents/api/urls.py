@@ -7,6 +7,7 @@ from .endpoints import (
     compare_versions_brief,
     compare_versions_quiz,
     list_quiz_attempts,
+    start_quiz_attempt_view,
     list_saved_quizzes,
     quiz_report,
     reject_quiz,
@@ -40,6 +41,11 @@ urlpatterns = [
         "quizzes/<int:quiz_id>/attempts/",
         list_quiz_attempts,
         name="list-quiz-attempts",
+    ),
+    path(
+        "quizzes/<int:quiz_id>/attempts/start/",
+        start_quiz_attempt_view,
+        name="start-quiz-attempt",
     ),
     path(
         "quizzes/<int:quiz_id>/attempts/submit/",

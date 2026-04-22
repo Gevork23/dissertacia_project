@@ -7,7 +7,12 @@
     <span class="pill primary">Результат прохождения</span>
     <h2 style="margin-top: 12px;">{{ attempt.quiz.title }}</h2>
     <p><strong>Сотрудник:</strong> {{ attempt.participant_name|default:"—" }}</p>
-    <p><strong>Результат:</strong> {{ attempt.score }}/{{ attempt.total_questions }} ({{ percentage }}%)</p>
+    <p><strong>Статус:</strong> {{ attempt.get_status_display }}</p>
+    <p><strong>Начало:</strong> {{ attempt.started_at }}</p>
+    <p><strong>Отправка:</strong> {{ attempt.submitted_at|default:attempt.completed_at }}</p>
+    <p><strong>Результат:</strong> {{ attempt.correct_answers }}/{{ attempt.total_questions }} ({{ percentage }}%)</p>
+    <p><strong>Отвечено:</strong> {{ attempt.answered_questions }} из {{ attempt.total_questions }}</p>
+    <p><strong>Пропусков:</strong> {{ unanswered_questions }}</p>
     <div class="actions">
         <a class="btn secondary" href="{% url 'demo-report' attempt.quiz_id %}">Открыть отчёт по тесту</a>
         <a class="btn secondary" href="{% url 'demo-quiz-detail' attempt.quiz_id %}">Вернуться к тесту</a>
@@ -23,8 +28,10 @@
                 <h3>{{ answer.question }}</h3>
                 {% if answer.is_correct %}
                     <span class="pill success">Верно</span>
-                {% else %}
+                {% elif answer.answered %}
                     <span class="pill danger">Неверно</span>
+                {% else %}
+                    <span class="pill warning">Пропущен</span>
                 {% endif %}
                 <p><strong>Ответ сотрудника:</strong> {{ answer.submitted_answer|default:"—" }}</p>
                 <p><strong>Эталон:</strong> {{ answer.expected_answer }}</p>

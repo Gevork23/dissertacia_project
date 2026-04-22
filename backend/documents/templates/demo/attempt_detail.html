@@ -8,11 +8,17 @@
     <h2 style="margin-top: 12px;">{{ attempt.quiz.title }}</h2>
     <p><strong>Сотрудник:</strong> {{ attempt.participant_name|default:"—" }}</p>
     <p><strong>Статус:</strong> {{ attempt.get_status_display }}</p>
-    <p><strong>Начало:</strong> {{ attempt.started_at }}</p>
-    <p><strong>Отправка:</strong> {{ attempt.submitted_at|default:attempt.completed_at }}</p>
-    <p><strong>Результат:</strong> {{ attempt.correct_answers }}/{{ attempt.total_questions }} ({{ percentage }}%)</p>
-    <p><strong>Отвечено:</strong> {{ attempt.answered_questions }} из {{ attempt.total_questions }}</p>
-    <p><strong>Пропусков:</strong> {{ unanswered_questions }}</p>
+    <p><strong>Начало:</strong> {{ result.started_at }}</p>
+    <p><strong>Отправка:</strong> {{ result.submitted_at|default:result.completed_at }}</p>
+    <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card"><div class="muted">Верно</div><div class="metric">{{ result.correct_answers }}/{{ result.total_questions }}</div></div>
+        <div class="card"><div class="muted">Процент</div><div class="metric">{{ result.score_percent }}%</div></div>
+        <div class="card"><div class="muted">Итог</div><div class="metric">{% if result.passed %}PASS{% else %}FAIL{% endif %}</div></div>
+    </div>
+    <p style="margin-top: 14px;"><strong>Отвечено:</strong> {{ result.answered_questions }} из {{ result.total_questions }}</p>
+    <p><strong>Неверных:</strong> {{ result.wrong_answers }}</p>
+    <p><strong>Пропусков:</strong> {{ result.unanswered_questions }}</p>
+    <p><strong>Вердикт:</strong> {{ result.verdict }}</p>
     <div class="actions">
         <a class="btn secondary" href="{% url 'demo-report' attempt.quiz_id %}">Открыть отчёт по тесту</a>
         <a class="btn secondary" href="{% url 'demo-quiz-detail' attempt.quiz_id %}">Вернуться к тесту</a>
@@ -20,11 +26,44 @@
 </section>
 
 <section class="card" style="margin-top: 18px;">
+    <h2>LLM-комментарий по результату</h2>
+    <p>{{ result.llm_feedback|default:"LLM-комментарий пока не сформирован." }}</p>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Типовые ошибки по этому тесту</h2>
+    <p>{{ result.llm_error_analysis|default:"Анализ типовых ошибок пока не сформирован." }}</p>
+    {% if result.quiz_report.frequent_errors %}
+        <div class="stack" style="margin-top: 12px;">
+            {% for error in result.quiz_report.frequent_errors %}
+                <div class="question-card">
+                    <div class="muted">Частая ошибка {{ forloop.counter }}</div>
+                    <h3>{{ error.source_heading|default:error.source_section_path|default:error.question }}</h3>
+                    <p><strong>Неверных ответов:</strong> {{ error.wrong_count }}</p>
+                    {% if error.common_wrong_answers %}
+                        <p><strong>Типовые ошибочные ответы:</strong>
+                            {% for item in error.common_wrong_answers %}
+                                {{ item.answer }}{% if not forloop.last %}; {% endif %}
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Краткий отчёт для руководителя</h2>
+    <p>{{ result.llm_manager_summary|default:"Краткий отчёт для руководителя пока не сформирован." }}</p>
+</section>
+
+<section class="card" style="margin-top: 18px;">
     <h2>Проверка ответов</h2>
     <div class="stack">
-        {% for answer in attempt.answers %}
+        {% for answer in result.answers %}
             <div class="question-card">
-                <div class="muted">Вопрос {{ forloop.counter }}</div>
+                <div class="muted">Вопрос {{ answer.question_order|default:forloop.counter }}</div>
                 <h3>{{ answer.question }}</h3>
                 {% if answer.is_correct %}
                     <span class="pill success">Верно</span>
@@ -33,8 +72,14 @@
                 {% else %}
                     <span class="pill warning">Пропущен</span>
                 {% endif %}
+                {% if answer.source_heading or answer.source_section_path %}
+                    <p><strong>Связанный фрагмент:</strong> {{ answer.source_heading|default:answer.source_section_path }}</p>
+                {% endif %}
                 <p><strong>Ответ сотрудника:</strong> {{ answer.submitted_answer|default:"—" }}</p>
                 <p><strong>Эталон:</strong> {{ answer.expected_answer }}</p>
+                {% if answer.question_explanation %}
+                    <p><strong>Комментарий к вопросу:</strong> {{ answer.question_explanation }}</p>
+                {% endif %}
             </div>
         {% endfor %}
     </div>

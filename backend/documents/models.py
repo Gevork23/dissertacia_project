@@ -660,6 +660,11 @@ class GeneratedQuiz(DomainValidatedModel):
     rejection_comment = models.TextField(blank=True)
     superseded_at = models.DateTimeField(null=True, blank=True)
     superseded_reason = models.TextField(blank=True)
+    llm_error_analysis = models.TextField(blank=True)
+    llm_manager_summary = models.TextField(blank=True)
+    llm_reporting_cache_key = models.CharField(max_length=64, blank=True)
+    llm_reporting_model = models.CharField(max_length=128, blank=True)
+    llm_reporting_generated_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -858,6 +863,10 @@ class QuizAttempt(DomainValidatedModel):
     answered_questions = models.PositiveIntegerField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
     score_percent = models.FloatField(default=0.0)
+    llm_feedback = models.TextField(blank=True)
+    llm_feedback_cache_key = models.CharField(max_length=64, blank=True)
+    llm_feedback_model = models.CharField(max_length=128, blank=True)
+    llm_feedback_generated_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
@@ -918,10 +927,14 @@ class QuizAttempt(DomainValidatedModel):
 
         if self.status == self.Status.COMPLETED:
             if self.submitted_at is None or self.completed_at is None:
-                errors["submitted_at"] = "Completed attempt must have submission timestamps."
+                errors["submitted_at"] = (
+                    "Completed attempt must have submission timestamps."
+                )
         elif self.status == self.Status.IN_PROGRESS:
             if self.submitted_at is not None or self.completed_at is not None:
-                errors["submitted_at"] = "In-progress attempt cannot have completion timestamps."
+                errors["submitted_at"] = (
+                    "In-progress attempt cannot have completion timestamps."
+                )
 
         if self.pk:
             original = type(self).objects.filter(pk=self.pk).first()
@@ -929,11 +942,13 @@ class QuizAttempt(DomainValidatedModel):
                 immutable_fields = {
                     "quiz": self.quiz_id != original.quiz_id,
                     "employee": self.employee_id != original.employee_id,
-                    "participant_name": self.participant_name != original.participant_name,
+                    "participant_name": self.participant_name
+                    != original.participant_name,
                     "answers": self.answers != original.answers,
                     "score": self.score != original.score,
                     "total_questions": self.total_questions != original.total_questions,
-                    "answered_questions": self.answered_questions != original.answered_questions,
+                    "answered_questions": self.answered_questions
+                    != original.answered_questions,
                     "correct_answers": self.correct_answers != original.correct_answers,
                     "score_percent": self.score_percent != original.score_percent,
                     "status": self.status != original.status,
@@ -1022,11 +1037,15 @@ class Answer(models.Model):
 
         if self.attempt_id and self.question_id:
             if self.question.quiz_id != self.attempt.quiz_id:
-                errors["question"] = "Answer question must belong to the same quiz as the attempt."
+                errors["question"] = (
+                    "Answer question must belong to the same quiz as the attempt."
+                )
 
         if self.selected_choice_id and self.question_id:
             if self.selected_choice.question_id != self.question_id:
-                errors["selected_choice"] = "Selected choice must belong to the same question."
+                errors["selected_choice"] = (
+                    "Selected choice must belong to the same question."
+                )
 
         if self.attempt_id and self.attempt.status == QuizAttempt.Status.COMPLETED:
             if self.pk is None:
@@ -1037,12 +1056,15 @@ class Answer(models.Model):
                     immutable_fields = {
                         "attempt": self.attempt_id != original.attempt_id,
                         "question": self.question_id != original.question_id,
-                        "selected_choice": self.selected_choice_id != original.selected_choice_id,
+                        "selected_choice": self.selected_choice_id
+                        != original.selected_choice_id,
                         "text_answer": self.text_answer != original.text_answer,
                         "is_correct": self.is_correct != original.is_correct,
                     }
                     if any(immutable_fields.values()):
-                        errors["__all__"] = "Answers of a completed attempt are immutable."
+                        errors["__all__"] = (
+                            "Answers of a completed attempt are immutable."
+                        )
 
         if errors:
             raise ValidationError(errors)

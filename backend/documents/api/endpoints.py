@@ -12,14 +12,19 @@ from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff_quiz import build_quiz_from_diff
 from ..domain.diff_summary import build_brief_summary
 from ..models import DocumentVersion, GeneratedQuiz, QuizAttempt
-from ..services.search import search_chunks
 from ..services.exceptions import DomainWorkflowError
 from ..services.quiz_attempts import (
     get_quiz_attempt_block_reason,
+    quiz_has_materialized_questions,
     record_quiz_attempt,
     start_quiz_attempt,
     submit_started_quiz_attempt,
 )
+from ..services.result_reporting import (
+    build_attempt_result_payload,
+    build_quiz_report_payload,
+)
+from ..services.search import search_chunks
 from ..services.workflows import (
     EmptyQuizError,
     approve_generated_quiz,
@@ -35,26 +40,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger("documents.api")
-
-
-def build_quiz_report_payload(quiz: GeneratedQuiz) -> dict:
-    attempts = list(
-        quiz.attempts.filter(status=QuizAttempt.Status.COMPLETED).order_by("-submitted_at", "-created_at")
-    )
-    attempts_count = len(attempts)
-    scores = [attempt.score for attempt in attempts]
-    percentages = [attempt.score_percent for attempt in attempts]
-    average_score = round(sum(scores) / attempts_count, 2) if attempts_count else 0.0
-    average_percentage = round(sum(percentages) / attempts_count, 2) if attempts_count else 0.0
-
-    return {
-        "quiz": GeneratedQuizSerializer(quiz).data,
-        "attempts_count": attempts_count,
-        "average_score": average_score,
-        "average_percentage": average_percentage,
-        "best_score": max(scores) if scores else 0,
-        "latest_attempts": QuizAttemptSerializer(attempts[:10], many=True).data,
-    }
 
 
 @api_view(["GET"])
@@ -464,10 +449,22 @@ def submit_quiz_attempt(request, quiz_id: int):
                 submitted_answers=answers,
             )
         else:
+            if quiz.questions_count <= 0:
+                return Response(
+                    {"detail": "Cannot submit an attempt for an empty quiz."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             blocked_reason = get_quiz_attempt_block_reason(quiz)
             if blocked_reason is not None:
                 return Response(
                     {"detail": blocked_reason},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if not quiz_has_materialized_questions(quiz):
+                return Response(
+                    {"detail": "Cannot submit an attempt for an empty quiz."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -489,7 +486,21 @@ def submit_quiz_attempt(request, quiz_id: int):
     )
 
     serializer = QuizAttemptSerializer(attempt)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    result_payload = build_attempt_result_payload(attempt, ensure_llm=False)
+    return Response(
+        {**serializer.data, "result": result_payload},
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["GET"])
+def attempt_result(request, attempt_id: int):
+    attempt = get_object_or_404(QuizAttempt, pk=attempt_id)
+    try:
+        payload = build_attempt_result_payload(attempt)
+    except DomainWorkflowError as error:
+        return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(payload, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

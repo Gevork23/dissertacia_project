@@ -11,6 +11,44 @@
         <div class="card"><div class="muted">Средний балл</div><div class="metric">{{ report.average_score }}</div></div>
         <div class="card"><div class="muted">Средний процент</div><div class="metric">{{ report.average_percentage }}%</div></div>
     </div>
+    <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card"><div class="muted">Лучший балл</div><div class="metric">{{ report.best_score }}</div></div>
+        <div class="card"><div class="muted">Pass rate</div><div class="metric">{{ report.pass_rate }}%</div></div>
+        <div class="card"><div class="muted">Порог прохождения</div><div class="metric">{{ report.pass_threshold_percent }}%</div></div>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>LLM-анализ типовых ошибок</h2>
+    <p>{{ report.llm_error_analysis|default:"LLM-анализ типовых ошибок пока не сформирован." }}</p>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Краткий отчёт для руководителя</h2>
+    <p>{{ report.llm_manager_summary|default:"Краткий отчёт для руководителя пока не сформирован." }}</p>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Частые ошибки</h2>
+    <div class="stack">
+        {% for error in report.frequent_errors %}
+            <div class="question-card">
+                <div class="muted">Проблемная тема {{ forloop.counter }}</div>
+                <h3>{{ error.source_heading|default:error.source_section_path|default:error.question }}</h3>
+                <p><strong>Неверных ответов:</strong> {{ error.wrong_count }}</p>
+                <p><strong>Наблюдений:</strong> {{ error.attempts_with_question }}</p>
+                {% if error.common_wrong_answers %}
+                    <p><strong>Типовые неверные ответы:</strong>
+                        {% for item in error.common_wrong_answers %}
+                            {{ item.answer }} ({{ item.count }}){% if not forloop.last %}; {% endif %}
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>Завершённых неверных ответов пока недостаточно для анализа.</p>
+        {% endfor %}
+    </div>
 </section>
 
 <section class="card" style="margin-top: 18px;">

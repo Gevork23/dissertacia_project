@@ -147,7 +147,9 @@ class CompareVersionsAPITests(APITestCase):
         version_two = self.make_version(
             document=document,
             version_number=2,
-            text=("Глава 1\n" "Новый текст главы 1\n\n" "Глава 3\n" "Совсем новый текст"),
+            text=(
+                "Глава 1\n" "Новый текст главы 1\n\n" "Глава 3\n" "Совсем новый текст"
+            ),
             filename="v2.txt",
         )
 
@@ -1163,7 +1165,9 @@ class CompareVersionsAPITests(APITestCase):
         self.assertEqual(start_response.status_code, status.HTTP_201_CREATED)
         attempt_id = start_response.data["attempt"]["id"]
 
-        question = Question.objects.filter(quiz_id=quiz_id).order_by("order", "id").first()
+        question = (
+            Question.objects.filter(quiz_id=quiz_id).order_by("order", "id").first()
+        )
         self.assertIsNotNone(question)
         correct_choice = question.choices.get(is_correct=True)
 
@@ -2346,7 +2350,9 @@ class ChangeClassificationIntegrationTests(APITestCase):
         )
 
     def test_start_quiz_attempt_reuses_existing_in_progress_attempt(self):
-        document = Document.objects.create(title="Повторный старт попытки", description="")
+        document = Document.objects.create(
+            title="Повторный старт попытки", description=""
+        )
         version_one = self.make_version(
             document=document,
             version_number=1,
@@ -2377,8 +2383,12 @@ class ChangeClassificationIntegrationTests(APITestCase):
         )
 
         start_url = reverse("start-quiz-attempt", kwargs={"quiz_id": quiz.id})
-        first = self.client.post(start_url, {"participant_name": "Петров А.А."}, format="json")
-        second = self.client.post(start_url, {"participant_name": "Петров А.А."}, format="json")
+        first = self.client.post(
+            start_url, {"participant_name": "Петров А.А."}, format="json"
+        )
+        second = self.client.post(
+            start_url, {"participant_name": "Петров А.А."}, format="json"
+        )
 
         self.assertEqual(first.status_code, status.HTTP_201_CREATED)
         self.assertEqual(second.status_code, status.HTTP_200_OK)

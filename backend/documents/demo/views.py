@@ -9,7 +9,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
-from ..api.endpoints import build_quiz_report_payload
 from ..api.serializers import VersionDiffSerializer
 from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff_quiz import build_quiz_from_diff
@@ -21,6 +20,10 @@ from ..services.quiz_attempts import (
     get_quiz_attempt_block_reason,
     start_quiz_attempt,
     submit_started_quiz_attempt,
+)
+from ..services.result_reporting import (
+    build_attempt_result_payload,
+    build_quiz_report_payload,
 )
 from ..services.workflows import (
     EmptyQuizError,
@@ -337,10 +340,16 @@ def take_quiz(request: HttpRequest, quiz_id: int) -> HttpResponse:
                 return redirect("demo-take-quiz", quiz_id=quiz.id)
 
             if created:
-                messages.success(request, "Попытка прохождения начата. Можно отвечать на вопросы.")
+                messages.success(
+                    request, "Попытка прохождения начата. Можно отвечать на вопросы."
+                )
             else:
-                messages.info(request, "Найдена уже начатая попытка. Продолжайте прохождение.")
-            return redirect(f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={attempt.id}")
+                messages.info(
+                    request, "Найдена уже начатая попытка. Продолжайте прохождение."
+                )
+            return redirect(
+                f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={attempt.id}"
+            )
 
         if current_attempt is None:
             messages.error(request, "Попытка не найдена. Сначала начните прохождение.")
@@ -379,7 +388,9 @@ def take_quiz(request: HttpRequest, quiz_id: int) -> HttpResponse:
             )
         except DomainWorkflowError as error:
             messages.error(request, str(error))
-            return redirect(f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={current_attempt.id}")
+            return redirect(
+                f"{reverse('demo-take-quiz', kwargs={'quiz_id': quiz.id})}?attempt_id={current_attempt.id}"
+            )
 
         messages.success(request, "Результат прохождения сохранён.")
         return redirect("demo-attempt-detail", attempt_id=attempt.id)
@@ -410,13 +421,18 @@ def attempt_detail(request: HttpRequest, attempt_id: int) -> HttpResponse:
         pk=attempt_id,
     )
 
+    try:
+        result = build_attempt_result_payload(attempt)
+    except DomainWorkflowError as error:
+        messages.error(request, str(error))
+        return redirect("demo-quiz-detail", quiz_id=attempt.quiz_id)
+
     return render(
         request,
         "demo/attempt_detail.html",
         {
             "attempt": attempt,
-            "percentage": attempt.score_percent,
-            "unanswered_questions": max(attempt.total_questions - attempt.answered_questions, 0),
+            "result": result,
         },
     )
 

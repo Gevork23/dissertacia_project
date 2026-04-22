@@ -3,16 +3,17 @@ from rest_framework.routers import DefaultRouter
 
 from .endpoints import (
     approve_quiz,
+    attempt_result,
     compare_versions,
     compare_versions_brief,
     compare_versions_quiz,
     list_quiz_attempts,
-    start_quiz_attempt_view,
     list_saved_quizzes,
     quiz_report,
     reject_quiz,
     save_versions_quiz,
     search,
+    start_quiz_attempt_view,
     submit_quiz_attempt,
     submit_quiz_review,
 )
@@ -51,5 +52,10 @@ urlpatterns = [
         "quizzes/<int:quiz_id>/attempts/submit/",
         submit_quiz_attempt,
         name="submit-quiz-attempt",
+    ),
+    path(
+        "attempts/<int:attempt_id>/result/",
+        attempt_result,
+        name="attempt-result",
     ),
 ] + router.urls

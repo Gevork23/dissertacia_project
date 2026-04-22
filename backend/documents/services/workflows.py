@@ -556,13 +556,23 @@ def submit_started_quiz_attempt(
     attempt: QuizAttempt,
     submitted_answers: list[dict[str, Any]],
 ) -> tuple[QuizAttempt, dict[str, Any]]:
-    locked_attempt = QuizAttempt.objects.select_for_update().select_related("quiz").get(pk=attempt.pk)
+    locked_attempt = (
+        QuizAttempt.objects.select_for_update()
+        .select_related("quiz")
+        .get(pk=attempt.pk)
+    )
     if locked_attempt.status != QuizAttempt.Status.IN_PROGRESS:
         raise DomainWorkflowError("Only in-progress attempt can be submitted.")
 
-    questions = list(locked_attempt.quiz.questions.prefetch_related("choices").order_by("order", "id"))
+    questions = list(
+        locked_attempt.quiz.questions.prefetch_related("choices").order_by(
+            "order", "id"
+        )
+    )
     if not questions:
-        raise DomainWorkflowError("Cannot submit an attempt for a quiz without materialized questions.")
+        raise DomainWorkflowError(
+            "Cannot submit an attempt for a quiz without materialized questions."
+        )
 
     evaluation = evaluate_quiz_answers(locked_attempt.quiz, submitted_answers)
 

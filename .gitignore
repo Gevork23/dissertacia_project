@@ -246,3 +246,34 @@ tmp/
 # Local runtime artifacts
 backend/media/
 backend/logs/
+
+# =========================
+# Phase 2 repository hygiene
+# =========================
+# Explicit Python binary/cache artifacts
+*.pyo
+*.pyd
+
+# Local SQLite databases beyond Django's default db.sqlite3
+*.sqlite3
+*.sqlite3-journal
+
+# Local environment variants
+.env.local
+.env.*.local
+*.env.local
+*.env.*.local
+
+# Local IDE settings
+.idea/
+.vscode/
+
+# Local coverage/cache variants
+.mypy_cache/
+.ruff_cache/
+.coverage.*
+htmlcov/
+
+# Local OS/editor artifacts
+Thumbs.db
+.DS_Store

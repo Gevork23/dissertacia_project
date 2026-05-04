@@ -7,17 +7,10 @@ from django.db import transaction
 from django.utils import timezone
 
 from ..models import Answer, GeneratedQuiz, Question, QuizAttempt
+from . import quiz_workflow as quiz_workflow_services
 from .exceptions import DomainWorkflowError
 
 logger = logging.getLogger("documents.quiz_attempts")
-
-QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES = {
-    GeneratedQuiz.Status.DRAFT: "Quiz is still a draft and must be submitted for review first.",
-    GeneratedQuiz.Status.PENDING_REVIEW: "Quiz is pending review and cannot be assigned yet.",
-    GeneratedQuiz.Status.REJECTED: "Rejected quiz cannot be assigned until it is resubmitted and approved.",
-    GeneratedQuiz.Status.SUPERSEDED: "Superseded quiz cannot be assigned because a newer quiz replaced it.",
-    GeneratedQuiz.Status.ARCHIVED: "Archived quiz cannot be assigned anymore.",
-}
 
 
 def normalize_participant_name(value: str) -> str:
@@ -25,22 +18,18 @@ def normalize_participant_name(value: str) -> str:
 
 
 def get_quiz_attempt_block_reason(quiz: GeneratedQuiz) -> str | None:
-    if quiz.status == GeneratedQuiz.Status.APPROVED:
-        return None
-    return QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES.get(
-        quiz.status,
-        "Quiz is not available for attempts in its current status.",
-    )
+    """Compatibility wrapper: quiz availability is owned by quiz_workflow.py."""
+    return quiz_workflow_services.get_quiz_attempt_block_reason(quiz)
 
 
 def ensure_quiz_attempt_allowed(quiz: GeneratedQuiz) -> None:
-    blocked_reason = get_quiz_attempt_block_reason(quiz)
-    if blocked_reason is not None:
-        raise DomainWorkflowError(blocked_reason)
+    """Compatibility wrapper: quiz availability is owned by quiz_workflow.py."""
+    quiz_workflow_services.ensure_quiz_attempt_allowed(quiz)
 
 
 def quiz_has_materialized_questions(quiz: GeneratedQuiz) -> bool:
-    return quiz.questions.exists()
+    """Compatibility wrapper: materialization check is owned by quiz_workflow.py."""
+    return quiz_workflow_services.quiz_has_materialized_questions(quiz)
 
 
 def build_attempt_form_questions(quiz: GeneratedQuiz) -> list[dict[str, Any]]:

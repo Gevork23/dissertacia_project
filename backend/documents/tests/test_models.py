@@ -17,7 +17,7 @@ from ..models import (
     VersionChangeItem,
     VersionComparison,
 )
-from ..services.workflows import (
+from ..services.quiz_workflow import (
     approve_generated_quiz,
     reject_generated_quiz,
     submit_quiz_for_review,

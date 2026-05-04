@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import Any
 
 from django.db import transaction
-from django.utils import timezone
 
 from ..domain.change_enrichment import enrich_compare_payload
 from ..domain.diff import (
@@ -16,23 +15,18 @@ from ..domain.diff import (
 from ..domain.diff_quiz import build_quiz_from_summary
 from ..domain.diff_summary import build_brief_summary
 from ..models import (
-    Answer,
     Choice,
     Chunk,
     DocumentVersion,
     GeneratedQuiz,
     Question,
-    QuizAttempt,
     Summary,
     VersionChangeItem,
     VersionComparison,
 )
+from . import quiz_attempts as quiz_attempt_services
+from . import quiz_workflow as quiz_workflow_services
 from .exceptions import DomainWorkflowError
-from .quiz_attempts import (
-    evaluate_quiz_answers,
-    normalize_participant_name,
-    quiz_has_materialized_questions,
-)
 
 
 class EmptyQuizError(ValueError):
@@ -51,14 +45,6 @@ CHANGE_TYPE_TO_MODEL = {
     "removed": VersionChangeItem.ChangeType.REMOVED,
     "modified": VersionChangeItem.ChangeType.MODIFIED,
     "moved": VersionChangeItem.ChangeType.MOVED,
-}
-
-QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES = {
-    GeneratedQuiz.Status.DRAFT: "Quiz is still a draft and must be submitted for review first.",
-    GeneratedQuiz.Status.PENDING_REVIEW: "Quiz is pending review and cannot be assigned yet.",
-    GeneratedQuiz.Status.REJECTED: "Rejected quiz cannot be assigned until it is resubmitted and approved.",
-    GeneratedQuiz.Status.SUPERSEDED: "Superseded quiz cannot be assigned because a newer quiz replaced it.",
-    GeneratedQuiz.Status.ARCHIVED: "Archived quiz cannot be assigned.",
 }
 
 
@@ -103,61 +89,19 @@ def _get_chunk_text(chunk_payload: dict[str, Any] | None) -> str:
     return str(chunk_payload.get("text") or "")
 
 
-def _quiz_has_materialized_questions(quiz: GeneratedQuiz) -> bool:
-    payload_questions = quiz.payload.get("questions", [])
-    if not isinstance(payload_questions, list) or not payload_questions:
-        return False
-    return quiz.questions.exists()
-
-
-def _ensure_quiz_can_enter_review(quiz: GeneratedQuiz) -> None:
-    if quiz.questions_count <= 0 or not quiz_has_materialized_questions(quiz):
-        raise DomainWorkflowError(
-            "Quiz must contain materialized questions before it can enter the approval workflow."
-        )
-
-
 def get_quiz_attempt_block_reason(quiz: GeneratedQuiz) -> str | None:
-    if quiz.questions_count == 0:
-        return "Cannot submit an attempt for an empty quiz."
-    if quiz.status == GeneratedQuiz.Status.APPROVED:
-        return None
-    return QUIZ_ATTEMPT_BLOCKED_STATUS_MESSAGES.get(
-        quiz.status,
-        "Quiz must be approved before it can be assigned.",
-    )
+    """Compatibility wrapper: quiz availability is owned by quiz_workflow.py."""
+    return quiz_workflow_services.get_quiz_attempt_block_reason(quiz)
 
 
 def ensure_quiz_attempt_allowed(quiz: GeneratedQuiz) -> None:
-    reason = get_quiz_attempt_block_reason(quiz)
-    if reason is not None:
-        raise DomainWorkflowError(reason)
+    """Compatibility wrapper: quiz availability is owned by quiz_workflow.py."""
+    quiz_workflow_services.ensure_quiz_attempt_allowed(quiz)
 
 
 def submit_quiz_for_review(quiz: GeneratedQuiz) -> GeneratedQuiz:
-    if quiz.status not in {GeneratedQuiz.Status.DRAFT, GeneratedQuiz.Status.REJECTED}:
-        raise DomainWorkflowError(
-            f"Quiz in status '{quiz.status}' cannot be submitted for review."
-        )
-
-    _ensure_quiz_can_enter_review(quiz)
-
-    quiz.status = GeneratedQuiz.Status.PENDING_REVIEW
-    quiz.submitted_for_review_at = timezone.now()
-    quiz.rejected_by_name = ""
-    quiz.rejected_at = None
-    quiz.rejection_comment = ""
-    quiz.save(
-        update_fields=[
-            "status",
-            "submitted_for_review_at",
-            "rejected_by_name",
-            "rejected_at",
-            "rejection_comment",
-            "updated_at",
-        ]
-    )
-    return quiz
+    """Compatibility wrapper: quiz lifecycle is owned by quiz_workflow.py."""
+    return quiz_workflow_services.submit_quiz_for_review(quiz)
 
 
 def approve_generated_quiz(
@@ -166,28 +110,12 @@ def approve_generated_quiz(
     approved_by_name: str,
     approval_comment: str = "",
 ) -> GeneratedQuiz:
-    approved_by_name = (approved_by_name or "").strip()
-    if not approved_by_name:
-        raise DomainWorkflowError("Field 'approved_by_name' is required.")
-    if quiz.status != GeneratedQuiz.Status.PENDING_REVIEW:
-        raise DomainWorkflowError(f"Quiz in status '{quiz.status}' cannot be approved.")
-
-    _ensure_quiz_can_enter_review(quiz)
-
-    quiz.status = GeneratedQuiz.Status.APPROVED
-    quiz.approved_by_name = approved_by_name
-    quiz.approved_at = timezone.now()
-    quiz.approval_comment = (approval_comment or "").strip()
-    quiz.save(
-        update_fields=[
-            "status",
-            "approved_by_name",
-            "approved_at",
-            "approval_comment",
-            "updated_at",
-        ]
+    """Compatibility wrapper: quiz lifecycle is owned by quiz_workflow.py."""
+    return quiz_workflow_services.approve_generated_quiz(
+        quiz=quiz,
+        approved_by_name=approved_by_name,
+        approval_comment=approval_comment,
     )
-    return quiz
 
 
 def reject_generated_quiz(
@@ -196,44 +124,17 @@ def reject_generated_quiz(
     rejected_by_name: str,
     rejection_comment: str = "",
 ) -> GeneratedQuiz:
-    rejected_by_name = (rejected_by_name or "").strip()
-    if not rejected_by_name:
-        raise DomainWorkflowError("Field 'rejected_by_name' is required.")
-    if quiz.status != GeneratedQuiz.Status.PENDING_REVIEW:
-        raise DomainWorkflowError(f"Quiz in status '{quiz.status}' cannot be rejected.")
-
-    quiz.status = GeneratedQuiz.Status.REJECTED
-    quiz.rejected_by_name = rejected_by_name
-    quiz.rejected_at = timezone.now()
-    quiz.rejection_comment = (rejection_comment or "").strip()
-    quiz.save(
-        update_fields=[
-            "status",
-            "rejected_by_name",
-            "rejected_at",
-            "rejection_comment",
-            "updated_at",
-        ]
+    """Compatibility wrapper: quiz lifecycle is owned by quiz_workflow.py."""
+    return quiz_workflow_services.reject_generated_quiz(
+        quiz=quiz,
+        rejected_by_name=rejected_by_name,
+        rejection_comment=rejection_comment,
     )
-    return quiz
 
 
 def mark_quiz_superseded(quiz: GeneratedQuiz, *, reason: str = "") -> GeneratedQuiz:
-    if quiz.status in {GeneratedQuiz.Status.SUPERSEDED, GeneratedQuiz.Status.ARCHIVED}:
-        return quiz
-
-    quiz.status = GeneratedQuiz.Status.SUPERSEDED
-    quiz.superseded_at = timezone.now()
-    quiz.superseded_reason = (reason or "").strip()
-    quiz.save(
-        update_fields=[
-            "status",
-            "superseded_at",
-            "superseded_reason",
-            "updated_at",
-        ]
-    )
-    return quiz
+    """Compatibility wrapper: quiz lifecycle is owned by quiz_workflow.py."""
+    return quiz_workflow_services.mark_quiz_superseded(quiz, reason=reason)
 
 
 def _supersede_existing_quizzes_for_version_pair(
@@ -519,109 +420,25 @@ def start_quiz_attempt(
     quiz: GeneratedQuiz,
     participant_name: str,
     employee=None,
-) -> tuple[QuizAttempt, bool]:
-    ensure_quiz_attempt_allowed(quiz)
-
-    participant_name = normalize_participant_name(participant_name)
-    if not participant_name:
-        raise DomainWorkflowError("Field 'participant_name' is required.")
-
-    with transaction.atomic():
-        existing_attempt = (
-            QuizAttempt.objects.select_for_update()
-            .filter(
-                quiz=quiz,
-                participant_name=participant_name,
-                status=QuizAttempt.Status.IN_PROGRESS,
-            )
-            .order_by("-created_at")
-            .first()
-        )
-        if existing_attempt is not None:
-            return existing_attempt, False
-
-        attempt = QuizAttempt.objects.create(
-            quiz=quiz,
-            employee=employee,
-            participant_name=participant_name,
-            total_questions=quiz.questions.count(),
-            status=QuizAttempt.Status.IN_PROGRESS,
-        )
-    return attempt, True
+):
+    """Compatibility wrapper: attempt execution is owned by quiz_attempts.py."""
+    return quiz_attempt_services.start_quiz_attempt(
+        quiz=quiz,
+        participant_name=participant_name,
+        employee=employee,
+    )
 
 
-@transaction.atomic
 def submit_started_quiz_attempt(
     *,
-    attempt: QuizAttempt,
+    attempt,
     submitted_answers: list[dict[str, Any]],
-) -> tuple[QuizAttempt, dict[str, Any]]:
-    locked_attempt = (
-        QuizAttempt.objects.select_for_update()
-        .select_related("quiz")
-        .get(pk=attempt.pk)
+):
+    """Compatibility wrapper: attempt execution is owned by quiz_attempts.py."""
+    return quiz_attempt_services.submit_started_quiz_attempt(
+        attempt=attempt,
+        submitted_answers=submitted_answers,
     )
-    if locked_attempt.status != QuizAttempt.Status.IN_PROGRESS:
-        raise DomainWorkflowError("Only in-progress attempt can be submitted.")
-
-    questions = list(
-        locked_attempt.quiz.questions.prefetch_related("choices").order_by(
-            "order", "id"
-        )
-    )
-    if not questions:
-        raise DomainWorkflowError(
-            "Cannot submit an attempt for a quiz without materialized questions."
-        )
-
-    evaluation = evaluate_quiz_answers(locked_attempt.quiz, submitted_answers)
-
-    Answer.objects.filter(attempt=locked_attempt).delete()
-    answer_rows = []
-    questions_by_id = {question.id: question for question in questions}
-    for result in evaluation["results"]:
-        if not result["answered"]:
-            continue
-        question = questions_by_id.get(result["question_id"])
-        if question is None:
-            continue
-        answer_rows.append(
-            Answer(
-                attempt=locked_attempt,
-                question=question,
-                selected_choice_id=result["selected_choice_id"],
-                text_answer=result["text_answer"],
-                is_correct=bool(result["is_correct"]),
-            )
-        )
-
-    if answer_rows:
-        Answer.objects.bulk_create(answer_rows)
-
-    locked_attempt.answers = make_json_safe(evaluation["results"])
-    locked_attempt.score = evaluation["score"]
-    locked_attempt.total_questions = evaluation["total_questions"]
-    locked_attempt.answered_questions = evaluation["answered_questions"]
-    locked_attempt.correct_answers = evaluation["correct_answers"]
-    locked_attempt.score_percent = evaluation["score_percent"]
-    locked_attempt.status = QuizAttempt.Status.COMPLETED
-    locked_attempt.submitted_at = timezone.now()
-    locked_attempt.completed_at = locked_attempt.submitted_at
-    locked_attempt.save(
-        update_fields=[
-            "answers",
-            "score",
-            "total_questions",
-            "answered_questions",
-            "correct_answers",
-            "score_percent",
-            "status",
-            "submitted_at",
-            "completed_at",
-        ]
-    )
-
-    return locked_attempt, evaluation
 
 
 def record_quiz_attempt(
@@ -629,12 +446,10 @@ def record_quiz_attempt(
     quiz: GeneratedQuiz,
     participant_name: str,
     submitted_answers: list[dict[str, Any]],
-) -> tuple[QuizAttempt, dict[str, Any]]:
-    attempt, _ = start_quiz_attempt(
+):
+    """Compatibility wrapper: attempt execution is owned by quiz_attempts.py."""
+    return quiz_attempt_services.record_quiz_attempt(
         quiz=quiz,
         participant_name=participant_name,
-    )
-    return submit_started_quiz_attempt(
-        attempt=attempt,
         submitted_answers=submitted_answers,
     )

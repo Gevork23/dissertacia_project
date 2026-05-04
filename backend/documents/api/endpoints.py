@@ -20,6 +20,11 @@ from ..services.quiz_attempts import (
     start_quiz_attempt,
     submit_started_quiz_attempt,
 )
+from ..services.quiz_workflow import (
+    approve_generated_quiz,
+    reject_generated_quiz,
+    submit_quiz_for_review,
+)
 from ..services.result_reporting import (
     build_attempt_result_payload,
     build_quiz_report_payload,
@@ -27,11 +32,8 @@ from ..services.result_reporting import (
 from ..services.search import search_chunks
 from ..services.workflows import (
     EmptyQuizError,
-    approve_generated_quiz,
     build_comparison_payload,
     create_quiz_from_versions,
-    reject_generated_quiz,
-    submit_quiz_for_review,
 )
 from .serializers import (
     GeneratedQuizSerializer,

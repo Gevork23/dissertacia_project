@@ -1,118 +1,81 @@
-# TASKS
+# Tasks
 
-## Статусы
+## 1. Completed MVP stabilization
 
-- `done` — реализовано и подтверждено кодом
-- `partial` — реализовано частично или требует дополнительной стабилизации
-- `planned` — осознанно отложено
+- [x] Phase 1 — current state audit
+- [x] Phase 2 — repository cleanup
+- [x] Phase 3 — service layer deduplication
+- [x] Phase 4 — LLM fallback normal mode
+- [x] Phase 5 — MVP scope freeze
 
-## Функциональная фаза 0 — фиксация замысла проекта
+Результат блока: технический MVP больше не расширяется продуктовыми функциями до завершения научной упаковки. Защищаемый pipeline зафиксирован как:
 
-**Статус:** `done`
+**версия документа → анализ изменений → выжимка → тест → утверждение → прохождение → результат.**
 
-Закрыто:
-- формулировка проекта;
-- главный сценарий;
-- базовые архитектурные ограничения;
-- первичный пакет проектной документации.
+## 2. Active next block: research core
 
-## Функциональная фаза 1 — базовая платформа и данные
+- [ ] Phase 6 — hybrid method formalization
+- [ ] Phase 7 — system architecture formalization
+- [ ] Phase 8 — structural chunking method
+- [ ] Phase 9 — version comparison method
+- [ ] Phase 10 — significance method
+- [ ] Phase 11 — quiz generation method
 
-**Статус:** `done`
+Правило блока: формализуем уже реализованный MVP, а не добавляем новые runtime-функции.
 
-Закрыто:
-- модели `Document` и `DocumentVersion`;
-- загрузка версий документов;
-- поддержка TXT / DOCX / PDF с текстовым слоем;
-- извлечение текста;
-- нормализация;
-- автоматическое построение чанков после загрузки версии;
-- базовые тесты ingestion-сценариев.
+## 3. Experiment block
 
-## Функциональная фаза 2 — сравнение редакций
+- [ ] Phase 12 — demo corpus formalization for experiments
+- [ ] Phase 13 — evaluation corpus design
+- [ ] Phase 14 — chunking evaluation
+- [ ] Phase 15 — diff evaluation
+- [ ] Phase 16 — significance evaluation
+- [ ] Phase 17 — summary evaluation
+- [ ] Phase 18 — quiz evaluation
+- [ ] Phase 19 — final evaluation
 
-**Статус:** `done`
+Правило блока: экспериментальные корпуса и метрики создаются после методической формализации, не в Фазе 5.
 
-Закрыто:
-- сравнение двух версий одного документа;
-- обработка added / removed / modified / moved;
-- объяснимое выделение изменений;
-- тестовое покрытие diff-логики.
+## 4. Thesis block
 
-## Функциональная фаза 3 — выжимка и генерация тестов
+- [ ] Phase 20 — thesis structure synchronization
+- [ ] Phase 21 — chapter on problem statement and related work
+- [ ] Phase 22 — chapter on proposed hybrid method
+- [ ] Phase 23 — chapter on system architecture and implementation
+- [ ] Phase 24 — chapter on experiments and evaluation
+- [ ] Phase 25 — final thesis editing and consistency pass
 
-**Статус:** `done`
+## 5. Defense block
 
-Закрыто:
-- краткая выжимка по изменениям;
-- генерация тестовых вопросов по diff;
-- сохранение квиза;
-- тестовое покрытие brief/quiz-логики.
+- [ ] Phase 26 — final documentation package
+- [ ] Phase 27 — demo script freeze
+- [ ] Phase 28 — presentation
+- [ ] Phase 29 — defense Q&A preparation
 
-## Функциональная фаза 4 — утверждение, прохождение, результаты
+## 6. Explicitly postponed future work
 
-**Статус:** `partial`
+Эти задачи не являются долгами текущего MVP и не выполняются до завершения научной упаковки:
 
-По факту в коде уже есть:
-- статус квиза `draft / approved`;
-- данные ответственного лица;
-- API утверждения квиза;
-- прохождение квиза сотрудником;
-- сохранение результатов;
-- просмотр списка попыток и отчёта.
+- [ ] OCR for scanned PDF
+- [ ] Full RAG-chat
+- [ ] LangGraph / multi-agent workflow
+- [ ] Consultant+ / external legal system integration
+- [ ] External legal monitoring
+- [ ] Production auth/RBAC
+- [ ] Enterprise BI/dashboard
+- [ ] Large LMS functionality
+- [ ] Production-grade user management
+- [ ] Distributed/cloud-first deployment
+- [ ] Training or fine-tuning a custom large model
+- [ ] Universal search across all laws of the Russian Federation
 
-Почему `partial`, а не `done`:
-- контур есть, но он пока ориентирован на demo-ready использование;
-- отсутствует полноценная auth / roles модель;
-- нужна дальнейшая полировка UX и сценарной устойчивости.
+## 7. Scope control rule
 
-## Функциональная фаза 5 — демонстрационный MVP
+Новая задача попадает в текущий рабочий контур только если она:
 
-**Статус:** `partial`
+- поддерживает уже зафиксированный MVP pipeline;
+- нужна для научной формализации реализованного метода;
+- нужна для воспроизводимого эксперимента в соответствующей будущей фазе;
+- нужна для защиты.
 
-По факту в коде уже есть:
-- минимальный demo UI;
-- demo corpus;
-- команда загрузки demo-пар;
-- локальный запуск и smoke-контур.
-
-Почему `partial`, а не `done`:
-- UI остаётся демонстрационным, а не полнофункциональным продуктовым;
-- docker-path и локальный path должны оставаться явно задокументированными;
-- optional search не должен путаться с обязательным MVP-контуром.
-
-## Функциональная фаза 6 — подготовка к защите
-
-**Статус:** `partial`
-
-По факту уже есть:
-- README;
-- scope и architecture документы;
-- demo-script;
-- ERD;
-- корпус для демонстрации.
-
-Почему `partial`, а не `done`:
-- документы нужно регулярно синхронизировать с кодом;
-- финальная защита требует ещё контрольного прогона и финальной упаковки материалов.
-
-## Текущий инженерный этап — стабилизация (рабочая Фаза 1)
-
-**Статус:** `done`
-
-Закрывается следующими задачами:
-- аудит текущего состояния проекта;
-- устранение противоречий код / тесты / docs;
-- стабилизация локального запуска;
-- нормализация docker-compose и env-параметров;
-- фиксация реального demo-ready MVP scope.
-
-## Приоритетное правило
-
-Если задача:
-- не усиливает основной сценарий;
-- не повышает устойчивость demo;
-- не улучшает объяснимость результатов;
-- не помогает защите,
-
-то она не становится приоритетом текущего контура.
+Если задача расширяет продукт за пределы pipeline «версия → результат», она переносится в `Explicitly postponed future work`.

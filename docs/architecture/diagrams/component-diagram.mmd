@@ -1,0 +1,104 @@
+flowchart LR
+    subgraph USERS[Actors]
+        RP[Responsible person]
+        EMP[Employee]
+    end
+
+    subgraph DJANGO[Django backend]
+        subgraph PRESENTATION[Presentation]
+            TPL[documents/templates/demo]
+            DEMO[documents/demo/views.py]
+            API[documents/api/endpoints.py]
+            VIEWS[documents/api/viewsets.py]
+            SER[documents/api/serializers.py]
+            URLS[config/urls.py and api/demo urls]
+        end
+
+        subgraph APPLICATION[Application services]
+            ING[services/ingestion.py]
+            VER[services/versioning.py]
+            WF[services/workflows.py]
+            QWF[services/quiz_workflow.py]
+            ATT[services/quiz_attempts.py]
+            REP[services/result_reporting.py]
+            ANALYSIS[services/analysis.py]
+            SEARCH[services/search.py]
+        end
+
+        subgraph DOMAIN[Domain logic]
+            EXT[domain/text_extractors.py]
+            PROC[domain/text_processing.py]
+            DIFF[domain/diff.py]
+            CLASS[domain/change_classification.py]
+            ENRICH[domain/change_enrichment.py]
+            SUMMARY[domain/diff_summary.py]
+            QUIZ[domain/diff_quiz.py]
+            ENTITY[domain/entity_extraction.py]
+        end
+
+        subgraph PERSISTENCE[Persistence]
+            MODELS[documents/models.py]
+            MIGR[migrations]
+            ORM[Django ORM]
+        end
+    end
+
+    subgraph STORAGE[Storage]
+        DB[(SQLite local / PostgreSQL Docker)]
+        MEDIA[(media files)]
+    end
+
+    subgraph OPTIONAL[Optional AI and search]
+        RESLLM[services/llm_result_enhancer.py]
+        ENTLLM[domain/llm_entity_extraction.py]
+        QDRANT[(Qdrant profile search)]
+    end
+
+    subgraph INFRA[Infrastructure]
+        SETTINGS[config/settings.py]
+        DOCKER[backend/Dockerfile and docker-compose.yml]
+        ENV[infra/.env.example]
+        SCRIPTS[scripts/test.sh lint.sh demo_smoke.sh]
+        REQ[requirements.txt requirements-dev.txt requirements-ml.txt]
+    end
+
+    RP --> DEMO
+    EMP --> DEMO
+    RP --> API
+    EMP --> API
+
+    DEMO --> WF
+    DEMO --> QWF
+    DEMO --> ATT
+    DEMO --> REP
+    API --> WF
+    API --> QWF
+    API --> ATT
+    API --> REP
+    VIEWS --> ING
+    VIEWS --> VER
+
+    ING --> EXT
+    ING --> PROC
+    WF --> DIFF
+    WF --> ENRICH
+    WF --> SUMMARY
+    WF --> QUIZ
+    ATT --> MODELS
+    REP --> MODELS
+    QWF --> MODELS
+    ANALYSIS --> ENTITY
+
+    MODELS --> ORM
+    ORM --> DB
+    ING --> MEDIA
+
+    REP -. optional .-> RESLLM
+    ANALYSIS -. optional .-> ENTLLM
+    SEARCH -. optional .-> QDRANT
+
+    SETTINGS --> DJANGO
+    DOCKER --> DJANGO
+    ENV --> SETTINGS
+    SCRIPTS --> DJANGO
+    REQ --> DJANGO

@@ -1,0 +1,83 @@
+flowchart LR
+    RP[Responsible person]
+    EMP[Employee]
+
+    subgraph PRES[Presentation layer]
+        UI[Django demo templates]
+        API[DRF API endpoints]
+        VIEWSETS[Document and Version viewsets]
+    end
+
+    RP --> UI
+    RP --> API
+    EMP --> UI
+    EMP --> API
+
+    subgraph APP[Application services]
+        ING[ingestion.py and versioning.py]
+        WF[workflows.py]
+        QWF[quiz_workflow.py]
+        ATT[quiz_attempts.py]
+        REP[result_reporting.py]
+    end
+
+    UI --> WF
+    UI --> QWF
+    UI --> ATT
+    UI --> REP
+    API --> ING
+    API --> WF
+    API --> QWF
+    API --> ATT
+    API --> REP
+    VIEWSETS --> ING
+
+    subgraph DOMAIN[Domain processing]
+        EXT[text_extractors.py]
+        NORM[text_processing.py]
+        CH[structural chunking]
+        DIFF[diff.py]
+        SIG[change_enrichment.py and change_classification.py]
+        SUM[diff_summary.py]
+        QUIZ[diff_quiz.py]
+    end
+
+    ING --> EXT
+    ING --> NORM
+    NORM --> CH
+    WF --> DIFF
+    WF --> SIG
+    WF --> SUM
+    WF --> QUIZ
+
+    DB[(SQLite local / PostgreSQL Docker)]
+    FS[(media document files)]
+    EXT --> FS
+    CH --> DB
+    WF --> DB
+    QWF --> DB
+    ATT --> DB
+    REP --> DB
+
+    subgraph OPT[Optional AI layer]
+        LLM[llm_result_enhancer.py]
+        ENTITY[llm_entity_extraction.py]
+        SEARCH[search.py and Qdrant profile]
+    end
+
+    REP -. optional feedback .-> LLM
+    ING -. optional indexing .-> SEARCH
+    ING -. optional entity mode .-> ENTITY
+    OPT -. deterministic fallback when disabled .-> APP
+
+    subgraph INF[Infrastructure layer]
+        DOCKER[Dockerfile and docker-compose.yml]
+        ENV[infra/.env.example and settings.py]
+        SCRIPTS[scripts test lint smoke]
+        REQ[requirements files]
+    end
+
+    DOCKER --> APP
+    ENV --> APP
+    SCRIPTS --> APP
+    REQ --> APP

@@ -1,0 +1,81 @@
+sequenceDiagram
+    autonumber
+    actor RP as Responsible person
+    actor EMP as Employee
+    participant UI as Demo UI / API
+    participant ING as ingestion.py / versioning.py
+    participant TXT as Domain text processing
+    participant WF as workflows.py
+    participant DIFF as diff + significance domain
+    participant DB as ORM / Database
+    participant QWF as quiz_workflow.py
+    participant ATT as quiz_attempts.py
+    participant REP as result_reporting.py
+    participant LLM as Optional LLM enhancer
+
+    RP->>UI: Upload old document version
+    UI->>ING: create_uploaded_document_version or create_text_document_version
+    ING->>TXT: extract text from TXT/DOCX/PDF
+    TXT-->>ING: extracted_text
+    ING->>TXT: normalize text and build structural chunks
+    TXT-->>ING: normalized_text + ChunkData
+    ING->>DB: Save DocumentVersion, extracted_text, normalized_text, Chunk rows
+
+    RP->>UI: Upload new document version
+    UI->>ING: create new DocumentVersion for same Document
+    ING->>TXT: extract and normalize text
+    ING->>DB: Save new version and chunks
+
+    RP->>UI: Compare selected versions
+    UI->>WF: materialize_comparison(from_version, to_version)
+    WF->>DIFF: build_version_diff over structural chunks
+    DIFF-->>WF: diff payload with comparison metadata
+    WF->>DIFF: enrich_compare_payload
+    DIFF-->>WF: semantic_type, significance labels, scores, reasons
+    WF->>DB: Save VersionComparison and VersionChangeItem rows
+    WF->>DIFF: build_brief_summary
+    DIFF-->>WF: Summary.text and highlights
+    WF->>DB: Save Summary
+    UI-->>RP: Show comparison and summary
+
+    RP->>UI: Generate quiz from versions
+    UI->>WF: create_quiz_from_versions
+    WF->>DIFF: build_quiz_from_summary
+    DIFF-->>WF: quiz payload
+    WF->>DB: Save GeneratedQuiz, Question, Choice as draft
+    UI-->>RP: Show draft quiz
+
+    RP->>UI: Submit quiz for review
+    UI->>QWF: submit_quiz_for_review
+    QWF->>DB: status draft -> pending_review
+
+    RP->>UI: Approve quiz
+    UI->>QWF: approve_generated_quiz
+    QWF->>DB: status pending_review -> approved
+
+    EMP->>UI: Start approved quiz attempt
+    UI->>ATT: start_quiz_attempt
+    ATT->>QWF: ensure_quiz_attempt_allowed
+    QWF-->>ATT: allowed only if approved and materialized questions exist
+    ATT->>DB: Create QuizAttempt in_progress
+    UI-->>EMP: Render questions
+
+    EMP->>UI: Submit answers
+    UI->>ATT: submit_started_quiz_attempt
+    ATT->>DB: Read Question and Choice rows
+    ATT->>ATT: evaluate_quiz_answers
+    ATT->>DB: Save Answer rows and QuizAttempt score snapshot
+    ATT->>REP: refresh_attempt_reporting_cache
+    alt RESULT_LLM_ENABLED=True
+        REP->>LLM: Generate enhanced feedback
+        LLM-->>REP: Enhanced text or failure
+    else RESULT_LLM_ENABLED=False
+        REP->>REP: Deterministic fallback feedback
+    end
+    REP->>DB: Cache feedback/reporting fields
+
+    EMP->>UI: Open result
+    UI->>REP: build_attempt_result_payload
+    REP->>DB: Read attempt snapshot and quiz report data
+    REP-->>UI: result/reporting payload
+    UI-->>EMP: Show score, feedback and report

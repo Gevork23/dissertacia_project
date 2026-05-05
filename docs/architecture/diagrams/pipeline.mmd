@@ -1,0 +1,35 @@
+flowchart TD
+    F[Uploaded file / text version] --> V[DocumentVersion]
+    V --> E[E Extraction]
+    E --> ET[extracted_text]
+    ET --> N[N Normalization]
+    N --> NT[normalized_text + content_hash]
+    NT --> S[S Structural segmentation]
+    S --> CKS[Chunk rows]
+
+    CKS --> C[C Comparison]
+    C --> CMP[VersionComparison]
+    CMP --> CHI[VersionChangeItem diff rows]
+    CHI --> P[P Prioritization / significance]
+    P --> SIG[semantic_type, label, score, reason, rules, manual_review]
+
+    SIG --> G1[G Summary generation]
+    G1 --> SUM[Summary.text + highlights]
+    SUM --> G2[G Quiz generation]
+    G2 --> QZ[GeneratedQuiz draft + Question + Choice]
+
+    QZ --> H[Human approval workflow]
+    H --> PEND[pending_review]
+    PEND --> APP[approved]
+    PEND --> REJ[rejected]
+    QZ --> SUP[superseded when newer quiz is generated]
+
+    APP --> R[R Result fixation]
+    R --> ATT[QuizAttempt in_progress]
+    ATT --> SUB[Submit answers]
+    SUB --> ANS[Answer rows]
+    SUB --> RES[score, correct_answers, score_percent, completed_at]
+    RES --> REP[Result/reporting payload]
+
+    REP -. optional .-> LLM[LLM feedback enhancement]
+    LLM -. fallback .-> REP

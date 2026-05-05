@@ -284,20 +284,49 @@ def _build_quiz_reporting_cache_key(
     return hashlib.sha256(_normalize_json(base).encode("utf-8")).hexdigest()
 
 
+def _is_result_llm_enabled() -> bool:
+    return bool(getattr(settings, "RESULT_LLM_ENABLED", False))
+
+
 def _generate_attempt_feedback(metrics: dict[str, Any]) -> tuple[str, str]:
+    if not _is_result_llm_enabled():
+        logger.info(
+            "LLM result enhancement is disabled; deterministic fallback is used."
+        )
+        return _build_rule_based_attempt_feedback(metrics), "rule_based_fallback"
+
     try:
         client = get_default_result_llm_client()
         system_prompt, user_prompt = _get_attempt_feedback_prompt(metrics)
         response = client.generate(system_prompt=system_prompt, user_prompt=user_prompt)
         return response.text, response.model
     except ResultLLMEnhancementError:
-        logger.exception("Attempt LLM feedback generation failed.")
+        logger.warning(
+            "LLM result enhancement failed; deterministic fallback is used.",
+            exc_info=True,
+        )
+        return _build_rule_based_attempt_feedback(metrics), "rule_based_fallback"
+    except Exception:
+        logger.warning(
+            "Unexpected LLM result enhancement failure; deterministic fallback is used.",
+            exc_info=True,
+        )
         return _build_rule_based_attempt_feedback(metrics), "rule_based_fallback"
 
 
 def _generate_quiz_reporting_texts(
     report_payload: dict[str, Any],
 ) -> tuple[str, str, str]:
+    if not _is_result_llm_enabled():
+        logger.info(
+            "LLM result enhancement is disabled; deterministic fallback is used."
+        )
+        return (
+            _build_rule_based_error_analysis(report_payload),
+            _build_rule_based_manager_summary(report_payload),
+            "rule_based_fallback",
+        )
+
     try:
         client = get_default_result_llm_client()
         (analysis_system, analysis_user), (manager_system, manager_user) = (
@@ -311,9 +340,21 @@ def _generate_quiz_reporting_texts(
         )
         return analysis_response.text, manager_response.text, analysis_response.model
     except ResultLLMEnhancementError:
-        logger.exception(
-            "Quiz report LLM generation failed: quiz_id=%s",
+        logger.warning(
+            "LLM quiz report enhancement failed; deterministic fallback is used: quiz_id=%s",
             report_payload["quiz"]["id"],
+            exc_info=True,
+        )
+        return (
+            _build_rule_based_error_analysis(report_payload),
+            _build_rule_based_manager_summary(report_payload),
+            "rule_based_fallback",
+        )
+    except Exception:
+        logger.warning(
+            "Unexpected LLM quiz report enhancement failure; deterministic fallback is used: quiz_id=%s",
+            report_payload["quiz"]["id"],
+            exc_info=True,
         )
         return (
             _build_rule_based_error_analysis(report_payload),

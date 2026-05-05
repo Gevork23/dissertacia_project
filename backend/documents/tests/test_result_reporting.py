@@ -17,6 +17,7 @@ from ..models import (
     Question,
     QuizAttempt,
 )
+from ..services.llm_result_enhancer import ResultLLMEnhancementError
 from ..services.result_reporting import (
     build_attempt_result_payload,
     build_quiz_report_payload,
@@ -43,6 +44,11 @@ class FakeResultLLMClient:
                 self.model = model
 
         return Response(text=text, model=model)
+
+
+class FailingResultLLMClient:
+    def generate(self, *, system_prompt: str, user_prompt: str):
+        raise ResultLLMEnhancementError("Simulated LLM outage.")
 
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
@@ -118,6 +124,7 @@ class ResultReportingAPITests(APITestCase):
         )
         return quiz
 
+    @override_settings(RESULT_LLM_ENABLED=True)
     @patch(
         "documents.services.result_reporting.get_default_result_llm_client",
         return_value=FakeResultLLMClient(),
@@ -173,6 +180,7 @@ class ResultReportingAPITests(APITestCase):
         self.assertIn("llm_manager_summary", result_response.data)
         self.assertEqual(result_response.data["quiz_report"]["attempts_count"], 1)
 
+    @override_settings(RESULT_LLM_ENABLED=True)
     @patch(
         "documents.services.result_reporting.get_default_result_llm_client",
         return_value=FakeResultLLMClient(),
@@ -302,6 +310,7 @@ class ResultReportingServiceAndDemoTests(TestCase):
         )
         return attempt
 
+    @override_settings(RESULT_LLM_ENABLED=True)
     @patch(
         "documents.services.result_reporting.get_default_result_llm_client",
         return_value=FakeResultLLMClient(),
@@ -314,9 +323,14 @@ class ResultReportingServiceAndDemoTests(TestCase):
         self.assertIn("llm_feedback", result_payload)
 
         report_payload = build_quiz_report_payload(attempt.quiz)
+        attempt.refresh_from_db()
+        attempt.quiz.refresh_from_db()
         self.assertEqual(report_payload["attempts_count"], 1)
         self.assertIn("llm_manager_summary", report_payload)
+        self.assertEqual(attempt.llm_feedback_model, "fake-attempt-model")
+        self.assertEqual(attempt.quiz.llm_reporting_model, "fake-analysis-model")
 
+    @override_settings(RESULT_LLM_ENABLED=True)
     @patch(
         "documents.services.result_reporting.get_default_result_llm_client",
         return_value=FakeResultLLMClient(),
@@ -329,3 +343,74 @@ class ResultReportingServiceAndDemoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "LLM-комментарий по результату")
         self.assertContains(response, "Краткий отчёт для руководителя")
+
+    @override_settings(RESULT_LLM_ENABLED=False)
+    @patch("documents.services.result_reporting.get_default_result_llm_client")
+    def test_disabled_llm_is_normal_deterministic_mode(self, client_factory):
+        attempt = self._build_completed_attempt()
+
+        with self.assertLogs("documents.result_reporting", level="INFO") as captured:
+            result_payload = build_attempt_result_payload(attempt)
+
+        attempt.refresh_from_db()
+        attempt.quiz.refresh_from_db()
+        log_output = "\n".join(captured.output)
+
+        client_factory.assert_not_called()
+        self.assertTrue(result_payload["llm_feedback"])
+        self.assertTrue(result_payload["llm_error_analysis"])
+        self.assertTrue(result_payload["llm_manager_summary"])
+        self.assertEqual(attempt.llm_feedback_model, "rule_based_fallback")
+        self.assertEqual(attempt.quiz.llm_reporting_model, "rule_based_fallback")
+        self.assertIn("LLM result enhancement is disabled", log_output)
+        self.assertIn("deterministic fallback is used", log_output)
+        self.assertNotIn("ERROR", log_output)
+        self.assertNotIn("Traceback", log_output)
+        self.assertNotIn("generation failed", log_output)
+
+    @override_settings(RESULT_LLM_ENABLED=True)
+    @patch(
+        "documents.services.result_reporting.get_default_result_llm_client",
+        return_value=FailingResultLLMClient(),
+    )
+    def test_enabled_llm_failure_falls_back_without_breaking_result(
+        self, client_factory
+    ):
+        attempt = self._build_completed_attempt()
+
+        with self.assertLogs("documents.result_reporting", level="WARNING") as captured:
+            result_payload = build_attempt_result_payload(attempt)
+
+        attempt.refresh_from_db()
+        attempt.quiz.refresh_from_db()
+        log_output = "\n".join(captured.output)
+
+        self.assertTrue(client_factory.called)
+        self.assertTrue(result_payload["llm_feedback"])
+        self.assertTrue(result_payload["llm_error_analysis"])
+        self.assertTrue(result_payload["llm_manager_summary"])
+        self.assertEqual(result_payload["raw_score"], attempt.score)
+        self.assertEqual(result_payload["score_percent"], attempt.score_percent)
+        self.assertEqual(attempt.llm_feedback_model, "rule_based_fallback")
+        self.assertEqual(attempt.quiz.llm_reporting_model, "rule_based_fallback")
+        self.assertIn("deterministic fallback is used", log_output)
+        self.assertIn("LLM result enhancement failed", log_output)
+        self.assertIn("LLM quiz report enhancement failed", log_output)
+
+    @override_settings(RESULT_LLM_ENABLED=False)
+    @patch("documents.services.result_reporting.get_default_result_llm_client")
+    def test_result_reporting_payload_remains_stable_without_llm(self, client_factory):
+        attempt = self._build_completed_attempt()
+
+        result_payload = build_attempt_result_payload(attempt)
+        report_payload = build_quiz_report_payload(attempt.quiz)
+
+        client_factory.assert_not_called()
+        self.assertEqual(result_payload["raw_score"], 1)
+        self.assertEqual(result_payload["score_percent"], 100.0)
+        self.assertEqual(result_payload["correct_answers"], 1)
+        self.assertTrue(result_payload["llm_feedback"])
+        self.assertIn("quiz_report", result_payload)
+        self.assertEqual(report_payload["attempts_count"], 1)
+        self.assertTrue(report_payload["llm_error_analysis"])
+        self.assertTrue(report_payload["llm_manager_summary"])

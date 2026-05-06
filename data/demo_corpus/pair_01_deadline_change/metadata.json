@@ -1,0 +1,33 @@
+{
+  "pair_id": "pair_01_deadline_change",
+  "title": "DEMO МФЦ: изменение срока рассмотрения заявления",
+  "document_type": "synthetic_internal_regulation",
+  "scenario": "deadline_change",
+  "demo_goal": "Показать изменение срока как значимое изменение.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "recommended_for_5_min_demo": true,
+  "expected_changes": [
+    {
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "importance": "critical",
+      "description": "Срок рассмотрения заявления изменен с 10 до 7 рабочих дней.",
+      "expected_quiz_topic": "новый срок рассмотрения заявления"
+    }
+  ],
+  "expected_demo_value": [
+    "comparison should detect modified deadline fragment",
+    "significance should classify deadline change as critical in the current rules",
+    "summary should mention deadline reduction from 10 to 7 working days",
+    "quiz should ask about the new deadline"
+  ],
+  "notes": [
+    "Demo metadata is explanatory and is not a formal evaluation annotation.",
+    "The pair is intended for deterministic local demonstration of the MVP pipeline."
+  ]
+}

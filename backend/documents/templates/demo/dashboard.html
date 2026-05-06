@@ -73,7 +73,7 @@
                     <td><a class="btn" href="{% url 'demo-document-detail' document.id %}">Открыть</a></td>
                 </tr>
             {% empty %}
-                <tr><td colspan="5">Демо-корпус ещё не загружен. Выполните management command load_demo_pairs.</td></tr>
+                <tr><td colspan="5">Демо-корпус ещё не загружен. Выполните management command load_demo_corpus или совместимый alias load_demo_pairs.</td></tr>
             {% endfor %}
             </tbody>
         </table>

@@ -1,0 +1,33 @@
+{
+  "pair_id": "pair_05_editorial_changes",
+  "title": "DEMO МФЦ: редакционные изменения без смысловой нагрузки",
+  "document_type": "synthetic_internal_regulation",
+  "scenario": "editorial_changes",
+  "demo_goal": "Показать редакционные правки без изменения обязанностей, сроков, процедур или перечней.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "recommended_for_5_min_demo": false,
+  "expected_changes": [
+    {
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункты 1-2",
+      "importance": "editorial",
+      "description": "Исправлены буква е/ё и пунктуация без изменения смысла.",
+      "expected_quiz_topic": null
+    }
+  ],
+  "expected_demo_value": [
+    "comparison may detect modified text fragments",
+    "significance should classify them as editorial",
+    "summary should use editorial fallback and state that meaningful changes were not found",
+    "quiz generation should not create questions for purely editorial changes in saved workflow"
+  ],
+  "notes": [
+    "Demo metadata is explanatory and is not a formal evaluation annotation.",
+    "The pair is intended for deterministic local demonstration of the MVP pipeline."
+  ]
+}

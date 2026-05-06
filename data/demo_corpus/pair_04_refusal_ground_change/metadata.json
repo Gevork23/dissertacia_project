@@ -1,0 +1,33 @@
+{
+  "pair_id": "pair_04_refusal_ground_change",
+  "title": "DEMO МФЦ: добавление основания отказа",
+  "document_type": "synthetic_internal_regulation",
+  "scenario": "refusal_ground_change",
+  "demo_goal": "Показать добавление нового основания отказа.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "recommended_for_5_min_demo": true,
+  "expected_changes": [
+    {
+      "type": "added",
+      "fragment": "Раздел 2, статья 2, пункт 2",
+      "importance": "critical",
+      "description": "Добавлено основание отказа: непредставление обязательных документов в установленный срок.",
+      "expected_quiz_topic": "новое основание отказа в выдаче справки"
+    }
+  ],
+  "expected_demo_value": [
+    "comparison should detect added refusal ground",
+    "significance should classify refusal change as critical",
+    "summary should mention the new refusal ground",
+    "quiz should ask about the new refusal condition"
+  ],
+  "notes": [
+    "Demo metadata is explanatory and is not a formal evaluation annotation.",
+    "The pair is intended for deterministic local demonstration of the MVP pipeline."
+  ]
+}

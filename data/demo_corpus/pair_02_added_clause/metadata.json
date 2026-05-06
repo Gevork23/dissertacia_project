@@ -1,0 +1,33 @@
+{
+  "pair_id": "pair_02_added_clause",
+  "title": "DEMO МФЦ: добавление электронной подачи обращения",
+  "document_type": "synthetic_internal_regulation",
+  "scenario": "added_clause",
+  "demo_goal": "Показать добавление нового процедурного пункта.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "recommended_for_5_min_demo": true,
+  "expected_changes": [
+    {
+      "type": "added",
+      "fragment": "Раздел 2, статья 2, пункт 3",
+      "importance": "important",
+      "description": "Добавлена возможность подачи обращения через электронную форму в личном кабинете.",
+      "expected_quiz_topic": "новый электронный способ подачи обращения"
+    }
+  ],
+  "expected_demo_value": [
+    "comparison should detect added procedural clause",
+    "significance should classify the added procedure as important",
+    "summary should mention electronic submission through personal account",
+    "quiz should ask about the new submission option"
+  ],
+  "notes": [
+    "Demo metadata is explanatory and is not a formal evaluation annotation.",
+    "The pair is intended for deterministic local demonstration of the MVP pipeline."
+  ]
+}

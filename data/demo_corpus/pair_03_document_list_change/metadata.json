@@ -1,0 +1,33 @@
+{
+  "pair_id": "pair_03_document_list_change",
+  "title": "DEMO МФЦ: изменение перечня документов для согласования",
+  "document_type": "synthetic_internal_regulation",
+  "scenario": "document_list_change",
+  "demo_goal": "Показать изменение перечня документов как значимое изменение.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "recommended_for_5_min_demo": true,
+  "expected_changes": [
+    {
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "importance": "critical",
+      "description": "В перечень документов добавлена копия документа, подтверждающего полномочия представителя.",
+      "expected_quiz_topic": "добавленный документ для представителя"
+    }
+  ],
+  "expected_demo_value": [
+    "comparison should detect modified required-document fragment",
+    "significance should classify document list change as critical in the current rules",
+    "summary should mention the new representative authority document",
+    "quiz should ask which document was added"
+  ],
+  "notes": [
+    "Demo metadata is explanatory and is not a formal evaluation annotation.",
+    "The pair is intended for deterministic local demonstration of the MVP pipeline."
+  ]
+}

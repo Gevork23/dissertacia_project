@@ -1,0 +1,107 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_10_weakly_structured_document",
+  "title": "Слабо структурированный документ для fallback chunking",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for fallback chunking and downstream processing on weakly structured text.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created independently from demo corpus to test fallback behavior absent in demo corpus.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "modified",
+      "fragment": "fallback-блок 'Рассмотрение обращения'",
+      "old_text": "Обращение рассматривается ответственным подразделением в течение 5 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий.",
+      "new_text": "Обращение рассматривается ответственным подразделением в течение 3 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий.",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change",
+      "description": "В слабо структурированном документе срок рассмотрения обращения изменен с 5 до 3 рабочих дней.",
+      "expected_summary_topic": "сокращение срока рассмотрения обращения в fallback-блоке",
+      "expected_quiz_topic": "новый срок рассмотрения обращения",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "fallback block 1",
+      "expected_type": "fallback_block",
+      "expected_boundary_text": "Памятка по обработке внутреннего обращения",
+      "is_key_chunk": false
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "fallback-блок 'Рассмотрение обращения'",
+      "expected_type": "fallback_block",
+      "expected_boundary_text": "Рассмотрение обращения\nОбращение рассматривается ответственным подразделением в течение 3 рабочих дней.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_003",
+      "version": "new",
+      "fragment": "fallback-блок 'Информирование'",
+      "expected_type": "fallback_block",
+      "expected_boundary_text": "Информирование\nОтвет направляется заявителю через локальную систему уведомлений.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "срок рассмотрения обращения сокращен с 5 до 3 рабочих дней"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "срок рассмотрения обращения сокращен с 5 до 3 рабочих дней"
+    ],
+    "must_not_mention": [
+      "новое основание отказа",
+      "структурный перенос"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новый срок рассмотрения обращения"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новый срок рассмотрения обращения"
+    ],
+    "must_not_cover_topics": [
+      "сам факт отсутствия разделов как содержательное изменение"
+    ],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "weak_structure",
+    "fallback_chunking",
+    "deadline_change",
+    "modified",
+    "critical"
+  ],
+  "known_difficulties": [
+    "Документ специально не содержит явных markers Раздел/Статья/Пункт; expected_chunks должны оцениваться как fallback blocks.",
+    "Comparison может быть менее точным, потому что changed deadline находится внутри более крупного fallback-блока."
+  ],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

@@ -1,0 +1,93 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_06_procedure_change",
+  "title": "Изменение порядка подачи заявления",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for procedure modification and quiz topic about a new submission channel.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "old_text": "Заявление подается заявителем на бумажном носителе через ответственное подразделение.",
+      "new_text": "Заявление может быть подано на бумажном носителе через ответственное подразделение или через электронную форму во внутреннем портале.",
+      "importance": "important",
+      "semantic_type": "procedure",
+      "change_type": "procedure_change",
+      "description": "Изменен порядок подачи заявления: добавлена возможность подачи через электронную форму во внутреннем портале.",
+      "expected_summary_topic": "добавлена возможность подачи заявления через электронную форму во внутреннем портале",
+      "expected_quiz_topic": "новый способ подачи заявления",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "important",
+      "semantic_type": "procedure",
+      "change_type": "procedure_change"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "old",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Заявление подается заявителем на бумажном носителе через ответственное подразделение.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Заявление может быть подано на бумажном носителе через ответственное подразделение или через электронную форму во внутреннем портале.",
+      "is_key_chunk": true
+    }
+  ],
+  "expected_summary_topics": [
+    "добавлена возможность подачи заявления через электронную форму во внутреннем портале"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "добавлена возможность подачи заявления через электронную форму во внутреннем портале"
+    ],
+    "must_not_mention": [
+      "новый срок рассмотрения",
+      "основание отказа"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новый способ подачи заявления"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новый способ подачи заявления"
+    ],
+    "must_not_cover_topics": [],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "modified",
+    "procedure_change",
+    "important",
+    "quiz"
+  ],
+  "known_difficulties": [],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

@@ -1,0 +1,182 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_09_mixed_significant_and_editorial",
+  "title": "Смешанные значимые, информационные и редакционные изменения",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for prioritization among critical, informational, and editorial changes in one pair.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "old_text": "Срок подготовки справки составляет 5 рабочих дней со дня регистрации запроса.",
+      "new_text": "Срок подготовки справки составляет 4 рабочих дня со дня регистрации запроса.",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change",
+      "description": "Срок подготовки справки сокращен с 5 до 4 рабочих дней.",
+      "expected_summary_topic": "сокращение срока подготовки справки",
+      "expected_quiz_topic": "новый срок подготовки справки",
+      "requires_manual_review": false
+    },
+    {
+      "id": "chg_002",
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 2",
+      "old_text": "Сотрудник осуществляет проверку сведений по внутренним источникам.",
+      "new_text": "Сотрудник выполняет проверку сведений по внутренним источникам.",
+      "importance": "editorial",
+      "semantic_type": "editorial",
+      "change_type": "editorial_wording",
+      "description": "Редакционная замена глагола без изменения процедуры проверки.",
+      "expected_summary_topic": "",
+      "expected_quiz_topic": "",
+      "requires_manual_review": false
+    },
+    {
+      "id": "chg_003",
+      "type": "added",
+      "fragment": "Раздел 2, статья 2, пункт 4",
+      "old_text": "",
+      "new_text": "Сотрудник обязан уведомить заявителя о невозможности подготовки справки при отсутствии обязательных сведений.",
+      "importance": "critical",
+      "semantic_type": "obligation",
+      "change_type": "added_obligation",
+      "description": "Добавлена обязанность уведомить заявителя о невозможности подготовки справки.",
+      "expected_summary_topic": "новая обязанность уведомления при невозможности подготовки справки",
+      "expected_quiz_topic": "уведомление при невозможности подготовки справки",
+      "requires_manual_review": false
+    },
+    {
+      "id": "chg_004",
+      "type": "added",
+      "fragment": "Раздел 2, статья 3, пункт 3",
+      "old_text": "",
+      "new_text": "Справочная информация о статусе запроса доступна в локальной системе учета.",
+      "importance": "informational",
+      "semantic_type": "informational",
+      "change_type": "informational_change",
+      "description": "Добавлено справочное указание о доступности статуса запроса.",
+      "expected_summary_topic": "доступность статуса запроса в локальной системе",
+      "expected_quiz_topic": "",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change"
+    },
+    {
+      "change_id": "chg_002",
+      "importance": "editorial",
+      "semantic_type": "editorial",
+      "change_type": "editorial_wording"
+    },
+    {
+      "change_id": "chg_003",
+      "importance": "critical",
+      "semantic_type": "obligation",
+      "change_type": "added_obligation"
+    },
+    {
+      "change_id": "chg_004",
+      "importance": "informational",
+      "semantic_type": "informational",
+      "change_type": "informational_change"
+    }
+  ],
+  "editorial_changes": [
+    {
+      "id": "ed_001",
+      "fragment": "Раздел 2, статья 2, пункт 2",
+      "old_text": "Сотрудник осуществляет проверку сведений по внутренним источникам.",
+      "new_text": "Сотрудник выполняет проверку сведений по внутренним источникам.",
+      "editorial_type": "wording",
+      "description": "Синонимичная замена, не влияющая на порядок проверки.",
+      "should_affect_summary": false,
+      "should_generate_quiz": false
+    }
+  ],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Срок подготовки справки составляет 4 рабочих дня со дня регистрации запроса.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 4",
+      "expected_type": "point",
+      "expected_boundary_text": "Сотрудник обязан уведомить заявителя о невозможности подготовки справки при отсутствии обязательных сведений.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_003",
+      "version": "new",
+      "fragment": "Раздел 2, статья 3, пункт 3",
+      "expected_type": "point",
+      "expected_boundary_text": "Справочная информация о статусе запроса доступна в локальной системе учета.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "срок подготовки справки сокращен с 5 до 4 рабочих дней",
+    "добавлена обязанность уведомления при невозможности подготовки справки"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "срок подготовки справки сокращен с 5 до 4 рабочих дней",
+      "добавлена обязанность уведомления при невозможности подготовки справки"
+    ],
+    "must_not_mention": [
+      "редакционная замена осуществляет на выполняет как значимое изменение"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новый срок подготовки справки",
+    "уведомление при невозможности подготовки справки"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новый срок подготовки справки",
+      "уведомление при невозможности подготовки справки"
+    ],
+    "must_not_cover_topics": [
+      "редакционная замена осуществляет на выполняет",
+      "справочная информация о статусе как обязательный вопрос"
+    ],
+    "expected_question_count_min": 2,
+    "expected_question_count_max": 3,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "mixed",
+    "deadline_change",
+    "obligation",
+    "informational",
+    "editorial",
+    "priority_filtering"
+  ],
+  "known_difficulties": [
+    "Summary должен фокусироваться на critical changes, а quiz не должен строиться по редакционной замене."
+  ],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

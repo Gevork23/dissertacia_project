@@ -1,0 +1,94 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_01_deadline_change",
+  "title": "Изменение срока рассмотрения заявления",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for deadline change detection, significance classification, summary focus, and quiz topic generation.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "old_text": "Срок рассмотрения заявления составляет 10 рабочих дней со дня его регистрации.",
+      "new_text": "Срок рассмотрения заявления составляет 7 рабочих дней со дня его регистрации.",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change",
+      "description": "Срок рассмотрения заявления сокращен с 10 до 7 рабочих дней.",
+      "expected_summary_topic": "сокращение срока рассмотрения заявления с 10 до 7 рабочих дней",
+      "expected_quiz_topic": "новый срок рассмотрения заявления",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "deadline",
+      "change_type": "deadline_change"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_heading": "Статья 2. Сроки рассмотрения",
+      "expected_boundary_text": "Срок рассмотрения заявления составляет 7 рабочих дней со дня его регистрации.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 2",
+      "expected_type": "point",
+      "expected_boundary_text": "При необходимости уточнения сведений сотрудник вправе направить заявителю запрос через локальную систему уведомлений.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "срок рассмотрения заявления сокращен с 10 до 7 рабочих дней"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "срок рассмотрения заявления сокращен с 10 до 7 рабочих дней"
+    ],
+    "must_not_mention": [
+      "изменение перечня документов",
+      "новое основание отказа"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новый срок рассмотрения заявления"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новый срок рассмотрения заявления"
+    ],
+    "must_not_cover_topics": [],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "deadline_change",
+    "modified",
+    "critical",
+    "quiz"
+  ],
+  "known_difficulties": [],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

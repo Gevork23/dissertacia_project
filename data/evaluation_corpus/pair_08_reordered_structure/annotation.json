@@ -1,0 +1,104 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_08_reordered_structure",
+  "title": "Перенос фрагмента без изменения текста",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for structural reorder and honest limitation of moved detection.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "moved",
+      "fragment": "Из Раздел 2, статья 2, пункт 2 в Раздел 3, статья 3, пункт 1",
+      "old_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "new_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "importance": "editorial",
+      "semantic_type": "structure",
+      "change_type": "structure_reorder",
+      "description": "Фрагмент перенесен в другой структурный раздел без изменения содержания.",
+      "expected_summary_topic": "",
+      "expected_quiz_topic": "",
+      "requires_manual_review": true,
+      "current_baseline_expected_behavior": "Текущий exact-text diff может не материализовать moved и считать текст unchanged либо как remove/add при иной реализации."
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "editorial",
+      "semantic_type": "structure",
+      "change_type": "structure_reorder"
+    }
+  ],
+  "editorial_changes": [
+    {
+      "id": "ed_001",
+      "fragment": "Раздел 2 -> Раздел 3",
+      "old_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "new_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "editorial_type": "structure_reorder_without_semantic_change",
+      "description": "Перенос без изменения содержания не должен порождать учебный вопрос.",
+      "should_affect_summary": false,
+      "should_generate_quiz": false
+    }
+  ],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "old",
+      "fragment": "Раздел 2, статья 2, пункт 2",
+      "expected_type": "point",
+      "expected_boundary_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 3, статья 3, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Контроль полноты сведений проводится до регистрации обращения.",
+      "is_key_chunk": true
+    }
+  ],
+  "expected_summary_topics": [],
+  "expected_summary": {
+    "must_mention": [],
+    "must_not_mention": [
+      "новая обязанность",
+      "новый срок",
+      "новое основание отказа",
+      "новый документ"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [],
+  "expected_quiz": {
+    "must_cover_topics": [],
+    "must_not_cover_topics": [
+      "факт структурного переноса без изменения смысла"
+    ],
+    "expected_question_count_min": 0,
+    "expected_question_count_max": 0,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "moved",
+    "structure",
+    "editorial",
+    "no_quiz",
+    "known_limitation"
+  ],
+  "known_difficulties": [
+    "Moved detection отсутствует или ограничена в текущем MVP; annotation фиксирует conceptual gold standard и baseline limitation."
+  ],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

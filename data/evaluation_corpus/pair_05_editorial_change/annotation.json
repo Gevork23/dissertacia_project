@@ -1,0 +1,102 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_05_editorial_change",
+  "title": "Редакционное изменение без смыслового влияния",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for editorial-only change detection and no-quiz behavior.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "modified",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "old_text": "Сотрудник осуществляет проверку документов на предмет комплектности.",
+      "new_text": "Сотрудник выполняет проверку документов на предмет комплектности.",
+      "importance": "editorial",
+      "semantic_type": "editorial",
+      "change_type": "editorial_wording",
+      "description": "Редакционная замена глагола без изменения обязанности, срока, перечня документов или процедуры.",
+      "expected_summary_topic": "",
+      "expected_quiz_topic": "",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "editorial",
+      "semantic_type": "editorial",
+      "change_type": "editorial_wording"
+    }
+  ],
+  "editorial_changes": [
+    {
+      "id": "ed_001",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "old_text": "Сотрудник осуществляет проверку документов на предмет комплектности.",
+      "new_text": "Сотрудник выполняет проверку документов на предмет комплектности.",
+      "editorial_type": "wording",
+      "description": "Синонимичная замена осуществляет -> выполняет без практического влияния.",
+      "should_affect_summary": false,
+      "should_generate_quiz": false
+    }
+  ],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "old",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Сотрудник осуществляет проверку документов на предмет комплектности.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Сотрудник выполняет проверку документов на предмет комплектности.",
+      "is_key_chunk": true
+    }
+  ],
+  "expected_summary_topics": [],
+  "expected_summary": {
+    "must_mention": [],
+    "must_not_mention": [
+      "новый срок",
+      "новая обязанность",
+      "новый документ",
+      "новое основание отказа"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [],
+  "expected_quiz": {
+    "must_cover_topics": [],
+    "must_not_cover_topics": [
+      "редакционная замена осуществляет на выполняет"
+    ],
+    "expected_question_count_min": 0,
+    "expected_question_count_max": 0,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "editorial",
+    "modified",
+    "negative_control",
+    "no_quiz"
+  ],
+  "known_difficulties": [
+    "Pipeline может найти modified chunk, но significance и quiz должны трактовать изменение как editorial-only."
+  ],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

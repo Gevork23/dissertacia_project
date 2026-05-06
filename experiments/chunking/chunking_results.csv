@@ -1,0 +1,40 @@
+pair_id,document_version,title,method,expected_blocks,found_blocks,correct_boundaries,precision,recall,f1,oversegmentation_ratio,boundary_delta,key_expected_blocks,key_correct_boundaries,key_recall,matched_expected_ids,missed_expected_ids,merged_expected_ids,notes
+pair_01_deadline_change,new,Изменение срока рассмотрения заявления,paragraph_baseline,2,8,1,0.1250,0.5000,0.2000,4.0000,6,1,1,1.0000,chunk_001,chunk_002,chunk_002,merged=chunk_002
+pair_01_deadline_change,new,Изменение срока рассмотрения заявления,heading_article_baseline,2,17,2,0.1176,1.0000,0.2105,8.5000,15,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_01_deadline_change,new,Изменение срока рассмотрения заявления,hybrid_structural,2,10,2,0.2000,1.0000,0.3333,5.0000,8,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_02_added_obligation,new,Добавление обязанности уведомления заявителя,paragraph_baseline,2,8,1,0.1250,0.5000,0.2000,4.0000,6,1,1,1.0000,chunk_001,chunk_002,chunk_002,merged=chunk_002
+pair_02_added_obligation,new,Добавление обязанности уведомления заявителя,heading_article_baseline,2,18,2,0.1111,1.0000,0.2000,9.0000,16,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_02_added_obligation,new,Добавление обязанности уведомления заявителя,hybrid_structural,2,11,2,0.1818,1.0000,0.3077,5.5000,9,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_03_document_list_change,new,Добавление документа в обязательный перечень,paragraph_baseline,3,8,2,0.2500,0.6667,0.3636,2.6667,5,1,0,0.0000,"chunk_001,chunk_003",chunk_002,chunk_002,merged=chunk_002
+pair_03_document_list_change,new,Добавление документа в обязательный перечень,heading_article_baseline,3,16,2,0.1250,0.6667,0.2105,5.3333,13,1,0,0.0000,"chunk_001,chunk_003",chunk_002,chunk_002,merged=chunk_002
+pair_03_document_list_change,new,Добавление документа в обязательный перечень,hybrid_structural,3,13,3,0.2308,1.0000,0.3750,4.3333,10,1,1,1.0000,"chunk_001,chunk_002,chunk_003",,,ok
+pair_04_refusal_ground_change,new,Добавление основания для отказа,paragraph_baseline,2,8,2,0.2500,1.0000,0.4000,4.0000,6,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_04_refusal_ground_change,new,Добавление основания для отказа,heading_article_baseline,2,17,2,0.1176,1.0000,0.2105,8.5000,15,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_04_refusal_ground_change,new,Добавление основания для отказа,hybrid_structural,2,10,2,0.2000,1.0000,0.3333,5.0000,8,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_05_editorial_change,old,Редакционное изменение без смыслового влияния,paragraph_baseline,1,8,1,0.1250,1.0000,0.2222,8.0000,7,1,1,1.0000,chunk_001,,,ok
+pair_05_editorial_change,old,Редакционное изменение без смыслового влияния,heading_article_baseline,1,17,1,0.0588,1.0000,0.1111,17.0000,16,1,1,1.0000,chunk_001,,,ok
+pair_05_editorial_change,old,Редакционное изменение без смыслового влияния,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_001,,,ok
+pair_05_editorial_change,new,Редакционное изменение без смыслового влияния,paragraph_baseline,1,8,1,0.1250,1.0000,0.2222,8.0000,7,1,1,1.0000,chunk_002,,,ok
+pair_05_editorial_change,new,Редакционное изменение без смыслового влияния,heading_article_baseline,1,17,1,0.0588,1.0000,0.1111,17.0000,16,1,1,1.0000,chunk_002,,,ok
+pair_05_editorial_change,new,Редакционное изменение без смыслового влияния,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_002,,,ok
+pair_06_procedure_change,old,Изменение порядка подачи заявления,paragraph_baseline,1,8,1,0.1250,1.0000,0.2222,8.0000,7,1,1,1.0000,chunk_001,,,ok
+pair_06_procedure_change,old,Изменение порядка подачи заявления,heading_article_baseline,1,17,1,0.0588,1.0000,0.1111,17.0000,16,1,1,1.0000,chunk_001,,,ok
+pair_06_procedure_change,old,Изменение порядка подачи заявления,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_001,,,ok
+pair_06_procedure_change,new,Изменение порядка подачи заявления,paragraph_baseline,1,8,1,0.1250,1.0000,0.2222,8.0000,7,1,1,1.0000,chunk_002,,,ok
+pair_06_procedure_change,new,Изменение порядка подачи заявления,heading_article_baseline,1,17,1,0.0588,1.0000,0.1111,17.0000,16,1,1,1.0000,chunk_002,,,ok
+pair_06_procedure_change,new,Изменение порядка подачи заявления,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_002,,,ok
+pair_07_responsibility_change,new,Добавление ответственности за нарушение срока,paragraph_baseline,2,8,1,0.1250,0.5000,0.2000,4.0000,6,1,1,1.0000,chunk_001,chunk_002,chunk_002,merged=chunk_002
+pair_07_responsibility_change,new,Добавление ответственности за нарушение срока,heading_article_baseline,2,17,2,0.1176,1.0000,0.2105,8.5000,15,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_07_responsibility_change,new,Добавление ответственности за нарушение срока,hybrid_structural,2,10,2,0.2000,1.0000,0.3333,5.0000,8,1,1,1.0000,"chunk_001,chunk_002",,,ok
+pair_08_reordered_structure,old,Перенос фрагмента без изменения текста,paragraph_baseline,1,9,1,0.1111,1.0000,0.2000,9.0000,8,1,1,1.0000,chunk_001,,,ok
+pair_08_reordered_structure,old,Перенос фрагмента без изменения текста,heading_article_baseline,1,18,1,0.0556,1.0000,0.1053,18.0000,17,1,1,1.0000,chunk_001,,,ok
+pair_08_reordered_structure,old,Перенос фрагмента без изменения текста,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_001,,,ok
+pair_08_reordered_structure,new,Перенос фрагмента без изменения текста,paragraph_baseline,1,9,1,0.1111,1.0000,0.2000,9.0000,8,1,1,1.0000,chunk_002,,,ok
+pair_08_reordered_structure,new,Перенос фрагмента без изменения текста,heading_article_baseline,1,18,1,0.0556,1.0000,0.1053,18.0000,17,1,1,1.0000,chunk_002,,,ok
+pair_08_reordered_structure,new,Перенос фрагмента без изменения текста,hybrid_structural,1,10,1,0.1000,1.0000,0.1818,10.0000,9,1,1,1.0000,chunk_002,,,ok
+pair_09_mixed_significant_and_editorial,new,"Смешанные значимые, информационные и редакционные изменения",paragraph_baseline,3,8,2,0.2500,0.6667,0.3636,2.6667,5,2,1,0.5000,"chunk_001,chunk_003",chunk_002,chunk_002,merged=chunk_002
+pair_09_mixed_significant_and_editorial,new,"Смешанные значимые, информационные и редакционные изменения",heading_article_baseline,3,19,3,0.1579,1.0000,0.2727,6.3333,16,2,2,1.0000,"chunk_001,chunk_002,chunk_003",,,ok
+pair_09_mixed_significant_and_editorial,new,"Смешанные значимые, информационные и редакционные изменения",hybrid_structural,3,12,3,0.2500,1.0000,0.4000,4.0000,9,2,2,1.0000,"chunk_001,chunk_002,chunk_003",,,ok
+pair_10_weakly_structured_document,new,Слабо структурированный документ для fallback chunking,paragraph_baseline,3,8,3,0.3750,1.0000,0.5455,2.6667,5,1,1,1.0000,"chunk_001,chunk_002,chunk_003",,,ok
+pair_10_weakly_structured_document,new,Слабо структурированный документ для fallback chunking,heading_article_baseline,3,1,1,1.0000,0.3333,0.5000,0.3333,-2,1,0,0.0000,chunk_001,"chunk_002,chunk_003","chunk_002,chunk_003","merged=chunk_002,chunk_003"
+pair_10_weakly_structured_document,new,Слабо структурированный документ для fallback chunking,hybrid_structural,3,8,3,0.3750,1.0000,0.5455,2.6667,5,1,1,1.0000,"chunk_001,chunk_002,chunk_003",,,ok

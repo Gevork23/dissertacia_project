@@ -1,0 +1,104 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_03_document_list_change",
+  "title": "Добавление документа в обязательный перечень",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for added required document detection, subpoint chunking, and quiz topic generation.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "added",
+      "fragment": "Раздел 2, статья 2, пункт 1, подпункт г",
+      "old_text": "",
+      "new_text": "г) копию документа, подтверждающего полномочия представителя, если заявление подает представитель.",
+      "importance": "critical",
+      "semantic_type": "document",
+      "change_type": "document_list_change",
+      "description": "В перечень обязательных документов добавлена копия документа, подтверждающего полномочия представителя.",
+      "expected_summary_topic": "добавлена копия документа, подтверждающего полномочия представителя",
+      "expected_quiz_topic": "новый документ в перечне обязательных документов",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "document",
+      "change_type": "document_list_change"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Для рассмотрения заявления заявитель предоставляет:",
+      "is_key_chunk": false
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 1, подпункт г",
+      "expected_type": "subpoint",
+      "expected_boundary_text": "копию документа, подтверждающего полномочия представителя, если заявление подает представитель.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_003",
+      "version": "new",
+      "fragment": "Раздел 2, статья 3, пункт 1",
+      "expected_type": "point",
+      "expected_boundary_text": "Сотрудник проверяет наличие документов по перечню.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "добавлена копия документа, подтверждающего полномочия представителя"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "добавлена копия документа, подтверждающего полномочия представителя"
+    ],
+    "must_not_mention": [
+      "изменение срока",
+      "основание отказа"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новый документ в перечне обязательных документов"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новый документ в перечне обязательных документов"
+    ],
+    "must_not_cover_topics": [],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "added",
+    "document_list_change",
+    "subpoint",
+    "critical",
+    "quiz"
+  ],
+  "known_difficulties": [
+    "Добавление подпункта может быть обнаружено как изменение родительского пункта, если comparison работает на уровне более крупного chunk."
+  ],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

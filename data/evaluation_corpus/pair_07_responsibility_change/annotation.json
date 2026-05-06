@@ -1,0 +1,93 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_07_responsibility_change",
+  "title": "Добавление ответственности за нарушение срока",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for added responsibility rule and critical significance classification.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "added",
+      "fragment": "Раздел 2, статья 3, пункт 2",
+      "old_text": "",
+      "new_text": "За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразделения.",
+      "importance": "critical",
+      "semantic_type": "responsibility",
+      "change_type": "responsibility_change",
+      "description": "Добавлено правило об ответственности сотрудника за нарушение срока обработки заявления.",
+      "expected_summary_topic": "ответственность за нарушение срока обработки заявления",
+      "expected_quiz_topic": "ответственность за нарушение срока",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "responsibility",
+      "change_type": "responsibility_change"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "Раздел 2, статья 3, пункт 2",
+      "expected_type": "point",
+      "expected_boundary_text": "За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразделения.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 3, пункт 3",
+      "expected_type": "point",
+      "expected_boundary_text": "Руководитель подразделения проверяет причины задержки и назначает корректирующие действия.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "добавлена ответственность сотрудника за нарушение срока обработки заявления"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "добавлена ответственность сотрудника за нарушение срока обработки заявления"
+    ],
+    "must_not_mention": [
+      "редакционная правка",
+      "новый документ в перечне"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "ответственность за нарушение срока"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "ответственность за нарушение срока"
+    ],
+    "must_not_cover_topics": [],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "added",
+    "responsibility",
+    "critical",
+    "quiz"
+  ],
+  "known_difficulties": [],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

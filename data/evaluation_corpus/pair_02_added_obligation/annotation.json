@@ -1,0 +1,93 @@
+{
+  "annotation_version": "1.0",
+  "pair_id": "pair_02_added_obligation",
+  "title": "Добавление обязанности уведомления заявителя",
+  "document_type": "synthetic_internal_regulation",
+  "purpose": "Evaluation case for detecting a newly added employee obligation and generating quiz material only for the meaningful obligation.",
+  "old_file": "old.txt",
+  "new_file": "new.txt",
+  "format": "txt",
+  "language": "ru",
+  "synthetic": true,
+  "contains_personal_data": false,
+  "source_relation": "Created for evaluation corpus in Phase 13; not a direct copy of demo corpus metadata.",
+  "expected_changes": [
+    {
+      "id": "chg_001",
+      "type": "added",
+      "fragment": "Раздел 2, статья 2, пункт 3",
+      "old_text": "",
+      "new_text": "Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений.",
+      "importance": "critical",
+      "semantic_type": "obligation",
+      "change_type": "added_obligation",
+      "description": "Добавлена новая обязанность сотрудника уведомлять заявителя о результате рассмотрения обращения.",
+      "expected_summary_topic": "новая обязанность уведомить заявителя о результате рассмотрения обращения",
+      "expected_quiz_topic": "новая обязанность сотрудника по уведомлению заявителя",
+      "requires_manual_review": false
+    }
+  ],
+  "expected_significance": [
+    {
+      "change_id": "chg_001",
+      "importance": "critical",
+      "semantic_type": "obligation",
+      "change_type": "added_obligation"
+    }
+  ],
+  "editorial_changes": [],
+  "expected_chunks": [
+    {
+      "id": "chunk_001",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 3",
+      "expected_type": "point",
+      "expected_boundary_text": "Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений.",
+      "is_key_chunk": true
+    },
+    {
+      "id": "chunk_002",
+      "version": "new",
+      "fragment": "Раздел 2, статья 2, пункт 4",
+      "expected_type": "point",
+      "expected_boundary_text": "Проект результата передается руководителю подразделения для согласования.",
+      "is_key_chunk": false
+    }
+  ],
+  "expected_summary_topics": [
+    "добавлена обязанность уведомить заявителя о результате рассмотрения обращения"
+  ],
+  "expected_summary": {
+    "must_mention": [
+      "добавлена обязанность уведомить заявителя о результате рассмотрения обращения"
+    ],
+    "must_not_mention": [
+      "изменение срока рассмотрения",
+      "редакционная правка"
+    ],
+    "minimum_focus": "Summary should prioritize non-editorial meaningful changes unless the pair is an editorial-only control."
+  },
+  "expected_quiz_topics": [
+    "новая обязанность сотрудника по уведомлению заявителя"
+  ],
+  "expected_quiz": {
+    "must_cover_topics": [
+      "новая обязанность сотрудника по уведомлению заявителя"
+    ],
+    "must_not_cover_topics": [],
+    "expected_question_count_min": 1,
+    "expected_question_count_max": 2,
+    "acceptance_rule": "Question is correct if it checks the expected topic using the new version as the source of truth and does not test editorial-only changes."
+  },
+  "evaluation_tags": [
+    "added",
+    "obligation",
+    "critical",
+    "quiz"
+  ],
+  "known_difficulties": [],
+  "limitations": [
+    "Synthetic corpus item; annotation is an expert evaluation target, not a legal conclusion."
+  ],
+  "notes": "Synthetic evaluation pair; no personal data; intended for Phase 14-18 metric design."
+}

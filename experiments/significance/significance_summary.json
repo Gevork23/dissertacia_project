@@ -1,0 +1,531 @@
+{
+  "experiment": "significance_layer_evaluation",
+  "phase": 16,
+  "evaluation_mode": "oracle_change_text_only_primary",
+  "primary_mode_description": "Expected change spans from annotation are used as oracle changes. Gold importance and semantic_type are not passed into the primary classifier; the production enrich_change wrapper infers semantic type from old/new text.",
+  "semantic_hint_mode_description": "Diagnostic upper bound: annotated semantic_type is passed to the same production wrapper.",
+  "corpus_dir": "data\\evaluation_corpus",
+  "pairs_found": 10,
+  "annotation_labels": [
+    "critical",
+    "editorial",
+    "important",
+    "informational"
+  ],
+  "project_output_labels": [
+    "critical",
+    "important",
+    "informational",
+    "editorial",
+    "not_evaluated"
+  ],
+  "production_classifier_labels": [
+    "critical",
+    "important",
+    "informational",
+    "editorial"
+  ],
+  "mapping_required": false,
+  "label_mapping": {},
+  "positive_class": [
+    "critical",
+    "important"
+  ],
+  "negative_class": [
+    "editorial",
+    "informational",
+    "not_evaluated"
+  ],
+  "meaningful_diagnostic_class": [
+    "critical",
+    "important",
+    "informational"
+  ],
+  "editorial_false_positive_policy": {
+    "broad": [
+      "critical",
+      "important",
+      "informational"
+    ],
+    "strict_high_priority": [
+      "critical",
+      "important"
+    ]
+  },
+  "expected_label_distribution": {
+    "critical": 8,
+    "editorial": 3,
+    "important": 1,
+    "informational": 1
+  },
+  "predicted_label_distribution": {
+    "critical": 7,
+    "important": 5,
+    "editorial": 1
+  },
+  "expected_semantic_type_distribution": {
+    "deadline": 3,
+    "obligation": 2,
+    "document": 1,
+    "refusal": 1,
+    "editorial": 2,
+    "procedure": 1,
+    "responsibility": 1,
+    "structure": 1,
+    "informational": 1
+  },
+  "predicted_semantic_type_distribution": {
+    "deadline": 4,
+    "obligation": 2,
+    "unclassified": 5,
+    "responsibility": 1,
+    "editorial": 1
+  },
+  "corpus_audit": [
+    {
+      "pair_id": "pair_01_deadline_change",
+      "title": "Изменение срока рассмотрения заявления",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 0,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_02_added_obligation",
+      "title": "Добавление обязанности уведомления заявителя",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 0,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_03_document_list_change",
+      "title": "Добавление документа в обязательный перечень",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 1,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_04_refusal_ground_change",
+      "title": "Добавление основания для отказа",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 0,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_05_editorial_change",
+      "title": "Редакционное изменение без смыслового влияния",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 1,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 1,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_06_procedure_change",
+      "title": "Изменение порядка подачи заявления",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 0,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_07_responsibility_change",
+      "title": "Добавление ответственности за нарушение срока",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 0,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_08_reordered_structure",
+      "title": "Перенос фрагмента без изменения текста",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 1,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 1,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "title": "Смешанные значимые, информационные и редакционные изменения",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 4,
+      "expected_changes_with_importance": 4,
+      "expected_changes_with_change_type": 4,
+      "expected_changes_with_semantic_type": 4,
+      "expected_changes_with_expected_summary_topic_key": 4,
+      "expected_changes_with_expected_quiz_topic_key": 4,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 1,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 1,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    },
+    {
+      "pair_id": "pair_10_weakly_structured_document",
+      "title": "Слабо структурированный документ для fallback chunking",
+      "annotation_exists": true,
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "expected_changes": 1,
+      "expected_changes_with_importance": 1,
+      "expected_changes_with_change_type": 1,
+      "expected_changes_with_semantic_type": 1,
+      "expected_changes_with_expected_summary_topic_key": 1,
+      "expected_changes_with_expected_quiz_topic_key": 1,
+      "has_editorial_changes": true,
+      "editorial_changes_count": 0,
+      "has_known_difficulties": true,
+      "known_difficulties_count": 2,
+      "has_expected_summary_topics": true,
+      "has_expected_quiz_topics": true,
+      "usable": true
+    }
+  ],
+  "limitations": [
+    "Small synthetic evaluation corpus: 10 pairs and 13 expected changes.",
+    "Annotation is a key-change gold standard, not an exhaustive full diff benchmark.",
+    "Primary oracle-change mode uses old/new change text only; semantic-hint mode is reported separately as an upper bound.",
+    "Labels medium and minor are absent from the current production model and annotation.",
+    "Rule-based significance depends on lexical patterns and may over-prioritize unfamiliar editorial or informational wording.",
+    "Pipeline quality remains bounded by comparison quality from Phase 15."
+  ],
+  "semantic_hint_upper_bound": {
+    "total_changes": 13,
+    "correct": 13,
+    "accuracy": 1.0,
+    "important_critical_precision": 1.0,
+    "important_critical_recall": 1.0,
+    "important_critical_f1": 1.0,
+    "important_critical_counts": {
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "tn": 4,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "meaningful_precision": 1.0,
+    "meaningful_recall": 1.0,
+    "meaningful_f1": 1.0,
+    "meaningful_counts": {
+      "tp": 10,
+      "fp": 0,
+      "fn": 0,
+      "tn": 3,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "editorial_expected_count": 3,
+    "editorial_false_positive_count": 0,
+    "editorial_false_positive_rate": 0.0,
+    "editorial_high_priority_false_positive_count": 0,
+    "editorial_high_priority_false_positive_rate": 0.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "manual_review_count": 0,
+    "manual_review_rate": 0.0,
+    "per_class": {
+      "critical": {
+        "support": 8,
+        "tp": 8,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "important": {
+        "support": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "informational": {
+        "support": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "editorial": {
+        "support": 3,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "confusion_matrix_labels": [
+      "critical",
+      "important",
+      "informational",
+      "editorial"
+    ],
+    "confusion_matrix": [
+      [
+        8,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3
+      ]
+    ]
+  },
+  "total_changes": 13,
+  "correct": 9,
+  "accuracy": 0.6923,
+  "important_critical_precision": 0.75,
+  "important_critical_recall": 1.0,
+  "important_critical_f1": 0.8571,
+  "important_critical_counts": {
+    "tp": 9,
+    "fp": 3,
+    "fn": 0,
+    "tn": 1,
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1": 0.8571
+  },
+  "meaningful_precision": 0.8333,
+  "meaningful_recall": 1.0,
+  "meaningful_f1": 0.9091,
+  "meaningful_counts": {
+    "tp": 10,
+    "fp": 2,
+    "fn": 0,
+    "tn": 1,
+    "precision": 0.8333,
+    "recall": 1.0,
+    "f1": 0.9091
+  },
+  "editorial_expected_count": 3,
+  "editorial_false_positive_count": 2,
+  "editorial_false_positive_rate": 0.6667,
+  "editorial_high_priority_false_positive_count": 2,
+  "editorial_high_priority_false_positive_rate": 0.6667,
+  "macro_precision": 0.55,
+  "macro_recall": 0.5521,
+  "macro_f1": 0.4416,
+  "weighted_f1": 0.7154,
+  "manual_review_count": 4,
+  "manual_review_rate": 0.3077,
+  "per_class": {
+    "critical": {
+      "support": 8,
+      "tp": 7,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.875,
+      "f1": 0.9333
+    },
+    "important": {
+      "support": 1,
+      "tp": 1,
+      "fp": 4,
+      "fn": 0,
+      "precision": 0.2,
+      "recall": 1.0,
+      "f1": 0.3333
+    },
+    "informational": {
+      "support": 1,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "editorial": {
+      "support": 3,
+      "tp": 1,
+      "fp": 0,
+      "fn": 2,
+      "precision": 1.0,
+      "recall": 0.3333,
+      "f1": 0.5
+    }
+  },
+  "confusion_matrix_labels": [
+    "critical",
+    "important",
+    "informational",
+    "editorial"
+  ],
+  "confusion_matrix": [
+    [
+      7,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      1
+    ]
+  ],
+  "phase15_diff_summary": {
+    "strict_expected_changes_total": 10,
+    "editorial_expected_changes_total": 3,
+    "structural_chunk_diff": {
+      "micro_precision": 0.7692,
+      "micro_recall": 1.0,
+      "micro_f1": 0.8695,
+      "total_noise": 3,
+      "total_editorial_noise": 2,
+      "diagnostic_all_expected_changes": {
+        "raw_tp": 12,
+        "raw_fp": 1,
+        "raw_fn": 1,
+        "raw_precision": 0.9231,
+        "raw_recall": 0.9231,
+        "raw_f1": 0.9231
+      }
+    }
+  }
+}

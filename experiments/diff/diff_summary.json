@@ -1,0 +1,516 @@
+{
+  "experiment": "diff_version_comparison_evaluation",
+  "phase": 15,
+  "evaluation_scope": "Primary strict metrics use meaningful/key expected changes from annotation.json and treat editorial-only predictions as noise. Diagnostic raw metrics use all expected_changes.",
+  "corpus_dir": "data\\evaluation_corpus",
+  "pairs_found": 10,
+  "raw_expected_changes_total": 13,
+  "strict_expected_changes_total": 10,
+  "editorial_expected_changes_total": 3,
+  "methods": {
+    "plain_text_diff": {
+      "role": "baseline",
+      "description": "Line-level difflib baseline over minimally normalized text.",
+      "pairs_evaluated": 10,
+      "avg_precision": 0.625,
+      "avg_recall": 0.8,
+      "avg_f1": 0.6857,
+      "micro_precision": 0.5,
+      "micro_recall": 1.0,
+      "micro_f1": 0.6667,
+      "total_tp": 10,
+      "total_fp": 10,
+      "total_fn": 0,
+      "total_noise": 10,
+      "total_predicted_changes": 20,
+      "noise_ratio": 0.5,
+      "total_editorial_noise": 4,
+      "diagnostic_all_expected_changes": {
+        "raw_tp": 13,
+        "raw_fp": 7,
+        "raw_fn": 0,
+        "raw_precision": 0.65,
+        "raw_recall": 1.0,
+        "raw_f1": 0.7879
+      }
+    },
+    "paragraph_diff": {
+      "role": "stronger baseline",
+      "description": "Paragraph/block difflib baseline over blank-line paragraphs.",
+      "pairs_evaluated": 10,
+      "avg_precision": 0.35,
+      "avg_recall": 0.3333,
+      "avg_f1": 0.34,
+      "micro_precision": 0.3333,
+      "micro_recall": 0.4,
+      "micro_f1": 0.3636,
+      "total_tp": 4,
+      "total_fp": 8,
+      "total_fn": 6,
+      "total_noise": 8,
+      "total_predicted_changes": 12,
+      "noise_ratio": 0.6667,
+      "total_editorial_noise": 4,
+      "diagnostic_all_expected_changes": {
+        "raw_tp": 6,
+        "raw_fp": 6,
+        "raw_fn": 7,
+        "raw_precision": 0.5,
+        "raw_recall": 0.4615,
+        "raw_f1": 0.48
+      }
+    },
+    "structural_chunk_diff": {
+      "role": "proposed method",
+      "description": "Production structural comparison via hybrid chunks and build_version_diff.",
+      "pairs_evaluated": 10,
+      "avg_precision": 0.725,
+      "avg_recall": 0.8,
+      "avg_f1": 0.7524,
+      "micro_precision": 0.7692,
+      "micro_recall": 1.0,
+      "micro_f1": 0.8695,
+      "total_tp": 10,
+      "total_fp": 3,
+      "total_fn": 0,
+      "total_noise": 3,
+      "total_predicted_changes": 13,
+      "noise_ratio": 0.2308,
+      "total_editorial_noise": 2,
+      "diagnostic_all_expected_changes": {
+        "raw_tp": 12,
+        "raw_fp": 1,
+        "raw_fn": 1,
+        "raw_precision": 0.9231,
+        "raw_recall": 0.9231,
+        "raw_f1": 0.9231
+      }
+    }
+  },
+  "matching_rule": "One-to-one greedy matching. Status must be compatible; normalized old/new text must have side-specific lexical overlap >= 0.72. Leading structural markers are ignored. Moved raw diagnostics accept moved or partial added/removed/modified evidence.",
+  "editorial_noise_policy": "Expected changes with importance=editorial are excluded from primary strict expected set. Predictions matching editorial_changes are counted as editorial_noise_count and as FP unless they also match a meaningful expected change. Raw diagnostics keep all expected_changes.",
+  "noise_definition": "noise_count = FP; noise_ratio = FP / max(1, predicted_changes)",
+  "corpus_audit": [
+    {
+      "pair_id": "pair_01_deadline_change",
+      "title": "Изменение срока рассмотрения заявления",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 2,
+      "known_difficulties": [],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_02_added_obligation",
+      "title": "Добавление обязанности уведомления заявителя",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 2,
+      "known_difficulties": [],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_03_document_list_change",
+      "title": "Добавление документа в обязательный перечень",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 3,
+      "known_difficulties": [
+        "Добавление подпункта может быть обнаружено как изменение родительского пункта, если comparison работает на уровне более крупного chunk."
+      ],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_04_refusal_ground_change",
+      "title": "Добавление основания для отказа",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 2,
+      "known_difficulties": [],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_05_editorial_change",
+      "title": "Редакционное изменение без смыслового влияния",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 0,
+      "editorial_changes": 1,
+      "expected_chunks": 2,
+      "known_difficulties": [
+        "Pipeline может найти modified chunk, но significance и quiz должны трактовать изменение как editorial-only."
+      ],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_06_procedure_change",
+      "title": "Изменение порядка подачи заявления",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 2,
+      "known_difficulties": [],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_07_responsibility_change",
+      "title": "Добавление ответственности за нарушение срока",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 2,
+      "known_difficulties": [],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_08_reordered_structure",
+      "title": "Перенос фрагмента без изменения текста",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 0,
+      "editorial_changes": 1,
+      "expected_chunks": 2,
+      "known_difficulties": [
+        "Moved detection отсутствует или ограничена в текущем MVP; annotation фиксирует conceptual gold standard и baseline limitation."
+      ],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "title": "Смешанные значимые, информационные и редакционные изменения",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 4,
+      "expected_meaningful_changes": 3,
+      "editorial_changes": 1,
+      "expected_chunks": 3,
+      "known_difficulties": [
+        "Summary должен фокусироваться на critical changes, а quiz не должен строиться по редакционной замене."
+      ],
+      "usable_for_comparison_evaluation": true
+    },
+    {
+      "pair_id": "pair_10_weakly_structured_document",
+      "title": "Слабо структурированный документ для fallback chunking",
+      "old_file_exists": true,
+      "new_file_exists": true,
+      "annotation_exists": true,
+      "expected_changes": 1,
+      "expected_meaningful_changes": 1,
+      "editorial_changes": 0,
+      "expected_chunks": 3,
+      "known_difficulties": [
+        "Документ специально не содержит явных markers Раздел/Статья/Пункт; expected_chunks должны оцениваться как fallback blocks.",
+        "Comparison может быть менее точным, потому что changed deadline находится внутри более крупного fallback-блока."
+      ],
+      "usable_for_comparison_evaluation": true
+    }
+  ],
+  "phase14_chunking_summary": {
+    "experiment": "structural_chunking_evaluation",
+    "phase": 14,
+    "corpus_dir": "data\\evaluation_corpus",
+    "pairs_found": 10,
+    "evaluated_documents": 13,
+    "methods": {
+      "paragraph_baseline": {
+        "role": "baseline",
+        "description": "Naive split by empty-line paragraph boundaries."
+      },
+      "heading_article_baseline": {
+        "role": "stronger baseline",
+        "description": "Rule split by major headings and numeric clauses; no lettered subpoints and no production fallback strategy."
+      },
+      "hybrid_structural": {
+        "role": "proposed method",
+        "description": "Current production hybrid structural chunking via chunk_by_structure_ru."
+      }
+    },
+    "annotation_scope": "expected_chunks are manually selected target/key chunks, not a complete full-document segmentation gold standard",
+    "matching_rule": "An expected chunk is counted as correct if its normalized expected_boundary_text is contained in one unused found chunk. If multiple expected chunks are merged into the same found chunk, only the first one-to-one match is counted and the rest are marked as merged.",
+    "aggregate_by_method": {
+      "paragraph_baseline": {
+        "documents_evaluated": 13,
+        "micro": {
+          "expected_blocks": 23,
+          "found_blocks": 106,
+          "correct_boundaries": 18,
+          "precision": 0.1698,
+          "recall": 0.7826,
+          "f1": 0.2791,
+          "key_expected_blocks": 14,
+          "key_correct_boundaries": 12,
+          "key_recall": 0.8571
+        },
+        "macro": {
+          "precision": 0.1709,
+          "recall": 0.8333,
+          "f1": 0.274,
+          "key_recall": 0.8846,
+          "found_blocks_mean": 8.1538,
+          "expected_blocks_mean": 1.7692,
+          "oversegmentation_ratio_mean": 5.6923
+        }
+      },
+      "heading_article_baseline": {
+        "documents_evaluated": 13,
+        "micro": {
+          "expected_blocks": 23,
+          "found_blocks": 209,
+          "correct_boundaries": 20,
+          "precision": 0.0957,
+          "recall": 0.8696,
+          "f1": 0.1724,
+          "key_expected_blocks": 14,
+          "key_correct_boundaries": 12,
+          "key_recall": 0.8571
+        },
+        "macro": {
+          "precision": 0.161,
+          "recall": 0.9231,
+          "f1": 0.19,
+          "key_recall": 0.8462,
+          "found_blocks_mean": 16.0769,
+          "expected_blocks_mean": 1.7692,
+          "oversegmentation_ratio_mean": 11.5769
+        }
+      },
+      "hybrid_structural": {
+        "documents_evaluated": 13,
+        "micro": {
+          "expected_blocks": 23,
+          "found_blocks": 134,
+          "correct_boundaries": 23,
+          "precision": 0.1716,
+          "recall": 1.0,
+          "f1": 0.293,
+          "key_expected_blocks": 14,
+          "key_correct_boundaries": 14,
+          "key_recall": 1.0
+        },
+        "macro": {
+          "precision": 0.1721,
+          "recall": 1.0,
+          "f1": 0.2861,
+          "key_recall": 1.0,
+          "found_blocks_mean": 10.3077,
+          "expected_blocks_mean": 1.7692,
+          "oversegmentation_ratio_mean": 7.0385
+        }
+      }
+    },
+    "corpus_audit": [
+      {
+        "pair_id": "pair_01_deadline_change",
+        "title": "Изменение срока рассмотрения заявления",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 2
+        },
+        "known_difficulties": [],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_02_added_obligation",
+        "title": "Добавление обязанности уведомления заявителя",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 2
+        },
+        "known_difficulties": [],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_03_document_list_change",
+        "title": "Добавление документа в обязательный перечень",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 3,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 3
+        },
+        "known_difficulties": [
+          "Добавление подпункта может быть обнаружено как изменение родительского пункта, если comparison работает на уровне более крупного chunk."
+        ],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_04_refusal_ground_change",
+        "title": "Добавление основания для отказа",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 2
+        },
+        "known_difficulties": [],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_05_editorial_change",
+        "title": "Редакционное изменение без смыслового влияния",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "old": 1,
+          "new": 1
+        },
+        "known_difficulties": [
+          "Pipeline может найти modified chunk, но significance и quiz должны трактовать изменение как editorial-only."
+        ],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_06_procedure_change",
+        "title": "Изменение порядка подачи заявления",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "old": 1,
+          "new": 1
+        },
+        "known_difficulties": [],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_07_responsibility_change",
+        "title": "Добавление ответственности за нарушение срока",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 2
+        },
+        "known_difficulties": [],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_08_reordered_structure",
+        "title": "Перенос фрагмента без изменения текста",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 2,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "old": 1,
+          "new": 1
+        },
+        "known_difficulties": [
+          "Moved detection отсутствует или ограничена в текущем MVP; annotation фиксирует conceptual gold standard и baseline limitation."
+        ],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_09_mixed_significant_and_editorial",
+        "title": "Смешанные значимые, информационные и редакционные изменения",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 3,
+        "expected_changes": 4,
+        "expected_chunk_versions": {
+          "new": 3
+        },
+        "known_difficulties": [
+          "Summary должен фокусироваться на critical changes, а quiz не должен строиться по редакционной замене."
+        ],
+        "usable_for_chunking_evaluation": true
+      },
+      {
+        "pair_id": "pair_10_weakly_structured_document",
+        "title": "Слабо структурированный документ для fallback chunking",
+        "old_file_exists": true,
+        "new_file_exists": true,
+        "annotation_exists": true,
+        "expected_chunks": 3,
+        "expected_changes": 1,
+        "expected_chunk_versions": {
+          "new": 3
+        },
+        "known_difficulties": [
+          "Документ специально не содержит явных markers Раздел/Статья/Пункт; expected_chunks должны оцениваться как fallback blocks.",
+          "Comparison может быть менее точным, потому что changed deadline находится внутри более крупного fallback-блока."
+        ],
+        "usable_for_chunking_evaluation": true
+      }
+    ],
+    "outputs": {
+      "csv": "experiments\\chunking\\chunking_results.csv",
+      "summary_json": "experiments\\chunking\\chunking_summary.json",
+      "f1_png": "experiments\\chunking\\chunking_f1.png"
+    },
+    "limitations": [
+      "Expected chunks cover target/key fragments and do not annotate every valid chunk in each document.",
+      "Precision is therefore a conservative proxy: non-annotated but valid chunks are counted in found_blocks.",
+      "Boundary matching is based on normalized text containment, not expert semantic equivalence.",
+      "The experiment evaluates structural chunking only and does not evaluate diff, significance, summary, or quiz generation."
+    ]
+  },
+  "outputs": {
+    "csv": "experiments\\diff\\diff_results.csv",
+    "summary_json": "experiments\\diff\\diff_summary.json",
+    "fp_fn_png": "experiments\\diff\\diff_fp_fn.png",
+    "precision_recall_f1_png": "experiments\\diff\\diff_precision_recall_f1.png",
+    "error_examples_md": "experiments\\diff\\diff_error_examples.md",
+    "report_md": "docs\\experiments\\diff-evaluation.md"
+  },
+  "limitations": [
+    "The corpus contains 10 synthetic pairs and key-change annotations, not full exhaustive diff labels.",
+    "Strict metrics intentionally treat editorial-only changes as noise for downstream usefulness.",
+    "Lexical matching is deterministic and does not replace expert semantic adjudication.",
+    "Production structural comparison does not materialize moved items in the current MVP.",
+    "Structural diff quality depends on Phase 14 chunk boundary quality."
+  ],
+  "notes": [
+    "Core production comparison algorithm was not changed for this experiment.",
+    "The structural method is called through build_version_diff with in-memory versions/chunks, so the database is not modified."
+  ]
+}

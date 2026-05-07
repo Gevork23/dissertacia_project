@@ -1,0 +1,6 @@
+Stage,Evaluated component,Main metric,Value,Interpretation
+S,Structural chunking,micro_f1 / key_recall,0.293 / 1.0,"Hybrid structural chunking finds all annotated key/target boundaries and outperforms baselines by F1, but evaluation is not exhaustive full-document segmentation."
+C,Structural comparison,micro_f1 / noise_count,0.8695 / 3,Structural comparison reduces strict noise compared with plain-text and paragraph baselines and improves interpretability of changes.
+P,Significance layer,important_critical_recall / F1,1.0 / 0.8571,Recall-oriented deterministic baseline detects all important/critical changes but overclassifies some editorial/informational items.
+G-summary,Summary layer,overall_average / topic coverage,4.1167 / 8/9,Summaries make technical diff/significance outputs human-readable; unsupported claims and editorial overemphasis show upstream sensitivity.
+G-quiz,Quiz generation,important_change_coverage / average_question_score,0.8889 / 3.8333,"Quiz generation covers most significant changes and produces usable baseline materials, but requires approval workflow."

@@ -1,0 +1,6 @@
+Phase,Component,Required artifacts,Status,Notes
+14,Structural chunking,docs/experiments/chunking-evaluation.md; experiments/chunking/chunking_results.csv; experiments/chunking/chunking_summary.json; experiments/chunking/chunking_f1.png,complete,Found 4/4.
+15,Diff/comparison,docs/experiments/diff-evaluation.md; experiments/diff/diff_results.csv; experiments/diff/diff_summary.json; experiments/diff/diff_fp_fn.png; experiments/diff/diff_precision_recall_f1.png,complete,Found 5/5.
+16,Significance,docs/experiments/significance-evaluation.md; experiments/significance/significance_results.csv; experiments/significance/significance_summary.json; experiments/significance/significance_confusion_matrix.png; experiments/significance/significance_class_metrics.png,complete,Found 5/5.
+17,Summary,docs/experiments/summary-evaluation.md; experiments/summary/summary_results.csv; experiments/summary/summary_evaluation_summary.json; experiments/summary/summary_pair_scores.png; experiments/summary/summary_quality_scores.png,complete,Found 5/5.
+18,Quiz generation,docs/experiments/quiz-generation-evaluation.md; experiments/quiz/quiz_results.csv; experiments/quiz/quiz_pair_results.csv; experiments/quiz/quiz_evaluation_summary.json; experiments/quiz/quiz_coverage.png; experiments/quiz/quiz_pair_scores.png; experiments/quiz/quiz_quality_scores.png,complete,Found 7/7.

@@ -1,0 +1,13 @@
+{
+  "important_changes_total": 9,
+  "important_changes_detected_by_diff": 9,
+  "important_changes_classified_as_significant": 9,
+  "important_changes_covered_by_summary": 8,
+  "important_changes_covered_by_quiz": 8,
+  "strict_end_to_end_success_count": 8,
+  "strict_end_to_end_success_rate": 0.8889,
+  "practical_end_to_end_success_count": 8,
+  "practical_end_to_end_success_rate": 0.8889,
+  "trace_granularity_note": "Trace is built for expected important/critical changes. Diff evidence is pair-level strict structural comparison; summary/quiz evidence is topic-level from Phase 17/18 artifacts.",
+  "main_miss": "pair_06_procedure_change: detected by diff and classified as important, but not represented in summary/quiz topic coverage."
+}

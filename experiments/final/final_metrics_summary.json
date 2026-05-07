@@ -1,0 +1,307 @@
+{
+  "metrics": [
+    {
+      "phase": 14,
+      "stage": "S",
+      "component": "Structural chunking",
+      "metric": "micro_f1",
+      "value": 0.293,
+      "baseline_or_target": "hybrid_structural",
+      "interpretation": "Best F1 among evaluated chunking methods on key/target boundary annotation.",
+      "source": "experiments\\chunking\\chunking_summary.json"
+    },
+    {
+      "phase": 14,
+      "stage": "S",
+      "component": "Structural chunking",
+      "metric": "micro_recall",
+      "value": 1.0,
+      "baseline_or_target": "hybrid_structural",
+      "interpretation": "All expected target/key chunks were found under the containment matching rule.",
+      "source": "experiments\\chunking\\chunking_summary.json"
+    },
+    {
+      "phase": 14,
+      "stage": "S",
+      "component": "Structural chunking",
+      "metric": "key_recall",
+      "value": 1.0,
+      "baseline_or_target": "hybrid_structural",
+      "interpretation": "Best key-boundary recall; evaluation is not a full-document segmentation gold standard.",
+      "source": "experiments\\chunking\\chunking_summary.json"
+    },
+    {
+      "phase": 14,
+      "stage": "S",
+      "component": "Structural chunking baseline",
+      "metric": "paragraph_baseline_micro_f1",
+      "value": 0.2791,
+      "baseline_or_target": "paragraph_baseline",
+      "interpretation": "Baseline comparison for boundary detection.",
+      "source": "experiments\\chunking\\chunking_summary.json"
+    },
+    {
+      "phase": 14,
+      "stage": "S",
+      "component": "Structural chunking baseline",
+      "metric": "heading_article_baseline_micro_f1",
+      "value": 0.1724,
+      "baseline_or_target": "heading_article_baseline",
+      "interpretation": "Baseline comparison for boundary detection.",
+      "source": "experiments\\chunking\\chunking_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Structural comparison",
+      "metric": "micro_f1",
+      "value": 0.8695,
+      "baseline_or_target": "structural_chunk_diff",
+      "interpretation": "Strict key-change evaluation over meaningful/key expected changes.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Structural comparison",
+      "metric": "noise_count",
+      "value": 3,
+      "baseline_or_target": "structural_chunk_diff",
+      "interpretation": "Lower is better; strict false changes/noise passed downstream.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Plain text diff baseline",
+      "metric": "micro_f1",
+      "value": 0.6667,
+      "baseline_or_target": "plain_text_diff",
+      "interpretation": "Strict key-change evaluation over meaningful/key expected changes.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Plain text diff baseline",
+      "metric": "noise_count",
+      "value": 10,
+      "baseline_or_target": "plain_text_diff",
+      "interpretation": "Lower is better; strict false changes/noise passed downstream.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Paragraph diff baseline",
+      "metric": "micro_f1",
+      "value": 0.3636,
+      "baseline_or_target": "paragraph_diff",
+      "interpretation": "Strict key-change evaluation over meaningful/key expected changes.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 15,
+      "stage": "C",
+      "component": "Paragraph diff baseline",
+      "metric": "noise_count",
+      "value": 8,
+      "baseline_or_target": "paragraph_diff",
+      "interpretation": "Lower is better; strict false changes/noise passed downstream.",
+      "source": "experiments\\diff\\diff_summary.json"
+    },
+    {
+      "phase": 16,
+      "stage": "P",
+      "component": "Significance layer",
+      "metric": "important_critical_recall",
+      "value": 1.0,
+      "baseline_or_target": "rule_based_classifier",
+      "interpretation": "Recall-oriented high-priority detection; no important/critical misses on current corpus.",
+      "source": "experiments\\significance\\significance_summary.json"
+    },
+    {
+      "phase": 16,
+      "stage": "P",
+      "component": "Significance layer",
+      "metric": "important_critical_f1",
+      "value": 0.8571,
+      "baseline_or_target": "rule_based_classifier",
+      "interpretation": "High recall with precision loss caused by overclassification of some noise/editorial changes.",
+      "source": "experiments\\significance\\significance_summary.json"
+    },
+    {
+      "phase": 16,
+      "stage": "P",
+      "component": "Significance layer",
+      "metric": "important_critical_precision",
+      "value": 0.75,
+      "baseline_or_target": "rule_based_classifier",
+      "interpretation": "Precision reflects editorial/informational false positives under recall-oriented rules.",
+      "source": "experiments\\significance\\significance_summary.json"
+    },
+    {
+      "phase": 16,
+      "stage": "P",
+      "component": "Significance layer",
+      "metric": "editorial_high_priority_false_positive_count",
+      "value": 2,
+      "baseline_or_target": "rule_based_classifier",
+      "interpretation": "Evidence of upstream/downstream risk: editorial noise can be promoted to important.",
+      "source": "experiments\\significance\\significance_summary.json"
+    },
+    {
+      "phase": 17,
+      "stage": "G-summary",
+      "component": "Summary layer",
+      "metric": "overall_average",
+      "value": 4.1167,
+      "baseline_or_target": "production_summary",
+      "interpretation": "Human-readable representation is useful but affected by upstream diff/significance representation.",
+      "source": "experiments\\summary\\summary_evaluation_summary.json"
+    },
+    {
+      "phase": 17,
+      "stage": "G-summary",
+      "component": "Summary layer",
+      "metric": "covered_topics",
+      "value": "8/9",
+      "baseline_or_target": "production_summary",
+      "interpretation": "Most expected important topics were represented in generated summaries.",
+      "source": "experiments\\summary\\summary_evaluation_summary.json"
+    },
+    {
+      "phase": 17,
+      "stage": "G-summary",
+      "component": "Summary layer",
+      "metric": "unsupported_claims",
+      "value": 5,
+      "baseline_or_target": "production_summary",
+      "interpretation": "Unsupported or over-framed claims remain a limitation for dissertation validity claims.",
+      "source": "experiments\\summary\\summary_evaluation_summary.json"
+    },
+    {
+      "phase": 17,
+      "stage": "G-summary",
+      "component": "Summary layer",
+      "metric": "editorial_noise_overemphasis",
+      "value": 4,
+      "baseline_or_target": "production_summary",
+      "interpretation": "Downstream symptom of diff/significance noise.",
+      "source": "experiments\\summary\\summary_evaluation_summary.json"
+    },
+    {
+      "phase": 18,
+      "stage": "G-quiz",
+      "component": "Quiz generation",
+      "metric": "important_change_coverage",
+      "value": 0.8889,
+      "baseline_or_target": "production_quiz_generation",
+      "interpretation": "Covers most important/critical quiz topics in the corpus.",
+      "source": "experiments\\quiz\\quiz_evaluation_summary.json"
+    },
+    {
+      "phase": 18,
+      "stage": "G-quiz",
+      "component": "Quiz generation",
+      "metric": "average_question_score",
+      "value": 3.8333,
+      "baseline_or_target": "production_quiz_generation",
+      "interpretation": "Questions are applicable as baseline control-learning materials with human approval.",
+      "source": "experiments\\quiz\\quiz_evaluation_summary.json"
+    },
+    {
+      "phase": 18,
+      "stage": "G-quiz",
+      "component": "Quiz generation",
+      "metric": "source_explanation_rate",
+      "value": 1.0,
+      "baseline_or_target": "production_quiz_generation",
+      "interpretation": "Generated questions are source-linked/explainable in this evaluation.",
+      "source": "experiments\\quiz\\quiz_evaluation_summary.json"
+    },
+    {
+      "phase": 18,
+      "stage": "G-quiz",
+      "component": "Quiz generation",
+      "metric": "correct_question_rate",
+      "value": 0.6667,
+      "baseline_or_target": "production_quiz_generation",
+      "interpretation": "Weak questions remain, often due to upstream representation/noise.",
+      "source": "experiments\\quiz\\quiz_evaluation_summary.json"
+    },
+    {
+      "phase": 18,
+      "stage": "G-quiz",
+      "component": "Quiz generation",
+      "metric": "relevant_question_rate",
+      "value": 0.6667,
+      "baseline_or_target": "production_quiz_generation",
+      "interpretation": "Relevant-question rate supports MVP use only with human-in-the-loop approval.",
+      "source": "experiments\\quiz\\quiz_evaluation_summary.json"
+    }
+  ],
+  "artifact_audit": [
+    {
+      "Phase": "14",
+      "Component": "Structural chunking",
+      "Required artifacts": "docs/experiments/chunking-evaluation.md; experiments/chunking/chunking_results.csv; experiments/chunking/chunking_summary.json; experiments/chunking/chunking_f1.png",
+      "Status": "complete",
+      "Notes": "Found 4/4."
+    },
+    {
+      "Phase": "15",
+      "Component": "Diff/comparison",
+      "Required artifacts": "docs/experiments/diff-evaluation.md; experiments/diff/diff_results.csv; experiments/diff/diff_summary.json; experiments/diff/diff_fp_fn.png; experiments/diff/diff_precision_recall_f1.png",
+      "Status": "complete",
+      "Notes": "Found 5/5."
+    },
+    {
+      "Phase": "16",
+      "Component": "Significance",
+      "Required artifacts": "docs/experiments/significance-evaluation.md; experiments/significance/significance_results.csv; experiments/significance/significance_summary.json; experiments/significance/significance_confusion_matrix.png; experiments/significance/significance_class_metrics.png",
+      "Status": "complete",
+      "Notes": "Found 5/5."
+    },
+    {
+      "Phase": "17",
+      "Component": "Summary",
+      "Required artifacts": "docs/experiments/summary-evaluation.md; experiments/summary/summary_results.csv; experiments/summary/summary_evaluation_summary.json; experiments/summary/summary_pair_scores.png; experiments/summary/summary_quality_scores.png",
+      "Status": "complete",
+      "Notes": "Found 5/5."
+    },
+    {
+      "Phase": "18",
+      "Component": "Quiz generation",
+      "Required artifacts": "docs/experiments/quiz-generation-evaluation.md; experiments/quiz/quiz_results.csv; experiments/quiz/quiz_pair_results.csv; experiments/quiz/quiz_evaluation_summary.json; experiments/quiz/quiz_coverage.png; experiments/quiz/quiz_pair_scores.png; experiments/quiz/quiz_quality_scores.png",
+      "Status": "complete",
+      "Notes": "Found 7/7."
+    }
+  ],
+  "error_propagation": [
+    {
+      "Error source": "Chunking boundary error",
+      "Downstream effect": "Diff may miss, merge, or split an expected change.",
+      "Evidence from phases": "Phase 14 key-boundary evaluation and Phase 15 strict diff notes/known difficulties.",
+      "Interpretation": "Structural comparison depends on stable chunk boundaries; corpus results are strong but not a full segmentation guarantee."
+    },
+    {
+      "Error source": "Diff false positive / noise",
+      "Downstream effect": "Noise can be treated as a candidate semantic change by the significance layer.",
+      "Evidence from phases": "Phase 15 structural noise_count=3; plain text noise_count=10; paragraph noise_count=8.",
+      "Interpretation": "Structural diff reduces but does not eliminate noise entering P/G stages."
+    },
+    {
+      "Error source": "Significance overclassification",
+      "Downstream effect": "Editorial/informational changes may be promoted to important highlights.",
+      "Evidence from phases": "Phase 16 editorial high-priority false positives=2; Phase 17 editorial/noise overemphasis=4; Phase 18 weak/noise questions.",
+      "Interpretation": "Recall-oriented baseline is MVP-suitable only with human-in-the-loop approval."
+    },
+    {
+      "Error source": "Weak upstream summary representation",
+      "Downstream effect": "Quiz generation can materialize weak or less relevant questions.",
+      "Evidence from phases": "Phase 17 unsupported claims=5; Phase 18 correct/relevant question rate=0.6667.",
+      "Interpretation": "Source traceability helps review, but approval by responsible staff remains required."
+    }
+  ]
+}

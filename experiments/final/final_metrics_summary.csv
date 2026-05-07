@@ -1,0 +1,25 @@
+phase,stage,component,metric,value,baseline_or_target,interpretation,source
+14,S,Structural chunking,micro_f1,0.293,hybrid_structural,Best F1 among evaluated chunking methods on key/target boundary annotation.,experiments\chunking\chunking_summary.json
+14,S,Structural chunking,micro_recall,1.0,hybrid_structural,All expected target/key chunks were found under the containment matching rule.,experiments\chunking\chunking_summary.json
+14,S,Structural chunking,key_recall,1.0,hybrid_structural,Best key-boundary recall; evaluation is not a full-document segmentation gold standard.,experiments\chunking\chunking_summary.json
+14,S,Structural chunking baseline,paragraph_baseline_micro_f1,0.2791,paragraph_baseline,Baseline comparison for boundary detection.,experiments\chunking\chunking_summary.json
+14,S,Structural chunking baseline,heading_article_baseline_micro_f1,0.1724,heading_article_baseline,Baseline comparison for boundary detection.,experiments\chunking\chunking_summary.json
+15,C,Structural comparison,micro_f1,0.8695,structural_chunk_diff,Strict key-change evaluation over meaningful/key expected changes.,experiments\diff\diff_summary.json
+15,C,Structural comparison,noise_count,3,structural_chunk_diff,Lower is better; strict false changes/noise passed downstream.,experiments\diff\diff_summary.json
+15,C,Plain text diff baseline,micro_f1,0.6667,plain_text_diff,Strict key-change evaluation over meaningful/key expected changes.,experiments\diff\diff_summary.json
+15,C,Plain text diff baseline,noise_count,10,plain_text_diff,Lower is better; strict false changes/noise passed downstream.,experiments\diff\diff_summary.json
+15,C,Paragraph diff baseline,micro_f1,0.3636,paragraph_diff,Strict key-change evaluation over meaningful/key expected changes.,experiments\diff\diff_summary.json
+15,C,Paragraph diff baseline,noise_count,8,paragraph_diff,Lower is better; strict false changes/noise passed downstream.,experiments\diff\diff_summary.json
+16,P,Significance layer,important_critical_recall,1.0,rule_based_classifier,Recall-oriented high-priority detection; no important/critical misses on current corpus.,experiments\significance\significance_summary.json
+16,P,Significance layer,important_critical_f1,0.8571,rule_based_classifier,High recall with precision loss caused by overclassification of some noise/editorial changes.,experiments\significance\significance_summary.json
+16,P,Significance layer,important_critical_precision,0.75,rule_based_classifier,Precision reflects editorial/informational false positives under recall-oriented rules.,experiments\significance\significance_summary.json
+16,P,Significance layer,editorial_high_priority_false_positive_count,2,rule_based_classifier,Evidence of upstream/downstream risk: editorial noise can be promoted to important.,experiments\significance\significance_summary.json
+17,G-summary,Summary layer,overall_average,4.1167,production_summary,Human-readable representation is useful but affected by upstream diff/significance representation.,experiments\summary\summary_evaluation_summary.json
+17,G-summary,Summary layer,covered_topics,8/9,production_summary,Most expected important topics were represented in generated summaries.,experiments\summary\summary_evaluation_summary.json
+17,G-summary,Summary layer,unsupported_claims,5,production_summary,Unsupported or over-framed claims remain a limitation for dissertation validity claims.,experiments\summary\summary_evaluation_summary.json
+17,G-summary,Summary layer,editorial_noise_overemphasis,4,production_summary,Downstream symptom of diff/significance noise.,experiments\summary\summary_evaluation_summary.json
+18,G-quiz,Quiz generation,important_change_coverage,0.8889,production_quiz_generation,Covers most important/critical quiz topics in the corpus.,experiments\quiz\quiz_evaluation_summary.json
+18,G-quiz,Quiz generation,average_question_score,3.8333,production_quiz_generation,Questions are applicable as baseline control-learning materials with human approval.,experiments\quiz\quiz_evaluation_summary.json
+18,G-quiz,Quiz generation,source_explanation_rate,1.0,production_quiz_generation,Generated questions are source-linked/explainable in this evaluation.,experiments\quiz\quiz_evaluation_summary.json
+18,G-quiz,Quiz generation,correct_question_rate,0.6667,production_quiz_generation,"Weak questions remain, often due to upstream representation/noise.",experiments\quiz\quiz_evaluation_summary.json
+18,G-quiz,Quiz generation,relevant_question_rate,0.6667,production_quiz_generation,Relevant-question rate supports MVP use only with human-in-the-loop approval.,experiments\quiz\quiz_evaluation_summary.json

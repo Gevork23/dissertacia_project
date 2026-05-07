@@ -1,0 +1,445 @@
+{
+  "experiment": "summary_layer_evaluation",
+  "phase": 17,
+  "evaluation_mode": {
+    "primary": "pipeline_summary_evaluation",
+    "primary_pipeline": "chunk_by_structure_ru -> build_version_diff -> build_brief_summary",
+    "diagnostic": "oracle_input_summary_evaluation",
+    "oracle_input": "annotation expected_changes + semantic/importance labels -> build_brief_summary"
+  },
+  "total_pairs": 10,
+  "average_scores": {
+    "completeness": 4.3,
+    "accuracy": 4.1,
+    "no_hallucinations": 4.1,
+    "clarity": 4.3,
+    "usefulness": 3.9,
+    "source_alignment": 4.0,
+    "overall": 4.1167
+  },
+  "missed_topics_total": 1,
+  "unsupported_claims_total": 5,
+  "editorial_overemphasis_total": 4,
+  "covered_topics_total": 8,
+  "expected_topics_total": 9,
+  "oracle_diagnostic": {
+    "overall_average": 4.9,
+    "interpretation": "Diagnostic only: estimates summary wording quality when upstream change spans and labels are correct."
+  },
+  "criteria": [
+    "completeness",
+    "accuracy",
+    "no_hallucinations",
+    "clarity",
+    "usefulness",
+    "source_alignment"
+  ],
+  "rows": [
+    {
+      "pair_id": "pair_01_deadline_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Срок сокращён: было 10 рабочих дней, стало 7 рабочих дней. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 10 рабочих дней, стало 7 рабочих дней.",
+      "expected_topics": [
+        "срок рассмотрения заявления сокращен с 10 до 7 рабочих дней"
+      ],
+      "covered_topics": [
+        "срок рассмотрения заявления сокращен с 10 до 7 рабочих дней"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 5,
+      "clarity": 5,
+      "usefulness": 5,
+      "source_alignment": 5,
+      "average_score": 5,
+      "notes": "Covers the deadline reduction and preserves old/new values.",
+      "brief_text": "Ключевое изменение: Срок сокращён: было 10 рабочих дней, стало 7 рабочих дней. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "deadline"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Срок сокращён: было 10 рабочих дней, стало 7 рабочих дней. Изменено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 10 рабочих дней, стало 7 рабочих дней.",
+      "oracle_covered_topics": [
+        "срок рассмотрения заявления сокращен с 10 до 7 рабочих дней"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_02_added_obligation",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений. Добавлено фрагментов: 1. Без изменений: 10. Критичных изменений: 1.\nHighlights:\n1. [critical/obligation] Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений.",
+      "expected_topics": [
+        "добавлена обязанность уведомить заявителя о результате рассмотрения обращения"
+      ],
+      "covered_topics": [
+        "добавлена обязанность уведомить заявителя о результате рассмотрения обращения"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 5,
+      "clarity": 5,
+      "usefulness": 5,
+      "source_alignment": 5,
+      "average_score": 5,
+      "notes": "Covers the added notification obligation clearly and source-backed.",
+      "brief_text": "Ключевое изменение: Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений. Добавлено фрагментов: 1. Без изменений: 10. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "obligation"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений. Добавлено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/obligation] Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений.",
+      "oracle_covered_topics": [
+        "добавлена обязанность уведомить заявителя о результате рассмотрения обращения"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_03_document_list_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлен новый пункт о документах: копию документа, подтверждающего полномочия представителя, если заявление подает представитель. Добавлено фрагментов: 1. Изменено фрагментов: 1. Без изменений: 11. Критичных изменений: 1. Редакционных/технических изменений: 1.\nHighlights:\n1. [critical/document] Добавлен новый пункт о документах: копию документа, подтверждающего полномочия представителя, если заявление подает представитель.",
+      "expected_topics": [
+        "добавлена копия документа, подтверждающего полномочия представителя"
+      ],
+      "covered_topics": [
+        "добавлена копия документа, подтверждающего полномочия представителя"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 1,
+      "editorial_overemphasis_details": [
+        "Summary statistics mention one editorial/technical change produced by upstream comparison."
+      ],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 4,
+      "clarity": 5,
+      "usefulness": 4,
+      "source_alignment": 4,
+      "average_score": 4.5,
+      "notes": "Key document-list topic is covered; brief statistics also expose one upstream editorial/technical diff item.",
+      "brief_text": "Ключевое изменение: Добавлен новый пункт о документах: копию документа, подтверждающего полномочия представителя, если заявление подает представитель. Добавлено фрагментов: 1. Изменено фрагментов: 1. Без изменений: 11. Критичных изменений: 1. Редакционных/технических изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "document"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлен новый пункт о документах: г) копию документа, подтверждающего полномочия представителя, если заявление подает представитель. Добавлено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/document] Добавлен новый пункт о документах: г) копию документа, подтверждающего полномочия представителя, если заявление подает представитель.",
+      "oracle_covered_topics": [
+        "добавлена копия документа, подтверждающего полномочия представителя"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_04_refusal_ground_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлено новое основание для отказа: Основанием для отказа является непредставление обязательных документов в установленный срок. Добавлено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.\nHighlights:\n1. [critical/refusal] Добавлено новое основание для отказа: Основанием для отказа является непредставление обязательных документов в установленный срок.",
+      "expected_topics": [
+        "добавлено новое основание отказа при непредставлении обязательных документов в установленный срок"
+      ],
+      "covered_topics": [
+        "добавлено новое основание отказа при непредставлении обязательных документов в установленный срок"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 5,
+      "clarity": 5,
+      "usefulness": 5,
+      "source_alignment": 5,
+      "average_score": 5,
+      "notes": "Covers the new refusal ground and keeps the source condition intact.",
+      "brief_text": "Ключевое изменение: Добавлено новое основание для отказа: Основанием для отказа является непредставление обязательных документов в установленный срок. Добавлено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "refusal"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлено новое основание для отказа: Основанием для отказа является непредставление обязательных документов в установленный срок. Добавлено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/refusal] Добавлено новое основание для отказа: Основанием для отказа является непредставление обязательных документов в установленный срок.",
+      "oracle_covered_topics": [
+        "добавлено новое основание отказа при непредставлении обязательных документов в установленный срок"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_05_editorial_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Изменены требования к перечню документов. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.\nHighlights:\n1. [critical/document] Изменены требования к перечню документов.",
+      "expected_topics": [],
+      "covered_topics": [],
+      "missed_topics": [],
+      "unsupported_claims": 1,
+      "unsupported_claim_details": [
+        "Editorial-only wording change is presented as a critical document-list requirement change."
+      ],
+      "editorial_overemphasis": 1,
+      "editorial_overemphasis_details": [
+        "Editorial wording change is over-prioritized as critical."
+      ],
+      "completeness": 2,
+      "accuracy": 2,
+      "no_hallucinations": 2,
+      "clarity": 3,
+      "usefulness": 1,
+      "source_alignment": 2,
+      "average_score": 2,
+      "notes": "Weak editorial-control case: upstream semantic/significance classification turns a wording change into a critical highlight.",
+      "brief_text": "Ключевое изменение: Изменены требования к перечню документов. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "document"
+      ],
+      "oracle_summary_text": "Редакционные изменения\nВыявлены только редакционные или технические правки; значимых смысловых изменений не обнаружено. Изменено фрагментов: 1. Редакционных/технических изменений: 1.\nHighlights:\n1. [editorial/editorial] Редакционная или техническая правка: Сотрудник выполняет проверку документов на предмет комплектности.",
+      "oracle_covered_topics": [],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 4.8333
+    },
+    {
+      "pair_id": "pair_06_procedure_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Изменены требования к перечню документов. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.\nHighlights:\n1. [critical/document] Изменены требования к перечню документов.",
+      "expected_topics": [
+        "добавлена возможность подачи заявления через электронную форму во внутреннем портале"
+      ],
+      "covered_topics": [],
+      "missed_topics": [
+        "добавлена возможность подачи заявления через электронную форму во внутреннем портале"
+      ],
+      "unsupported_claims": 1,
+      "unsupported_claim_details": [
+        "Procedure change is summarized as a document-list requirement change."
+      ],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 1,
+      "accuracy": 2,
+      "no_hallucinations": 3,
+      "clarity": 3,
+      "usefulness": 2,
+      "source_alignment": 2,
+      "average_score": 2.1667,
+      "notes": "Expected electronic-form submission topic is missed because upstream enrichment misclassifies the changed chunk.",
+      "brief_text": "Ключевое изменение: Изменены требования к перечню документов. Изменено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "document"
+      ],
+      "oracle_summary_text": "Краткая выжимка изменений\nКлючевое изменение: Изменён порядок процедуры: Заявление может быть подано на бумажном носителе через ответственное подразделение или через электронную форму во внутр…. Изменено фрагментов: 1. Важных изменений: 1.\nHighlights:\n1. [important/procedure] Изменён порядок процедуры: Заявление может быть подано на бумажном носителе через ответственное подразделение или через электронную форму во внутр….",
+      "oracle_covered_topics": [],
+      "oracle_missed_topics": [
+        "добавлена возможность подачи заявления через электронную форму во внутреннем портале"
+      ],
+      "oracle_average_score": 4.3333
+    },
+    {
+      "pair_id": "pair_07_responsibility_change",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлено новое требование по сроку: За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразде…. Добавлено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.\nHighlights:\n1. [critical/deadline] Добавлено новое требование по сроку: За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразде….",
+      "expected_topics": [
+        "добавлена ответственность сотрудника за нарушение срока обработки заявления"
+      ],
+      "covered_topics": [
+        "добавлена ответственность сотрудника за нарушение срока обработки заявления"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 1,
+      "unsupported_claim_details": [
+        "Responsibility change is framed as a deadline requirement, although the source text still states responsibility."
+      ],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 4,
+      "no_hallucinations": 4,
+      "clarity": 4,
+      "usefulness": 4,
+      "source_alignment": 4,
+      "average_score": 4.1667,
+      "notes": "Responsibility topic is visible in the source-backed snippet, but the semantic label frames it as a deadline requirement.",
+      "brief_text": "Ключевое изменение: Добавлено новое требование по сроку: За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразде…. Добавлено фрагментов: 1. Без изменений: 9. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "deadline"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Добавлено новое положение об ответственности: За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразде…. Добавлено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/responsibility] Добавлено новое положение об ответственности: За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразде….",
+      "oracle_covered_topics": [
+        "добавлена ответственность сотрудника за нарушение срока обработки заявления"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_08_reordered_structure",
+      "summary_text": "Изменения не обнаружены\nИзменений между выбранными версиями не обнаружено. Без изменений: 10.",
+      "expected_topics": [],
+      "covered_topics": [],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 5,
+      "clarity": 5,
+      "usefulness": 5,
+      "source_alignment": 5,
+      "average_score": 5,
+      "notes": "Correctly avoids inventing a substantive change for pure reordering in the current MVP pipeline.",
+      "brief_text": "Изменений между выбранными версиями не обнаружено. Без изменений: 10.",
+      "overview_title": "Изменения не обнаружены",
+      "selection_scope": "empty",
+      "highlights_count": 0,
+      "highlight_labels": [],
+      "highlight_semantic_types": [],
+      "oracle_summary_text": "Редакционные изменения\nВыявлены только редакционные или технические правки; значимых смысловых изменений не обнаружено. Перемещено фрагментов: 1. Редакционных/технических изменений: 1.\nHighlights:\n1. [editorial/structure] Фрагмент перемещён в другую позицию документа без явного смыслового изменения.",
+      "oracle_covered_topics": [],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 4.8333
+    },
+    {
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "summary_text": "Ключевые значимые изменения\nВыявлено 4 значимых изменений. Основные темы: сроки и обязанности. Добавлено фрагментов: 2. Изменено фрагментов: 2. Без изменений: 8. Критичных изменений: 3. Важных изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 5 рабочих дней, стало 4 рабочих дня.\n2. [critical/deadline] Изменены требования по срокам.\n3. [critical/obligation] Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о невозможности подготовки справки при отсутствии обязательных сведений.\n4. [important/procedure] Добавлен новый процедурный шаг: Справочная информация о статусе запроса доступна в локальной системе учета.",
+      "expected_topics": [
+        "срок подготовки справки сокращен с 5 до 4 рабочих дней",
+        "добавлена обязанность уведомления при невозможности подготовки справки"
+      ],
+      "covered_topics": [
+        "срок подготовки справки сокращен с 5 до 4 рабочих дней",
+        "добавлена обязанность уведомления при невозможности подготовки справки"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 2,
+      "unsupported_claim_details": [
+        "Editorial wording change is incorrectly summarized as another deadline-related critical change.",
+        "Informational status notice is over-framed as an important procedural step."
+      ],
+      "editorial_overemphasis": 2,
+      "editorial_overemphasis_details": [
+        "Editorial wording change receives a critical deadline highlight.",
+        "Informational/noise item is counted as important in the brief."
+      ],
+      "completeness": 5,
+      "accuracy": 3,
+      "no_hallucinations": 3,
+      "clarity": 4,
+      "usefulness": 3,
+      "source_alignment": 3,
+      "average_score": 3.5,
+      "notes": "Both expected critical topics are covered, but upstream over-prioritization creates extra misleading highlights.",
+      "brief_text": "Выявлено 4 значимых изменений. Основные темы: сроки и обязанности. Добавлено фрагментов: 2. Изменено фрагментов: 2. Без изменений: 8. Критичных изменений: 3. Важных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 4,
+      "highlight_labels": [
+        "critical",
+        "critical",
+        "critical",
+        "important"
+      ],
+      "highlight_semantic_types": [
+        "deadline",
+        "deadline",
+        "obligation",
+        "procedure"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nВыявлено 3 значимых изменений. Основные темы: сроки, обязанности и справочная информация. Добавлено фрагментов: 2. Изменено фрагментов: 2. Критичных изменений: 2. Информационных изменений: 1. Редакционных/технических изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 5 рабочих дней, стало 4 рабочих дня.\n2. [critical/obligation] Добавлена новая обязанность: Сотрудник обязан уведомить заявителя о невозможности подготовки справки при отсутствии обязательных сведений.\n3. [informational/informational] Добавлена справочная или контактная информация: Справочная информация о статусе запроса доступна в локальной системе учета.",
+      "oracle_covered_topics": [
+        "срок подготовки справки сокращен с 5 до 4 рабочих дней",
+        "добавлена обязанность уведомления при невозможности подготовки справки"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    },
+    {
+      "pair_id": "pair_10_weakly_structured_document",
+      "summary_text": "Ключевые значимые изменения\nКлючевое изменение: Срок сокращён: было 5 рабочих дней, стало 3 рабочих дней. Изменено фрагментов: 1. Без изменений: 7. Критичных изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 5 рабочих дней, стало 3 рабочих дней.",
+      "expected_topics": [
+        "срок рассмотрения обращения сокращен с 5 до 3 рабочих дней"
+      ],
+      "covered_topics": [
+        "срок рассмотрения обращения сокращен с 5 до 3 рабочих дней"
+      ],
+      "missed_topics": [],
+      "unsupported_claims": 0,
+      "unsupported_claim_details": [],
+      "editorial_overemphasis": 0,
+      "editorial_overemphasis_details": [],
+      "completeness": 5,
+      "accuracy": 5,
+      "no_hallucinations": 5,
+      "clarity": 4,
+      "usefulness": 5,
+      "source_alignment": 5,
+      "average_score": 4.8333,
+      "notes": "Weakly structured document is handled via fallback blocks and the deadline topic remains covered; wording has minor grammatical roughness.",
+      "brief_text": "Ключевое изменение: Срок сокращён: было 5 рабочих дней, стало 3 рабочих дней. Изменено фрагментов: 1. Без изменений: 7. Критичных изменений: 1.",
+      "overview_title": "Ключевые значимые изменения",
+      "selection_scope": "significant",
+      "highlights_count": 1,
+      "highlight_labels": [
+        "critical"
+      ],
+      "highlight_semantic_types": [
+        "deadline"
+      ],
+      "oracle_summary_text": "Ключевые значимые изменения\nКлючевое изменение: Срок сокращён: было 5 рабочих дней, стало 3 рабочих дней. Изменено фрагментов: 1. Критичных изменений: 1.\nHighlights:\n1. [critical/deadline] Срок сокращён: было 5 рабочих дней, стало 3 рабочих дней.",
+      "oracle_covered_topics": [
+        "срок рассмотрения обращения сокращен с 5 до 3 рабочих дней"
+      ],
+      "oracle_missed_topics": [],
+      "oracle_average_score": 5
+    }
+  ],
+  "limitations": [
+    "The corpus is small and synthetic: 10 document pairs.",
+    "Clarity, usefulness and source alignment require expert-heuristic scoring.",
+    "Pipeline-mode scores include upstream diff/significance errors.",
+    "Oracle-input diagnostic is not the real pipeline score.",
+    "The production summary algorithm was not changed for the experiment."
+  ]
+}

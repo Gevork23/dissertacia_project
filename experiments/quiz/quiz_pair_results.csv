@@ -1,0 +1,11 @@
+pair_id,questions_count,correct_questions,relevant_questions,questions_with_source,important_changes,covered_important_changes,coverage,avg_question_score,editorial_noise_questions,notes
+pair_01_deadline_change,1,1,1,1,1,1,1.0,4.8571,0,Deadline change is covered by one strong question.
+pair_02_added_obligation,1,1,1,1,1,1,1.0,4.8571,0,Added obligation is covered by one strong question.
+pair_03_document_list_change,1,1,1,1,1,1,1.0,4.8571,0,Document-list addition is covered; upstream also found one editorial diff item but it did not become a question.
+pair_04_refusal_ground_change,1,1,1,1,1,1,1.0,4.8571,0,New refusal ground is covered by one strong question.
+pair_05_editorial_change,1,0,0,1,0,0,0.0,1.5714,1,"No expected quiz topic, but pipeline generated one false positive question due to upstream significance/semantic labeling."
+pair_06_procedure_change,1,0,0,1,1,0,0.0,2.8571,0,The expected electronic-form submission topic is missed because the change is framed as a document-list issue.
+pair_07_responsibility_change,1,1,1,1,1,1,1.0,3.8571,0,"Responsibility topic is recoverable from the answer/source, but the prompt uses a misleading deadline template."
+pair_08_reordered_structure,0,0,0,0,0,0,1.0,0.0,0,"No question is generated for pure reordering, which is the expected behavior."
+pair_09_mixed_significant_and_editorial,4,2,2,4,2,2,1.0,3.4286,2,"Both critical expected topics are covered, but two extra weak questions come from informational/editorial upstream over-prioritization."
+pair_10_weakly_structured_document,1,1,1,1,1,1,1.0,4.5714,0,Fallback block still produces a useful deadline question with minor wording roughness.

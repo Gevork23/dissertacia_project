@@ -1,0 +1,13 @@
+| Chapter section | Insert | Source file |
+| --- | --- | --- |
+| 3.2 Evaluation corpus | Table/text: corpus overview | docs/evaluation/evaluation-corpus-description.md |
+| 3.3 Structural chunking results | Figure: pipeline_stage_overview.png | experiments/final_visuals/figures/pipeline_stage_overview.png |
+| 3.3 Experiment summary | Table: table_01_experiment_summary.md | experiments/final_visuals/tables/table_01_experiment_summary.md |
+| 3.4 Diff evaluation | Figure: diff_baseline_comparison.png | experiments/final_visuals/figures/diff_baseline_comparison.png |
+| 3.4 Diff evaluation | Table: table_02_diff_comparison.md | experiments/final_visuals/tables/table_02_diff_comparison.md |
+| 3.5 Summary and quiz evaluation | Figure: summary_quiz_quality.png | experiments/final_visuals/figures/summary_quiz_quality.png |
+| 3.5 Summary and quiz evaluation | Table: table_04_summary_quiz_quality.md | experiments/final_visuals/tables/table_04_summary_quiz_quality.md |
+| 3.6 Integrated evaluation | Figure: end_to_end_funnel.png | experiments/final_visuals/figures/end_to_end_funnel.png |
+| 3.6 Integrated evaluation | Figure: bottleneck_analysis.png | experiments/final_visuals/figures/bottleneck_analysis.png |
+| 3.6 Integrated evaluation | Table: table_03_end_to_end_coverage.md | experiments/final_visuals/tables/table_03_end_to_end_coverage.md |
+| 3.7 Threats to validity | Table: table_05_limitations.md | experiments/final_visuals/tables/table_05_limitations.md |

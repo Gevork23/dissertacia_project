@@ -1,0 +1,6 @@
+Ограничение,Влияние,Как учитывается
+Synthetic corpus,Ограничивает external validity,Честно указано в threats to validity; выводы не обобщаются без дополнительных корпусов.
+Key-change annotation,Не является full-document gold standard,"Метрики трактуются как проверка ключевых изменений/границ, а не полной юридической полноты."
+Rule-based significance,Может завышать editorial/informational noise,Слой P описывается как recall-oriented baseline; нужен human-in-the-loop.
+Summary unsupported claims,Может влиять на downstream quiz,Unsupported claims и editorial overemphasis фиксируются отдельными метриками.
+Quiz baseline nature,Не гарантирует perfect questions,Approval ответственным лицом обязателен перед практическим применением.

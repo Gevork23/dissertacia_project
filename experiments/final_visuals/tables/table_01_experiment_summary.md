@@ -1,0 +1,8 @@
+| Этап метода | Компонент | Основной показатель | Значение | Интерпретация |
+| --- | --- | --- | ---: | --- |
+| S | Structural chunking | F1 / key recall | 0.2930 / 1.0000 | Лучший F1 среди baselines на selected key-boundary annotation; key recall = 1.0000. |
+| C | Structural comparison | F1 / noise_count | 0.8695 / 3 | Снижает шум diff по сравнению с plain text и paragraph baselines. |
+| P | Significance | high-priority recall / F1 | 1.0000 / 0.8571 | Не пропускает important/critical changes на текущем corpus, но precision ниже из-за overclassification. |
+| G-summary | Summary | average score / coverage | 4.1167 / 8/9 | Формирует понятную выжимку, но зависит от upstream diff/significance. |
+| G-quiz | Quiz generation | average score | 3.8333 | Формирует применимые baseline questions при обязательном approval workflow. |
+| End-to-end | Full pipeline | success rate | 0.8889 (8/9) | 8/9 важных изменений прошли diff, significance, summary и quiz coverage. |

@@ -1,0 +1,7 @@
+Pipeline step,Count,Rate
+Important/critical total,9,1.0000
+Detected by diff,9,1.0000
+Classified as significant,9,1.0000
+Covered by summary,8,0.8889
+Covered by quiz,8,0.8889
+Strict end-to-end success,8,0.8889

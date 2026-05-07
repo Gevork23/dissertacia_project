@@ -1,0 +1,5 @@
+| Метод | F1 | Noise count | Интерпретация |
+| --- | ---: | ---: | --- |
+| Plain text diff | 0.6667 | 10 | Больше шума |
+| Paragraph diff | 0.3636 | 8 | Хуже на текущем corpus |
+| Structural chunk diff | 0.8695 | 3 | Лучший результат |

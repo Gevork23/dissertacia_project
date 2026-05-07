@@ -1,0 +1,289 @@
+{
+  "phase": 20,
+  "name": "final_visuals_for_dissertation_chapter_3",
+  "generated_at_utc": "2026-05-07T18:16:45.074100+00:00",
+  "source_policy": "Uses existing Phase 14-19 artifacts only; no new experiments, backend changes, algorithm changes, or corpus changes.",
+  "source_artifact_audit": [
+    {
+      "source": "Final metrics",
+      "file": "experiments/final/final_metrics_summary.json",
+      "found": "yes",
+      "used_for": "итоговая таблица, pipeline overview"
+    },
+    {
+      "source": "End-to-end summary",
+      "file": "experiments/final/end_to_end_summary.json",
+      "found": "yes",
+      "used_for": "funnel"
+    },
+    {
+      "source": "End-to-end trace",
+      "file": "experiments/final/end_to_end_trace.csv",
+      "found": "yes",
+      "used_for": "bottleneck analysis"
+    },
+    {
+      "source": "Pipeline stage summary",
+      "file": "experiments/final/pipeline_stage_summary.csv",
+      "found": "yes",
+      "used_for": "сводная интерпретация этапов"
+    },
+    {
+      "source": "Final evaluation report",
+      "file": "docs/experiments/final-method-evaluation.md",
+      "found": "yes",
+      "used_for": "контекст и cautious claims"
+    },
+    {
+      "source": "Chunking results",
+      "file": "experiments/chunking/chunking_results.csv",
+      "found": "yes",
+      "used_for": "проверка источников Phase 14"
+    },
+    {
+      "source": "Chunking summary",
+      "file": "experiments/chunking/chunking_summary.json",
+      "found": "yes",
+      "used_for": "метрики S / structural chunking"
+    },
+    {
+      "source": "Diff results",
+      "file": "experiments/diff/diff_results.csv",
+      "found": "yes",
+      "used_for": "проверка источников Phase 15"
+    },
+    {
+      "source": "Diff summary",
+      "file": "experiments/diff/diff_summary.json",
+      "found": "yes",
+      "used_for": "comparison chart"
+    },
+    {
+      "source": "Significance results",
+      "file": "experiments/significance/significance_results.csv",
+      "found": "yes",
+      "used_for": "проверка источников Phase 16"
+    },
+    {
+      "source": "Significance summary",
+      "file": "experiments/significance/significance_summary.json",
+      "found": "yes",
+      "used_for": "significance-layer metrics"
+    },
+    {
+      "source": "Summary results",
+      "file": "experiments/summary/summary_results.csv",
+      "found": "yes",
+      "used_for": "проверка источников Phase 17"
+    },
+    {
+      "source": "Summary evaluation",
+      "file": "experiments/summary/summary_evaluation_summary.json",
+      "found": "yes",
+      "used_for": "summary chart"
+    },
+    {
+      "source": "Quiz results",
+      "file": "experiments/quiz/quiz_results.csv",
+      "found": "yes",
+      "used_for": "проверка источников Phase 18"
+    },
+    {
+      "source": "Quiz pair results",
+      "file": "experiments/quiz/quiz_pair_results.csv",
+      "found": "yes",
+      "used_for": "проверка topic coverage"
+    },
+    {
+      "source": "Quiz evaluation",
+      "file": "experiments/quiz/quiz_evaluation_summary.json",
+      "found": "yes",
+      "used_for": "quiz chart"
+    },
+    {
+      "source": "Chunking report",
+      "file": "docs/experiments/chunking-evaluation.md",
+      "found": "yes",
+      "used_for": "раздел эксперимента S"
+    },
+    {
+      "source": "Diff report",
+      "file": "docs/experiments/diff-evaluation.md",
+      "found": "yes",
+      "used_for": "раздел эксперимента C"
+    },
+    {
+      "source": "Significance report",
+      "file": "docs/experiments/significance-evaluation.md",
+      "found": "yes",
+      "used_for": "раздел эксперимента P"
+    },
+    {
+      "source": "Summary report",
+      "file": "docs/experiments/summary-evaluation.md",
+      "found": "yes",
+      "used_for": "раздел эксперимента G-summary"
+    },
+    {
+      "source": "Quiz report",
+      "file": "docs/experiments/quiz-generation-evaluation.md",
+      "found": "yes",
+      "used_for": "раздел эксперимента G-quiz"
+    }
+  ],
+  "figures": [
+    {
+      "id": "Figure 1",
+      "path": "experiments/final_visuals/figures/pipeline_stage_overview.png",
+      "purpose": "Normalized overview of S, C, P, G-summary, G-quiz and end-to-end stages.",
+      "normalization_note": "Summary and quiz rubric scores are divided by 5; rates and F1 values are already in [0,1].",
+      "metrics": {
+        "S: structural chunking F1": 0.293,
+        "C: diff F1": 0.8695,
+        "P: important/critical recall": 1.0,
+        "G-summary: average / 5": 0.82334,
+        "G-quiz: average / 5": 0.76666,
+        "End-to-end success rate": 0.8889
+      }
+    },
+    {
+      "id": "Figure 2",
+      "path": "experiments/final_visuals/figures/diff_baseline_comparison.png",
+      "purpose": "Compare plain text, paragraph and structural chunk diff by F1 and noise_count.",
+      "metrics": {
+        "Plain text diff": {
+          "f1": 0.6667,
+          "noise_count": 10
+        },
+        "Paragraph diff": {
+          "f1": 0.3636,
+          "noise_count": 8
+        },
+        "Structural chunk diff": {
+          "f1": 0.8695,
+          "noise_count": 3
+        }
+      }
+    },
+    {
+      "id": "Figure 3",
+      "path": "experiments/final_visuals/figures/end_to_end_funnel.png",
+      "purpose": "Show how important/critical changes pass through diff, significance, summary and quiz layers.",
+      "metrics": {
+        "Important/critical total": {
+          "count": 9,
+          "rate": 1.0
+        },
+        "Detected by diff": {
+          "count": 9,
+          "rate": 1.0
+        },
+        "Classified as significant": {
+          "count": 9,
+          "rate": 1.0
+        },
+        "Covered by summary": {
+          "count": 8,
+          "rate": 0.8889
+        },
+        "Covered by quiz": {
+          "count": 8,
+          "rate": 0.8889
+        }
+      }
+    },
+    {
+      "id": "Figure 4",
+      "path": "experiments/final_visuals/figures/summary_quiz_quality.png",
+      "purpose": "Show summary overall score and quiz score, coverage, source/explanation, correctness and relevance.",
+      "metrics": {
+        "summary_overall_average": 4.1167,
+        "quiz_average_question_score": 3.8333,
+        "quiz_coverage": 0.8889,
+        "source_explanation_rate": 1.0,
+        "correct_question_rate": 0.6667,
+        "relevant_question_rate": 0.6667
+      }
+    },
+    {
+      "id": "Figure 5",
+      "path": "experiments/final_visuals/figures/bottleneck_analysis.png",
+      "purpose": "Show that the main miss was detected and classified upstream but not covered downstream by summary/quiz.",
+      "metrics": {
+        "pair_id": "pair_06_procedure_change",
+        "stage_values": {
+          "Detected by diff": 1,
+          "Classified significant": 1,
+          "Summary covered": 0,
+          "Quiz covered": 0
+        },
+        "main_miss": "pair_06_procedure_change: detected by diff and classified as important, but not represented in summary/quiz topic coverage."
+      }
+    }
+  ],
+  "tables": [
+    {
+      "title": "Table 00 — Source artifact audit",
+      "path": "experiments/final_visuals/tables/table_00_source_audit.md",
+      "purpose": "Аудит исходных файлов Фаз 14–19."
+    },
+    {
+      "title": "Table 01 — Experiment summary",
+      "path": "experiments/final_visuals/tables/table_01_experiment_summary.md",
+      "purpose": "Сводная таблица по этапам метода."
+    },
+    {
+      "title": "Table 02 — Diff comparison",
+      "path": "experiments/final_visuals/tables/table_02_diff_comparison.md",
+      "purpose": "Сравнение diff-подходов."
+    },
+    {
+      "title": "Table 03 — End-to-end coverage",
+      "path": "experiments/final_visuals/tables/table_03_end_to_end_coverage.md",
+      "purpose": "Прохождение important/critical changes через pipeline."
+    },
+    {
+      "title": "Table 04 — Summary and quiz quality",
+      "path": "experiments/final_visuals/tables/table_04_summary_quiz_quality.md",
+      "purpose": "Качество summary и quiz generation."
+    },
+    {
+      "title": "Table 05 — Limitations",
+      "path": "experiments/final_visuals/tables/table_05_limitations.md",
+      "purpose": "Ограничения экспериментальной оценки."
+    },
+    {
+      "title": "Table 06 — Recommended thesis inserts",
+      "path": "experiments/final_visuals/tables/table_06_recommended_thesis_inserts.md",
+      "purpose": "Карта вставки материалов Фазы 20 в главу 3."
+    }
+  ],
+  "documents": [
+    {
+      "title": "Final figures and tables guide",
+      "path": "docs/experiments/final-figures-and-tables.md",
+      "purpose": "Подписи, интерпретации, cautious claims и recommended thesis inserts для главы 3."
+    },
+    {
+      "title": "Experiments README",
+      "path": "docs/experiments/README.md",
+      "purpose": "Индекс экспериментальных материалов."
+    }
+  ],
+  "key_results": {
+    "important_critical_changes_total": 9,
+    "detected_by_diff": 9,
+    "classified_as_significant": 9,
+    "covered_by_summary": 8,
+    "covered_by_quiz": 8,
+    "strict_end_to_end_success": "8/9",
+    "strict_end_to_end_success_rate": 0.8889,
+    "main_bottleneck": "pair_06_procedure_change"
+  },
+  "cautious_interpretation": [
+    "Synthetic corpus limits external validity.",
+    "Key-change annotation is not a full-document gold standard.",
+    "Rule-based significance is recall-oriented and can overclassify editorial/informational noise.",
+    "Summary/quiz outputs require human-in-the-loop review before practical use."
+  ]
+}

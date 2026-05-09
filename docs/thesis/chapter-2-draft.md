@@ -230,7 +230,7 @@ Human-in-the-loop важен не только как интерфейсное �
 
 Django backend расположен в `backend/`. Основная предметная область реализована в приложении `documents`, конфигурация — в `config`, health/core endpoints — в `core`. Presentation layer включает templates и API, application logic вынесена в services, domain algorithms — в domain modules, persistence — в ORM models. Такое разнесение облегчает проверку соответствия кода методическим документам.
 
-Скрипты `scripts/validate_evaluation_corpus.py`, `experiments/final/aggregate_experiment_results.py`, `experiments/final_visuals/build_final_figures.py`, `scripts/lint.sh`, `scripts/demo_smoke.sh` используются для воспроизводимости и контроля. Для документационной Фазы 22 новые эксперименты не проводятся, но запуск проверок позволяет убедиться, что существующие артефакты и backend не были случайно нарушены.
+Скрипты `scripts/validate_evaluation_corpus.py`, `experiments/final/aggregate_experiment_results.py`, `experiments/final_visuals/build_final_figures.py`, `scripts/lint.sh`, `scripts/demo_smoke.sh` используются для воспроизводимости и контроля. При подготовке диссертационного текста новые эксперименты не проводятся, но запуск проверок позволяет убедиться, что существующие артефакты и backend не были случайно нарушены.
 
 Воспроизводимость обеспечивается не только скриптами, но и архитектурой данных. Система сохраняет исходные файлы версий, extracted/normalized text, content hash, chunks, comparisons, change items, summary, quiz, questions, choices, attempts and answers. Это позволяет повторно анализировать цепочку обработки и сопоставлять фактическую реализацию с результатами главы 3.
 
@@ -254,7 +254,7 @@ Cloud-first deployment, distributed architecture, enterprise BI dashboard и п�
 
 В-седьмых, optional LLM не является ядром системы. При отключённой или недоступной LLM система должна продолжать работу через deterministic fallback. Поэтому нельзя описывать проект как LLM-first или RAG-first решение.
 
-В-восьмых, в MVP нет enterprise RBAC, production IAM, BI/dashboard, большой LMS, интеграций с внешними правовыми системами, LangGraph/agent runtime, внешнего мониторинга законодательства и cloud/distributed deployment. Эти направления могут быть future work, но не относятся к текущей Фазе 22 и не должны заявляться как реализованные возможности.
+В-восьмых, в MVP нет enterprise RBAC, production IAM, BI/dashboard, большой LMS, интеграций с внешними правовыми системами, LangGraph/agent runtime, внешнего мониторинга законодательства и cloud/distributed deployment. Эти направления могут быть future work, но не относятся к текущему MVP scope и не должны заявляться как реализованные возможности.
 
 В-девятых, экспериментальная оценка, описанная в главе 3, выполнена на synthetic/evaluation corpus. Это не часть функционального ограничения системы как кода, но важная граница выводов: результаты подтверждают применимость метода в рамках подготовленного MVP corpus, а не универсальность для всех нормативных документов.
 

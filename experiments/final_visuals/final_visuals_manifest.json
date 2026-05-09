@@ -1,7 +1,7 @@
 {
   "phase": 20,
   "name": "final_visuals_for_dissertation_chapter_3",
-  "generated_at_utc": "2026-05-07T18:16:45.074100+00:00",
+  "generated_at_utc": "2026-05-07T18:09:16.308663+00:00",
   "source_policy": "Uses existing Phase 14-19 artifacts only; no new experiments, backend changes, algorithm changes, or corpus changes.",
   "source_artifact_audit": [
     {

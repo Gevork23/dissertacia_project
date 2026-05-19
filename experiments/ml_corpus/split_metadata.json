@@ -1,0 +1,55 @@
+{
+  "split_method": "group_aware_stratified_greedy",
+  "random_state": 42,
+  "test_target_examples": 31,
+  "selected_test_pairs": [
+    "pair_05_editorial_change",
+    "pair_06_procedure_change",
+    "pair_08_reordered_structure",
+    "pair_09_mixed_significant_and_editorial",
+    "synthetic_clarification_change_001",
+    "synthetic_clarification_change_002",
+    "synthetic_clarification_change_003",
+    "synthetic_clarification_change_004",
+    "synthetic_formatting_or_editorial_change_001",
+    "synthetic_formatting_or_editorial_change_002",
+    "synthetic_formatting_or_editorial_change_003",
+    "synthetic_formatting_or_editorial_change_004",
+    "synthetic_formatting_or_editorial_change_005",
+    "synthetic_formatting_or_editorial_change_006",
+    "synthetic_formatting_or_editorial_change_007",
+    "synthetic_formatting_or_editorial_change_008",
+    "synthetic_formatting_or_editorial_change_009",
+    "synthetic_formatting_or_editorial_change_010",
+    "synthetic_terminology_change_001",
+    "synthetic_terminology_change_002",
+    "synthetic_terminology_change_003",
+    "synthetic_terminology_change_004",
+    "synthetic_terminology_change_005",
+    "synthetic_terminology_change_006",
+    "synthetic_terminology_change_007",
+    "synthetic_terminology_change_008",
+    "synthetic_terminology_change_009",
+    "synthetic_terminology_change_010"
+  ],
+  "leakage_pair_overlap": [],
+  "train_size": 110,
+  "test_size": 31,
+  "validation_size": 12,
+  "train_label_distribution": {
+    "critical": 42,
+    "important": 36,
+    "informational": 32
+  },
+  "test_label_distribution": {
+    "critical": 2,
+    "editorial": 23,
+    "important": 1,
+    "informational": 5
+  },
+  "validation_label_distribution": {
+    "critical": 4,
+    "important": 4,
+    "informational": 4
+  }
+}

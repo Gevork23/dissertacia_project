@@ -1,0 +1,125 @@
+{
+  "generated_at": "2026-05-19T12:54:32+00:00",
+  "total_examples": 202,
+  "strict_examples": 153,
+  "weak_examples": 49,
+  "sources": {
+    "significance_results": 13,
+    "evaluation_corpus": 13,
+    "annotation_examples": 0,
+    "curated_synthetic": 160,
+    "real_world_weak": 49
+  },
+  "label_distribution": {
+    "critical": 72,
+    "editorial": 36,
+    "important": 53,
+    "informational": 41
+  },
+  "semantic_type_distribution": {
+    "editorial": 15,
+    "obligation": 14,
+    "procedure": 13,
+    "refusal_ground_change": 10,
+    "responsibility_change": 10,
+    "deadline_change": 10,
+    "obligation_change": 10,
+    "reference_change": 10,
+    "mixed_change": 10,
+    "contact_or_channel_change": 10,
+    "clarification_change": 10,
+    "procedure_change": 10,
+    "document_list_change": 10,
+    "payment_or_fee_change": 10,
+    "eligibility_change": 10,
+    "terminology_change": 10,
+    "formatting_or_editorial_change": 10,
+    "deadline": 9,
+    "document": 7,
+    "responsibility": 1,
+    "refusal": 1,
+    "informational": 1,
+    "structure": 1
+  },
+  "operation_type_distribution": {
+    "modified": 135,
+    "added": 56,
+    "moved": 11
+  },
+  "text_lengths": {
+    "old_mean": 64.14,
+    "new_mean": 91.84,
+    "combined_mean": 156.71
+  },
+  "source_proportions": {
+    "gold": 0.0644,
+    "synthetic": 0.6931,
+    "weak": 0.2426
+  },
+  "split": {
+    "split_method": "group_aware_stratified_greedy",
+    "random_state": 42,
+    "test_target_examples": 31,
+    "selected_test_pairs": [
+      "pair_05_editorial_change",
+      "pair_06_procedure_change",
+      "pair_08_reordered_structure",
+      "pair_09_mixed_significant_and_editorial",
+      "synthetic_clarification_change_001",
+      "synthetic_clarification_change_002",
+      "synthetic_clarification_change_003",
+      "synthetic_clarification_change_004",
+      "synthetic_formatting_or_editorial_change_001",
+      "synthetic_formatting_or_editorial_change_002",
+      "synthetic_formatting_or_editorial_change_003",
+      "synthetic_formatting_or_editorial_change_004",
+      "synthetic_formatting_or_editorial_change_005",
+      "synthetic_formatting_or_editorial_change_006",
+      "synthetic_formatting_or_editorial_change_007",
+      "synthetic_formatting_or_editorial_change_008",
+      "synthetic_formatting_or_editorial_change_009",
+      "synthetic_formatting_or_editorial_change_010",
+      "synthetic_terminology_change_001",
+      "synthetic_terminology_change_002",
+      "synthetic_terminology_change_003",
+      "synthetic_terminology_change_004",
+      "synthetic_terminology_change_005",
+      "synthetic_terminology_change_006",
+      "synthetic_terminology_change_007",
+      "synthetic_terminology_change_008",
+      "synthetic_terminology_change_009",
+      "synthetic_terminology_change_010"
+    ],
+    "leakage_pair_overlap": [],
+    "train_size": 110,
+    "test_size": 31,
+    "validation_size": 12,
+    "train_label_distribution": {
+      "critical": 42,
+      "important": 36,
+      "informational": 32
+    },
+    "test_label_distribution": {
+      "critical": 2,
+      "editorial": 23,
+      "important": 1,
+      "informational": 5
+    },
+    "validation_label_distribution": {
+      "critical": 4,
+      "important": 4,
+      "informational": 4
+    }
+  },
+  "warnings": [],
+  "artifacts": {
+    "full_dataset": "experiments/ml_corpus/full_dataset.csv",
+    "train": "experiments/ml_corpus/train.csv",
+    "validation": "experiments/ml_corpus/validation.csv",
+    "test": "experiments/ml_corpus/test.csv",
+    "weak_inference_dataset": "experiments/ml_corpus/weak_inference_dataset.csv",
+    "split_metadata": "experiments/ml_corpus/split_metadata.json",
+    "dataset_quality_report": "experiments/ml_corpus/dataset_quality_report.md",
+    "figures_dir": "experiments/ml_corpus/figures"
+  }
+}

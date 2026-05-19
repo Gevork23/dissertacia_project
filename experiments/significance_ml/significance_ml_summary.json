@@ -1,0 +1,300 @@
+{
+  "generated_at": "2026-05-19T12:54:31+00:00",
+  "dataset_source": "experiments/ml_corpus/train.csv + experiments/ml_corpus/test.csv",
+  "total_examples": 141,
+  "label_distribution": {
+    "critical": 44,
+    "editorial": 23,
+    "important": 37,
+    "informational": 37
+  },
+  "train_size": 110,
+  "test_size": 31,
+  "cv_folds": 0,
+  "models_evaluated": [
+    "rule_based_baseline",
+    "ml_text_model",
+    "hybrid_model"
+  ],
+  "rule_based_metrics": {
+    "accuracy": 0.5161,
+    "macro_precision": 0.7656,
+    "macro_recall": 0.7196,
+    "macro_f1": 0.584,
+    "per_label": {
+      "critical": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "important": {
+        "precision": 0.0625,
+        "recall": 1.0,
+        "f1": 0.1176,
+        "support": 1
+      },
+      "informational": {
+        "precision": 1.0,
+        "recall": 0.4,
+        "f1": 0.5714,
+        "support": 5
+      },
+      "editorial": {
+        "precision": 1.0,
+        "recall": 0.4783,
+        "f1": 0.6471,
+        "support": 23
+      }
+    },
+    "confusion_matrix_labels": [
+      "critical",
+      "important",
+      "informational",
+      "editorial"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        2,
+        0
+      ],
+      [
+        0,
+        12,
+        0,
+        11
+      ]
+    ],
+    "binary": {
+      "high_priority_precision": 0.1667,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2858,
+      "tp": 3,
+      "fp": 15,
+      "fn": 0,
+      "tn": 13,
+      "editorial_high_priority_false_positive_count": 12,
+      "important_critical_miss_count": 0
+    }
+  },
+  "ml_metrics": {
+    "accuracy": 0.2258,
+    "macro_precision": 0.3042,
+    "macro_recall": 0.7,
+    "macro_f1": 0.3777,
+    "per_label": {
+      "critical": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "support": 2
+      },
+      "important": {
+        "precision": 0.05,
+        "recall": 1.0,
+        "f1": 0.0952,
+        "support": 1
+      },
+      "informational": {
+        "precision": 0.5,
+        "recall": 0.8,
+        "f1": 0.6154,
+        "support": 5
+      },
+      "editorial": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 23
+      }
+    },
+    "confusion_matrix_labels": [
+      "critical",
+      "important",
+      "informational",
+      "editorial"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        4,
+        0
+      ],
+      [
+        0,
+        19,
+        4,
+        0
+      ]
+    ],
+    "binary": {
+      "high_priority_precision": 0.1304,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2307,
+      "tp": 3,
+      "fp": 20,
+      "fn": 0,
+      "tn": 8,
+      "editorial_high_priority_false_positive_count": 19,
+      "important_critical_miss_count": 0
+    },
+    "status": "available",
+    "evaluation_plan": "fixed_train_test_split",
+    "train_size": 110,
+    "test_size": 31
+  },
+  "hybrid_metrics": {
+    "accuracy": 0.4194,
+    "macro_precision": 0.6806,
+    "macro_recall": 0.687,
+    "macro_f1": 0.5303,
+    "per_label": {
+      "critical": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "important": {
+        "precision": 0.0556,
+        "recall": 1.0,
+        "f1": 0.1053,
+        "support": 1
+      },
+      "informational": {
+        "precision": 0.6667,
+        "recall": 0.4,
+        "f1": 0.5,
+        "support": 5
+      },
+      "editorial": {
+        "precision": 1.0,
+        "recall": 0.3478,
+        "f1": 0.5161,
+        "support": 23
+      }
+    },
+    "confusion_matrix_labels": [
+      "critical",
+      "important",
+      "informational",
+      "editorial"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        2,
+        0
+      ],
+      [
+        0,
+        14,
+        1,
+        8
+      ]
+    ],
+    "binary": {
+      "high_priority_precision": 0.15,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2609,
+      "tp": 3,
+      "fp": 17,
+      "fn": 0,
+      "tn": 11,
+      "editorial_high_priority_false_positive_count": 14,
+      "important_critical_miss_count": 0
+    },
+    "status": "available"
+  },
+  "binary_high_priority_metrics": {
+    "rule_based_baseline": {
+      "high_priority_precision": 0.1667,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2858,
+      "tp": 3,
+      "fp": 15,
+      "fn": 0,
+      "tn": 13,
+      "editorial_high_priority_false_positive_count": 12,
+      "important_critical_miss_count": 0
+    },
+    "ml_text_model": {
+      "high_priority_precision": 0.1304,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2307,
+      "tp": 3,
+      "fp": 20,
+      "fn": 0,
+      "tn": 8,
+      "editorial_high_priority_false_positive_count": 19,
+      "important_critical_miss_count": 0
+    },
+    "hybrid_model": {
+      "high_priority_precision": 0.15,
+      "high_priority_recall": 1.0,
+      "high_priority_f1": 0.2609,
+      "tp": 3,
+      "fp": 17,
+      "fn": 0,
+      "tn": 11,
+      "editorial_high_priority_false_positive_count": 14,
+      "important_critical_miss_count": 0
+    }
+  },
+  "disagreement_count": 17,
+  "limitations": [
+    "This is an offline research experiment and not a production replacement for the rule-based significance layer.",
+    "The labeled corpus is small and class-imbalanced; metric stability is limited, especially for singleton labels.",
+    "The ML model uses only lightweight lexical, structural and TF-IDF features without external models or network access.",
+    "Hybrid predictions are conservative by design and prioritize high-priority recall over aggressive promotion.",
+    "Real-world regression outputs may be used later as weak inference material, but they are not treated here as strict training labels."
+  ],
+  "warnings": [],
+  "output_files": {
+    "summary": "experiments/significance_ml/significance_ml_summary.json",
+    "predictions": "experiments/significance_ml/significance_ml_predictions.csv",
+    "confusion_matrix": "experiments/significance_ml/significance_ml_confusion_matrix.csv",
+    "feature_report": "experiments/significance_ml/significance_ml_feature_report.csv",
+    "error_examples": "experiments/significance_ml/significance_ml_error_examples.csv"
+  }
+}

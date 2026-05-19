@@ -383,6 +383,117 @@
 </section>
 
 <section class="card" style="margin-top: 18px;">
+    <h2>Supervised ML corpus</h2>
+    {% if supervised_ml_corpus.profile.available %}
+        <div class="grid grid-2" style="margin-top: 12px;">
+            <div class="artifact-preview">
+                <h3>Corpus profile</h3>
+                <div class="metric-list">
+                    <div class="metric-row"><strong>Status</strong><div>{{ supervised_ml_corpus.status }}</div></div>
+                    <div class="metric-row"><strong>Total examples</strong><div>{{ supervised_ml_corpus.total_examples|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Strict examples</strong><div>{{ supervised_ml_corpus.strict_examples|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Weak examples</strong><div>{{ supervised_ml_corpus.weak_examples|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Train size</strong><div>{{ supervised_ml_corpus.train_size|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Validation size</strong><div>{{ supervised_ml_corpus.validation_size|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Test size</strong><div>{{ supervised_ml_corpus.test_size|default:0 }}</div></div>
+                </div>
+                <div class="artifact-path" style="margin-top: 10px;">
+                    <a href="{% url 'demo-research-artifact' supervised_ml_corpus.profile.path %}">{{ supervised_ml_corpus.profile.path }}</a>
+                </div>
+            </div>
+            <div class="artifact-preview">
+                <h3>Label and source distribution</h3>
+                {% if supervised_ml_corpus.label_distribution %}
+                    <div class="metric-list">
+                        {% for key, value in supervised_ml_corpus.label_distribution.items %}
+                            <div class="metric-row">
+                                <strong>{{ key }}</strong>
+                                <div>{{ value }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if supervised_ml_corpus.source_proportions %}
+                    <div class="metric-list" style="margin-top: 12px;">
+                        {% for key, value in supervised_ml_corpus.source_proportions.items %}
+                            <div class="metric-row">
+                                <strong>{{ key }}</strong>
+                                <div>{{ value }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 16px;">
+            <div class="artifact-preview">
+                <h3>Dataset artifacts</h3>
+                <div class="stack">
+                    <div class="artifact-path"><a href="{% url 'demo-research-artifact' supervised_ml_corpus.full_dataset.path %}">{{ supervised_ml_corpus.full_dataset.path }}</a></div>
+                    <div class="artifact-path"><a href="{% url 'demo-research-artifact' supervised_ml_corpus.train.path %}">{{ supervised_ml_corpus.train.path }}</a></div>
+                    <div class="artifact-path"><a href="{% url 'demo-research-artifact' supervised_ml_corpus.test.path %}">{{ supervised_ml_corpus.test.path }}</a></div>
+                    {% if supervised_ml_corpus.weak.available %}
+                        <div class="artifact-path"><a href="{% url 'demo-research-artifact' supervised_ml_corpus.weak.path %}">{{ supervised_ml_corpus.weak.path }}</a></div>
+                    {% endif %}
+                    {% if supervised_ml_corpus.quality_report.available %}
+                        <div class="artifact-path"><a href="{% url 'demo-research-artifact' supervised_ml_corpus.quality_report.path %}">{{ supervised_ml_corpus.quality_report.path }}</a></div>
+                    {% endif %}
+                </div>
+                {% if supervised_ml_corpus.label_distribution_csv.available %}
+                    <div class="table-wrap" style="margin-top: 12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in supervised_ml_corpus.label_distribution_csv.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in supervised_ml_corpus.label_distribution_csv.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="artifact-preview">
+                <h3>Quality report preview</h3>
+                {% if supervised_ml_corpus.quality_report.available %}
+                    <pre>{{ supervised_ml_corpus.quality_report.preview }}</pre>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if supervised_ml_corpus.figures.items %}
+            <div class="artifact-grid" style="margin-top: 16px;">
+                {% for figure in supervised_ml_corpus.figures.items %}
+                    <article class="figure-frame">
+                        <img src="{% url 'demo-research-artifact' figure.path %}" alt="{{ figure.title }}">
+                        <div style="padding: 14px;">
+                            <strong>{{ figure.title }}</strong>
+                            <div class="artifact-path" style="margin-top: 8px;">
+                                <a href="{% url 'demo-research-artifact' figure.path %}">{{ figure.path }}</a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
     <h2>Real-world regression suite</h2>
     {% if real_world.summary.available %}
         <div class="grid grid-2" style="margin-top: 12px;">
@@ -471,6 +582,173 @@
                     </div>
                     <div class="artifact-path" style="margin-top: 10px;">
                         <a href="{% url 'demo-research-artifact' real_world.stage_summary.path %}">{{ real_world.stage_summary.path }}</a>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>ML / Hybrid significance experiment</h2>
+    {% if significance_ml.summary.available %}
+        <div class="grid grid-2" style="margin-top: 12px;">
+            <div class="artifact-preview">
+                <h3>Status</h3>
+                <div class="metric-list">
+                    <div class="metric-row"><strong>Status</strong><div>{{ significance_ml.status }}</div></div>
+                    <div class="metric-row"><strong>Total examples</strong><div>{{ significance_ml.total_examples }}</div></div>
+                    <div class="metric-row"><strong>Models evaluated</strong><div>{{ significance_ml.models_evaluated|join:", " }}</div></div>
+                    <div class="metric-row"><strong>Rule high-priority recall</strong><div>{{ significance_ml.binary_metrics.rule_based_baseline.high_priority_recall|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Rule high-priority F1</strong><div>{{ significance_ml.binary_metrics.rule_based_baseline.high_priority_f1|default:0 }}</div></div>
+                    <div class="metric-row"><strong>ML macro F1</strong><div>{{ significance_ml.ml_metrics.macro_f1|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Hybrid macro F1</strong><div>{{ significance_ml.hybrid_metrics.macro_f1|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Disagreement count</strong><div>{{ significance_ml.disagreement_count|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Hybrid important/critical misses</strong><div>{{ significance_ml.binary_metrics.hybrid_model.important_critical_miss_count|default:0 }}</div></div>
+                </div>
+                <div class="artifact-path" style="margin-top: 10px;">
+                    <a href="{% url 'demo-research-artifact' significance_ml.summary.path %}">{{ significance_ml.summary.path }}</a>
+                </div>
+            </div>
+            <div class="artifact-preview">
+                <h3>Label distribution and limitations</h3>
+                {% if significance_ml.label_distribution %}
+                    <div class="metric-list">
+                        {% for key, value in significance_ml.label_distribution.items %}
+                            <div class="metric-row">
+                                <strong>{{ key }}</strong>
+                                <div>{{ value }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if significance_ml.limitations %}
+                    <ul style="margin-top: 12px;">
+                        {% for item in significance_ml.limitations %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 16px;">
+            <div class="artifact-preview">
+                <h3>Predictions preview</h3>
+                {% if significance_ml.predictions.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in significance_ml.predictions.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in significance_ml.predictions.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="artifact-path" style="margin-top: 10px;">
+                        <a href="{% url 'demo-research-artifact' significance_ml.predictions.path %}">{{ significance_ml.predictions.path }}</a>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+            <div class="artifact-preview">
+                <h3>Confusion matrix preview</h3>
+                {% if significance_ml.confusion.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in significance_ml.confusion.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in significance_ml.confusion.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="artifact-path" style="margin-top: 10px;">
+                        <a href="{% url 'demo-research-artifact' significance_ml.confusion.path %}">{{ significance_ml.confusion.path }}</a>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 16px;">
+            <div class="artifact-preview">
+                <h3>Feature report preview</h3>
+                {% if significance_ml.feature_report.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in significance_ml.feature_report.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in significance_ml.feature_report.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+            <div class="artifact-preview">
+                <h3>Error examples preview</h3>
+                {% if significance_ml.error_examples.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in significance_ml.error_examples.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in significance_ml.error_examples.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 {% else %}
                     <p class="muted">artifact missing / not available</p>

@@ -1,0 +1,31 @@
+model,class_label,rank,feature_name,feature_type,coefficient
+ml_text_model,critical,1,meta:has_deadline_words,meta,1.457973
+ml_text_model,critical,2,meta:change_type_deadline,meta,1.315559
+ml_text_model,critical,3,meta:has_modal_obligation_words,meta,0.99172
+ml_text_model,critical,4,meta:has_number,meta,0.624483
+ml_text_model,critical,5,meta:has_refusal_words,meta,0.591017
+ml_text_model,critical,6,meta:change_type_refusal,meta,0.569112
+ml_text_model,critical,7,tfidf:ответственность,tfidf,0.30346
+ml_text_model,critical,8,tfidf:добавлена,tfidf,0.298718
+ml_text_model,critical,9,tfidf:responsibility_change,tfidf,0.264277
+ml_text_model,critical,10,tfidf:deadline_change,tfidf,0.231187
+ml_text_model,important,1,meta:has_document_words,meta,1.211478
+ml_text_model,important,2,tfidf:document_list_change,tfidf,0.564062
+ml_text_model,important,3,tfidf:изменен,tfidf,0.451977
+ml_text_model,important,4,meta:requires_manual_review_flag,meta,0.386912
+ml_text_model,important,5,tfidf:payment_or_fee_change,tfidf,0.359123
+ml_text_model,important,6,meta:has_procedure_words,meta,0.355967
+ml_text_model,important,7,tfidf:document_list_change document_list_change,tfidf,0.333144
+ml_text_model,important,8,tfidf:eligibility_change,tfidf,0.312869
+ml_text_model,important,9,tfidf:procedure_change,tfidf,0.310483
+ml_text_model,important,10,tfidf:добавлен документ,tfidf,0.228293
+ml_text_model,informational,1,meta:has_editorial_words,meta,0.755367
+ml_text_model,informational,2,tfidf:добавлен,tfidf,0.56799
+ml_text_model,informational,3,meta:requires_manual_review_flag,meta,0.54561
+ml_text_model,informational,4,tfidf:contact_or_channel_change,tfidf,0.521506
+ml_text_model,informational,5,meta:has_legal_reference,meta,0.489973
+ml_text_model,informational,6,meta:has_date_like_pattern,meta,0.4415
+ml_text_model,informational,7,tfidf:канал,tfidf,0.429836
+ml_text_model,informational,8,tfidf:mixed_change,tfidf,0.427455
+ml_text_model,informational,9,meta:op_modified,meta,0.370079
+ml_text_model,informational,10,tfidf:справочный,tfidf,0.349036

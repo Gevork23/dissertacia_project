@@ -13,6 +13,8 @@ FINAL_VISUALS_DIR = PROJECT_ROOT / "experiments" / "final_visuals"
 FINAL_FIGURES_DIR = FINAL_VISUALS_DIR / "figures"
 FINAL_TABLES_DIR = FINAL_VISUALS_DIR / "tables"
 REAL_WORLD_DIR = PROJECT_ROOT / "experiments" / "real_world"
+SIGNIFICANCE_ML_DIR = PROJECT_ROOT / "experiments" / "significance_ml"
+ML_CORPUS_DIR = PROJECT_ROOT / "experiments" / "ml_corpus"
 DOCS_EXPERIMENTS_DIR = PROJECT_ROOT / "docs" / "experiments"
 
 ARTIFACT_ROOTS = (
@@ -20,6 +22,8 @@ ARTIFACT_ROOTS = (
     FINAL_FIGURES_DIR,
     FINAL_TABLES_DIR,
     REAL_WORLD_DIR,
+    SIGNIFICANCE_ML_DIR,
+    ML_CORPUS_DIR,
     DOCS_EXPERIMENTS_DIR,
 )
 
@@ -386,6 +390,147 @@ def collect_real_world_regression() -> dict[str, Any]:
     }
 
 
+def collect_significance_ml_experiment() -> dict[str, Any]:
+    summary = safe_read_json(SIGNIFICANCE_ML_DIR / "significance_ml_summary.json")
+    predictions = safe_read_csv_preview(
+        SIGNIFICANCE_ML_DIR / "significance_ml_predictions.csv",
+        max_rows=8,
+    )
+    confusion = safe_read_csv_preview(
+        SIGNIFICANCE_ML_DIR / "significance_ml_confusion_matrix.csv",
+        max_rows=8,
+    )
+    feature_report = safe_read_csv_preview(
+        SIGNIFICANCE_ML_DIR / "significance_ml_feature_report.csv",
+        max_rows=8,
+    )
+    error_examples = safe_read_csv_preview(
+        SIGNIFICANCE_ML_DIR / "significance_ml_error_examples.csv",
+        max_rows=8,
+    )
+
+    available_count = sum(
+        1
+        for item in (summary, predictions, confusion, feature_report, error_examples)
+        if item["available"]
+    )
+    summary_data = summary["data"] if summary["available"] and isinstance(summary["data"], dict) else {}
+    return {
+        "status": _artifact_status(available_count, 5),
+        "summary": summary,
+        "predictions": predictions,
+        "confusion": confusion,
+        "feature_report": feature_report,
+        "error_examples": error_examples,
+        "models_evaluated": summary_data.get("models_evaluated", [])
+        if isinstance(summary_data, dict)
+        else [],
+        "label_distribution": summary_data.get("label_distribution", {})
+        if isinstance(summary_data, dict)
+        else {},
+        "rule_metrics": summary_data.get("rule_based_metrics", {})
+        if isinstance(summary_data, dict)
+        else {},
+        "ml_metrics": summary_data.get("ml_metrics", {})
+        if isinstance(summary_data, dict)
+        else {},
+        "hybrid_metrics": summary_data.get("hybrid_metrics", {})
+        if isinstance(summary_data, dict)
+        else {},
+        "binary_metrics": summary_data.get("binary_high_priority_metrics", {})
+        if isinstance(summary_data, dict)
+        else {},
+        "limitations": summary_data.get("limitations", [])
+        if isinstance(summary_data, dict)
+        else [],
+        "disagreement_count": summary_data.get("disagreement_count", 0)
+        if isinstance(summary_data, dict)
+        else 0,
+        "total_examples": summary_data.get("total_examples", 0)
+        if isinstance(summary_data, dict)
+        else 0,
+    }
+
+
+def collect_supervised_ml_corpus() -> dict[str, Any]:
+    profile = safe_read_json(ML_CORPUS_DIR / "dataset_profile.json")
+    split = safe_read_json(ML_CORPUS_DIR / "split_metadata.json")
+    feature_schema = safe_read_json(ML_CORPUS_DIR / "feature_schema.json")
+    full_dataset = safe_read_csv_preview(ML_CORPUS_DIR / "full_dataset.csv", max_rows=8)
+    train = safe_read_csv_preview(ML_CORPUS_DIR / "train.csv", max_rows=8)
+    test = safe_read_csv_preview(ML_CORPUS_DIR / "test.csv", max_rows=8)
+    weak = safe_read_csv_preview(
+        ML_CORPUS_DIR / "weak_inference_dataset.csv",
+        max_rows=8,
+    )
+    label_distribution = safe_read_csv_preview(
+        ML_CORPUS_DIR / "label_distribution.csv",
+        max_rows=16,
+    )
+    quality_report = safe_read_text_preview(
+        ML_CORPUS_DIR / "dataset_quality_report.md",
+        max_chars=900,
+    )
+
+    figures_dir = ML_CORPUS_DIR / "figures"
+    figure_items = []
+    if figures_dir.exists():
+        for path in sorted(figures_dir.glob("*.png")):
+            figure_items.append(
+                {
+                    "title": humanize_stem(path.stem),
+                    "path": rel_repo_path(path),
+                }
+            )
+
+    available_count = sum(
+        1
+        for item in (
+            profile,
+            split,
+            feature_schema,
+            full_dataset,
+            train,
+            test,
+            weak,
+            label_distribution,
+            quality_report,
+        )
+        if item["available"]
+    )
+    profile_data = profile["data"] if profile["available"] and isinstance(profile["data"], dict) else {}
+    split_data = split["data"] if split["available"] and isinstance(split["data"], dict) else {}
+    return {
+        "status": _artifact_status(available_count, 9),
+        "profile": profile,
+        "split": split,
+        "feature_schema": feature_schema,
+        "full_dataset": full_dataset,
+        "train": train,
+        "test": test,
+        "weak": weak,
+        "label_distribution_csv": label_distribution,
+        "quality_report": quality_report,
+        "figures": {
+            "status": "available" if figure_items else "missing",
+            "items": figure_items,
+            "warning": None if figure_items else "artifact missing / not available",
+        },
+        "total_examples": profile_data.get("total_examples", 0) if isinstance(profile_data, dict) else 0,
+        "strict_examples": profile_data.get("strict_examples", 0) if isinstance(profile_data, dict) else 0,
+        "weak_examples": profile_data.get("weak_examples", 0) if isinstance(profile_data, dict) else 0,
+        "label_distribution": profile_data.get("label_distribution", {}) if isinstance(profile_data, dict) else {},
+        "semantic_type_distribution": profile_data.get("semantic_type_distribution", {})
+        if isinstance(profile_data, dict)
+        else {},
+        "source_proportions": profile_data.get("source_proportions", {}) if isinstance(profile_data, dict) else {},
+        "train_size": split_data.get("train_size", 0) if isinstance(split_data, dict) else 0,
+        "test_size": split_data.get("test_size", 0) if isinstance(split_data, dict) else 0,
+        "validation_size": split_data.get("validation_size", 0) if isinstance(split_data, dict) else 0,
+        "warnings": profile_data.get("warnings", []) if isinstance(profile_data, dict) else [],
+    }
+
+
 def collect_stage_cards(
     final_metrics: dict[str, Any], diagnostics: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -419,6 +564,8 @@ def collect_artifact_inventory(
     documentation: dict[str, Any],
     diagnostics: dict[str, Any],
     real_world: dict[str, Any],
+    significance_ml: dict[str, Any],
+    supervised_ml_corpus: dict[str, Any],
 ) -> list[dict[str, Any]]:
     inventory = [
         {"group": "Final metrics JSON", "status": "available" if final_metrics["json"]["available"] else "missing", "path": final_metrics["json"]["path"]},
@@ -426,6 +573,8 @@ def collect_artifact_inventory(
         {"group": "Figures", "status": figures["status"], "path": rel_repo_path(FINAL_FIGURES_DIR)},
         {"group": "Tables", "status": tables["status"], "path": rel_repo_path(FINAL_TABLES_DIR)},
         {"group": "Real-world regression", "status": real_world["status"], "path": rel_repo_path(REAL_WORLD_DIR)},
+        {"group": "Significance ML experiment", "status": significance_ml["status"], "path": rel_repo_path(SIGNIFICANCE_ML_DIR)},
+        {"group": "Supervised ML corpus", "status": supervised_ml_corpus["status"], "path": rel_repo_path(ML_CORPUS_DIR)},
         {"group": "Experiment docs", "status": documentation["status"], "path": rel_repo_path(DOCS_EXPERIMENTS_DIR)},
         {"group": "Pipeline diagnostics", "status": diagnostics["status"], "path": rel_repo_path(FINAL_DIR)},
     ]
@@ -439,6 +588,8 @@ def build_research_dashboard_context() -> dict[str, Any]:
     documentation = collect_documentation_artifacts()
     diagnostics = collect_pipeline_diagnostics()
     real_world = collect_real_world_regression()
+    significance_ml = collect_significance_ml_experiment()
+    supervised_ml_corpus = collect_supervised_ml_corpus()
 
     return {
         "project_card": {
@@ -466,6 +617,8 @@ def build_research_dashboard_context() -> dict[str, Any]:
         "documentation": documentation,
         "diagnostics": diagnostics,
         "real_world": real_world,
+        "significance_ml": significance_ml,
+        "supervised_ml_corpus": supervised_ml_corpus,
         "limitations": [
             "Экспериментальный корпус ограничен по объёму и не исчерпывает все типы нормативных документов и редакционных сценариев.",
             "Часть выводов основана на synthetic/gold corpus и экспертной разметке, что корректно для исследовательской валидации, но не заменяет широкую полевую апробацию.",
@@ -473,7 +626,14 @@ def build_research_dashboard_context() -> dict[str, Any]:
             "Панель визуализирует уже рассчитанные artifacts и не пересчитывает эксперименты во время HTTP-запроса, чтобы не смешивать демонстрационный контур и исследовательский offline pipeline.",
         ],
         "artifact_inventory": collect_artifact_inventory(
-            final_metrics, figures, tables, documentation, diagnostics, real_world
+            final_metrics,
+            figures,
+            tables,
+            documentation,
+            diagnostics,
+            real_world,
+            significance_ml,
+            supervised_ml_corpus,
         ),
     }
 

@@ -333,3 +333,31 @@ Run locally:
 python experiments/real_world/evaluate_real_world.py
 python backend/manage.py run_real_world_regression
 ```
+
+## ML / Hybrid significance experiment
+
+- Offline ML artifacts are stored in `experiments/significance_ml/`.
+- Main outputs: `significance_ml_summary.json`, `significance_ml_predictions.csv`, `significance_ml_confusion_matrix.csv`, `significance_ml_feature_report.csv`, `significance_ml_error_examples.csv`.
+- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
+
+Run locally:
+
+```bash
+python experiments/significance_ml/evaluate_significance_ml.py
+python backend/manage.py run_significance_ml_experiment
+```
+
+## Supervised ML corpus
+
+- Offline supervised corpus artifacts are stored in `experiments/ml_corpus/`.
+- Main outputs: `full_dataset.csv`, `train.csv`, `validation.csv`, `test.csv`, `weak_inference_dataset.csv`, `dataset_profile.json`, `split_metadata.json`, `dataset_quality_report.md`, `figures/*.png`.
+- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
+
+Run locally:
+
+```bash
+python experiments/ml_corpus/build_supervised_corpus.py
+python experiments/ml_corpus/train_baseline_models.py
+python backend/manage.py build_supervised_ml_corpus
+python backend/manage.py train_baseline_ml_models
+```

@@ -74,6 +74,9 @@
                 {% if quiz_preview.questions_count %}<button class="btn" type="submit">Сохранить тест</button>{% else %}<button class="btn" type="submit" disabled>Сохранить тест</button>{% endif %}
                 <a class="btn secondary" href="{% url 'demo-visualize' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Visualize</a>
                 <a class="btn secondary" href="{% url 'demo-moderate' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Модерация</a>
+                {% if comparison %}
+                    <a class="btn secondary" href="{% url 'demo-traceability' comparison.id %}">Traceability View</a>
+                {% endif %}
                 <a class="btn secondary" href="{% url 'rag-chat' %}">Задать вопрос чату</a>
                 <a class="btn secondary" href="/api/compare/?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Открыть JSON compare</a>
             </div>

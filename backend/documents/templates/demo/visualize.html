@@ -194,6 +194,9 @@
         <div class="actions">
             <a class="btn secondary" href="{% url 'demo-compare' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">К сравнению</a>
             <a class="btn secondary" href="{% url 'demo-moderate' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Модерация</a>
+            {% if comparison %}
+                <a class="btn secondary" href="{% url 'demo-traceability' comparison.id %}">Traceability View</a>
+            {% endif %}
             <a class="btn secondary" href="{% url 'rag-chat' %}">Задать вопрос чату</a>
             <a class="btn secondary" href="/api/compare/?from_version={{ from_version.id }}&to_version={{ to_version.id }}">JSON compare</a>
         </div>

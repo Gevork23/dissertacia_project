@@ -18,6 +18,7 @@ from .views import (
     report_page,
     submit_quiz_review_view,
     take_quiz,
+    traceability_page,
     visualize_page,
 )
 
@@ -32,6 +33,7 @@ urlpatterns = [
     path("documents/<int:document_id>/", document_detail, name="demo-document-detail"),
     path("compare/", compare_page, name="demo-compare"),
     path("visualize/", visualize_page, name="demo-visualize"),
+    path("trace/<int:comparison_id>/", traceability_page, name="demo-traceability"),
     path("moderate/", moderate_page, name="demo-moderate"),
     path("api/moderate/", moderate_api, name="demo-moderate-api"),
     path("compare/create-quiz/", create_quiz, name="demo-create-quiz"),

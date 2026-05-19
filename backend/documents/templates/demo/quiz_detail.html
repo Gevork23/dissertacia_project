@@ -26,6 +26,9 @@
                 <a class="btn success" href="{% url 'demo-take-quiz' quiz.id %}">Начать прохождение</a>
                 <a class="btn secondary" href="{% url 'demo-report' quiz.id %}">Открыть отчёт</a>
             {% endif %}
+            {% if is_admin and quiz.comparison_id %}
+                <a class="btn secondary" href="{% url 'demo-traceability' quiz.comparison_id %}">Traceability View</a>
+            {% endif %}
             {% if is_admin %}
                 <a class="btn secondary" href="/api/quizzes/{{ quiz.id }}/report/">JSON-отчёт</a>
             {% endif %}

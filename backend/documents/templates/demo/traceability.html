@@ -1,0 +1,237 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Traceability View · Demo UI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .trace-grid {
+        display: grid;
+        gap: 16px;
+    }
+    .trace-summary {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .trace-stat {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+    }
+    .trace-stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 26px;
+    }
+    .trace-card {
+        display: grid;
+        gap: 16px;
+    }
+    .trace-columns {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .diff-block {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: #fff;
+    }
+    .diff-block.removed {
+        background: #fef2f2;
+        border-color: #fecaca;
+    }
+    .diff-block.added {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+    .trace-list {
+        display: grid;
+        gap: 12px;
+    }
+    .trace-mini-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: #fff;
+    }
+    .warning-box {
+        border: 1px solid #fed7aa;
+        background: #fff7ed;
+        color: #9a3412;
+        border-radius: 14px;
+        padding: 12px 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary">Traceability View</span>
+    <h2 style="margin-top: 12px;">{{ comparison.document.title }}</h2>
+    <p class="muted">
+        Comparison #{{ comparison.id }} · v{{ comparison.from_version.version_number }} → v{{ comparison.to_version.version_number }}
+        {% if comparison.created_at %}· {{ comparison.created_at }}{% endif %}
+    </p>
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'demo-compare' %}?from_version={{ comparison.from_version.id }}&to_version={{ comparison.to_version.id }}">К сравнению</a>
+        <a class="btn secondary" href="{% url 'demo-visualize' %}?from_version={{ comparison.from_version.id }}&to_version={{ comparison.to_version.id }}">Visualize</a>
+        {% if counts.quizzes %}
+            <a class="btn secondary" href="{% url 'demo-quizzes' %}">К тестам</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="trace-summary" style="margin-top: 18px;">
+    <div class="trace-stat"><span class="muted">Всего изменений</span><strong>{{ trace_summary.total_changes }}</strong></div>
+    <div class="trace-stat"><span class="muted">Значимых изменений</span><strong>{{ counts.significant_changes }}</strong></div>
+    <div class="trace-stat"><span class="muted">Ссылок на summary</span><strong>{{ trace_summary.changes_with_summary_link }}</strong></div>
+    <div class="trace-stat"><span class="muted">Ссылок на quiz</span><strong>{{ trace_summary.changes_with_quiz_link }}</strong></div>
+    <div class="trace-stat"><span class="muted">С попытками</span><strong>{{ trace_summary.changes_with_attempts }}</strong></div>
+    <div class="trace-stat"><span class="muted">Полных трасс</span><strong>{{ trace_summary.complete_traces }}</strong></div>
+    <div class="trace-stat"><span class="muted">Частичных трасс</span><strong>{{ trace_summary.partial_traces }}</strong></div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Объяснение метода</h2>
+    <p class="muted">Traceability View показывает путь каждого результата от исходного изменения в документе до обучающего вопроса и результата прохождения.</p>
+</section>
+
+<div class="trace-grid" style="margin-top: 18px;">
+    {% for item in trace_items %}
+        <section class="card trace-card">
+            <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+                <div>
+                    <span class="pill primary">Change #{{ item.change_id }}</span>
+                    <span class="pill warning">{{ item.operation_type }}</span>
+                    <span class="pill {% if item.significance_label == 'critical' %}danger{% elif item.significance_label == 'important' %}warning{% else %}primary{% endif %}">{{ item.significance_label|default:"not_evaluated" }}</span>
+                    {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
+                    <h3 style="margin-top: 12px;">{{ item.display_title }}</h3>
+                    <p class="muted">Semantic type: {{ item.semantic_type|default:"unclassified" }}</p>
+                    {% if item.significance_score %}<p class="muted">Confidence/score: {{ item.significance_score }}</p>{% endif %}
+                    {% if item.significance_reason %}<p class="muted">{{ item.significance_reason }}</p>{% endif %}
+                </div>
+                <div>
+                    <span class="pill {% if item.trace_status == 'complete' %}success{% else %}warning{% endif %}">{{ item.trace_status }}</span>
+                </div>
+            </div>
+
+            <div class="trace-columns">
+                <div class="diff-block removed">
+                    <strong>Old text</strong>
+                    {% if item.old_text %}
+                        <details style="margin-top: 10px;" open>
+                            <summary>Показать фрагмент</summary>
+                            <p style="margin-top: 12px;">{{ item.old_text }}</p>
+                        </details>
+                    {% else %}
+                        <p class="muted" style="margin-top: 10px;">No old text available.</p>
+                    {% endif %}
+                </div>
+                <div class="diff-block added">
+                    <strong>New text</strong>
+                    {% if item.new_text %}
+                        <details style="margin-top: 10px;" open>
+                            <summary>Показать фрагмент</summary>
+                            <p style="margin-top: 12px;">{{ item.new_text }}</p>
+                        </details>
+                    {% else %}
+                        <p class="muted" style="margin-top: 10px;">No new text available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <section class="trace-list">
+                <div class="trace-mini-card">
+                    <h3>Source chunks</h3>
+                    {% if item.has_chunk_link %}
+                        <p class="muted">Chunk IDs: {{ item.source_chunk_ids|join:", " }}</p>
+                        {% if item.old_chunk %}
+                            <p class="muted">Old chunk path: {{ item.old_chunk.section_path|default:item.old_chunk.heading|default:"—" }}</p>
+                        {% endif %}
+                        {% if item.new_chunk %}
+                            <p class="muted">New chunk path: {{ item.new_chunk.section_path|default:item.new_chunk.heading|default:"—" }}</p>
+                        {% endif %}
+                    {% else %}
+                        <div class="warning-box">No source chunk link found.</div>
+                    {% endif %}
+                </div>
+
+                <div class="trace-mini-card">
+                    <h3>Summary link</h3>
+                    {% if item.summary_links %}
+                        {% for summary_link in item.summary_links %}
+                            <div class="question-card" style="margin-top: 10px;">
+                                <p><strong>{{ summary_link.title|default:"Summary highlight" }}</strong></p>
+                                <p class="muted">{{ summary_link.concise_explanation|default:summary_link.description|default:"—" }}</p>
+                                <p class="muted">Type: {{ summary_link.type|default:"—" }} · Label: {{ summary_link.significance_label|default:"—" }} · Source change item: {{ summary_link.source_change_item_id }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="warning-box">No linked summary highlight found.</div>
+                    {% endif %}
+                </div>
+
+                <div class="trace-mini-card">
+                    <h3>Quiz link</h3>
+                    {% if item.quiz_links %}
+                        {% for quiz_link in item.quiz_links %}
+                            <div class="question-card" style="margin-top: 10px;">
+                                <p><strong>Quiz #{{ quiz_link.quiz_id }}</strong> · {{ quiz_link.quiz_title }}</p>
+                                <p class="muted">Question #{{ quiz_link.question_id }} · status: {{ quiz_link.quiz_status }}</p>
+                                <p>{{ quiz_link.prompt }}</p>
+                                <ul>
+                                    {% for choice in quiz_link.choices %}
+                                        <li>
+                                            {{ choice.text }}
+                                            {% if choice.is_correct %}<span class="pill success">correct</span>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                {% if quiz_link.explanation %}
+                                    <p class="muted">{{ quiz_link.explanation }}</p>
+                                {% elif quiz_link.correct_text_answer %}
+                                    <p class="muted">{{ quiz_link.correct_text_answer }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="warning-box">No linked quiz question found.</div>
+                    {% endif %}
+                </div>
+
+                <div class="trace-mini-card">
+                    <h3>Attempt result link</h3>
+                    {% if item.attempt_links %}
+                        {% for attempt_link in item.attempt_links %}
+                            <div class="question-card" style="margin-top: 10px;">
+                                <p><strong>Attempt #{{ attempt_link.attempt_id }}</strong></p>
+                                <p class="muted">
+                                    {{ attempt_link.participant_name }}
+                                    {% if attempt_link.employee_name %}· {{ attempt_link.employee_name }}{% endif %}
+                                    {% if attempt_link.submitted_at %}· {{ attempt_link.submitted_at }}{% endif %}
+                                </p>
+                                <p>Selected choice: {{ attempt_link.selected_choice_text|default:attempt_link.text_answer|default:"—" }}</p>
+                                <p class="muted">Correctness: {% if attempt_link.is_correct %}correct{% else %}incorrect{% endif %} · Score: {{ attempt_link.score }} · {{ attempt_link.score_percent }}%</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="warning-box">No attempt result available.</div>
+                    {% endif %}
+                </div>
+            </section>
+        </section>
+    {% empty %}
+        <section class="card">
+            <p class="muted">Для этой пары версий materialized change items отсутствуют.</p>
+        </section>
+    {% endfor %}
+</div>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Ограничения</h2>
+    <p class="muted">Traceability View использует только уже сохранённые связи между comparison, change items, summary, quiz и attempts. Если какая-либо связь не была materialized на предыдущих стадиях pipeline, страница показывает это как partial или missing trace, не создавая искусственных выводов.</p>
+</section>
+{% endblock %}

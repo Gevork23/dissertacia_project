@@ -202,7 +202,7 @@ Summary layer в текущем MVP реализован как materialized hum
 
 - `models.py`, `admin.py` — ORM и административный слой;
 - `api/` — DRF serializers, HTTP endpoints и viewsets;
-- `demo/` — demo UI на Django templates и deterministic demo corpus, включая маршрут `/demo/research/` для исследовательской панели;
+- `demo/` — demo UI на Django templates и deterministic demo corpus, включая маршруты `/demo/research/` для исследовательской панели и `/demo/trace/<comparison_id>/` для explainability-трассировки;
 - `domain/` — сравнение версий, change enrichment, significance-aware quiz/summary logic;
 - `services/` — ingestion, significance/importance analysis, optional search/Qdrant, evaluation services;
 - `tests/` — тесты app-модуля, сгруппированные по сценариям.

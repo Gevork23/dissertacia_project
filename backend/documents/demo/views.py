@@ -26,6 +26,7 @@ from ..models import (
     ModeratedChange,
     QuizAssignment,
     QuizAttempt,
+    VersionComparison,
 )
 from ..research_dashboard import build_research_dashboard_context, resolve_artifact_path
 from ..services.exceptions import DomainWorkflowError
@@ -55,6 +56,7 @@ from ..services.workflows import (
     build_comparison_payload,
     create_quiz_from_versions,
 )
+from ..traceability import build_comparison_trace
 
 VISUAL_LABELS = ("critical", "important", "minor")
 
@@ -94,6 +96,22 @@ def _ensure_attempt_access(request: HttpRequest, attempt: QuizAttempt) -> None:
     allowed_names = {request.user.username, get_user_display_name(request.user)}
     if attempt.participant_name not in allowed_names:
         raise PermissionDenied("Employees can view only their own attempts.")
+
+
+def _find_existing_comparison(
+    *,
+    from_version: DocumentVersion,
+    to_version: DocumentVersion,
+) -> VersionComparison | None:
+    return (
+        VersionComparison.objects.select_related(
+            "document",
+            "from_version",
+            "to_version",
+        )
+        .filter(from_version=from_version, to_version=to_version)
+        .first()
+    )
 
 
 def _load_document_with_stats(document_id: int) -> Document:
@@ -466,6 +484,10 @@ def compare_page(request: HttpRequest) -> HttpResponse:
             "from_version": from_version,
             "to_version": to_version,
             "moderation_summary": moderation_stats(moderation_rows),
+            "comparison": _find_existing_comparison(
+                from_version=from_version,
+                to_version=to_version,
+            ),
         }
     )
     return render(request, "demo/compare.html", context)
@@ -514,9 +536,29 @@ def visualize_page(request: HttpRequest) -> HttpResponse:
             "from_version": from_version,
             "to_version": to_version,
             "moderation_summary": moderation_stats(moderation_rows),
+            "comparison": _find_existing_comparison(
+                from_version=from_version,
+                to_version=to_version,
+            ),
         }
     )
     return render(request, "demo/visualize.html", context)
+
+
+@require_GET
+@admin_required
+def traceability_page(request: HttpRequest, comparison_id: int) -> HttpResponse:
+    comparison = get_object_or_404(
+        VersionComparison.objects.select_related(
+            "document",
+            "from_version",
+            "to_version",
+            "summary",
+        ),
+        pk=comparison_id,
+    )
+    context = build_comparison_trace(comparison)
+    return render(request, "demo/traceability.html", context)
 
 
 @require_GET

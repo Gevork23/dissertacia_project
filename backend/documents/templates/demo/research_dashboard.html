@@ -1,0 +1,441 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Research Dashboard · Demo UI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .research-hero {
+        display: grid;
+        gap: 16px;
+    }
+    .artifact-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .artifact-preview {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: #f8fafc;
+    }
+    .figure-frame {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .figure-frame img {
+        width: 100%;
+        display: block;
+        height: auto;
+    }
+    .metric-list {
+        display: grid;
+        gap: 8px;
+    }
+    .metric-row {
+        display: grid;
+        gap: 4px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+    }
+    .artifact-path {
+        font-family: Consolas, monospace;
+        font-size: 12px;
+        word-break: break-all;
+    }
+    .stage-card {
+        display: grid;
+        gap: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="card research-hero">
+    <span class="pill primary">Research Dashboard</span>
+    <h2>{{ project_card.method_name }}</h2>
+    <p>{{ project_card.pipeline_description }}</p>
+    <div class="grid grid-2">
+        <div class="artifact-preview">
+            <h3>Формула метода</h3>
+            <pre>{{ project_card.formula }}</pre>
+        </div>
+        <div class="artifact-preview">
+            <h3>Состав конвейера</h3>
+            <ul>
+                {% for stage in project_card.stages %}
+                    <li>{{ stage }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Стадии метода</h2>
+    <div class="artifact-grid" style="margin-top: 12px;">
+        {% for card in stage_cards %}
+            <article class="card stage-card">
+                {% if card.status == "available" %}
+                    <span class="pill success">available</span>
+                {% elif card.status == "partially available" %}
+                    <span class="pill warning">partially available</span>
+                {% else %}
+                    <span class="pill danger">missing</span>
+                {% endif %}
+                <h3>{{ card.title }}</h3>
+                {% if card.metrics %}
+                    <div class="metric-list">
+                        {% for metric in card.metrics %}
+                            <div class="metric-row">
+                                <strong>{{ metric.metric|default:"metric" }}</strong>
+                                <div>{{ metric.value }}</div>
+                                {% if metric.interpretation %}
+                                    <div class="muted">{{ metric.interpretation }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="muted">Metrics not available.</p>
+                {% endif %}
+                <div class="stack">
+                    {% for artifact in card.artifacts %}
+                        <div>
+                            {% if artifact.exists %}
+                                <a href="{% url 'demo-research-artifact' artifact.path %}" class="artifact-path">{{ artifact.path }}</a>
+                            {% else %}
+                                <div class="artifact-path">{{ artifact.path }}</div>
+                                <div class="muted">artifact missing / not available</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Final metrics summary</h2>
+    {% if final_metrics.json.available %}
+        <p class="muted">Основной источник: <a href="{% url 'demo-research-artifact' final_metrics.json.path %}">{{ final_metrics.json.path }}</a></p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Component</th>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in final_metrics.metrics %}
+                    <tr>
+                        <td>{{ item.stage }}</td>
+                        <td>{{ item.component }}</td>
+                        <td>{{ item.metric }}</td>
+                        <td>{{ item.value }}</td>
+                        <td>{{ item.interpretation }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">Structured metrics are not available.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <details style="margin-top: 14px;">
+            <summary>Flattened key/value view</summary>
+            <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in final_metrics.flattened %}
+                        <tr>
+                            <td class="artifact-path">{{ row.key }}</td>
+                            <td>{{ row.value }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2">No flattened data available.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+
+    {% if final_metrics.csv_preview.available %}
+        <details style="margin-top: 14px;">
+            <summary>CSV preview</summary>
+            <div class="table-wrap" style="margin-top: 12px;">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for header in final_metrics.csv_preview.headers %}
+                                <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in final_metrics.csv_preview.rows %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Visual artifacts</h2>
+    {% if figures.items %}
+        <div class="artifact-grid" style="margin-top: 12px;">
+            {% for figure in figures.items %}
+                <article class="figure-frame">
+                    <img src="{% url 'demo-research-artifact' figure.path %}" alt="{{ figure.title }}">
+                    <div style="padding: 14px;">
+                        <strong>{{ figure.title }}</strong>
+                        <div class="artifact-path" style="margin-top: 8px;">
+                            <a href="{% url 'demo-research-artifact' figure.path %}">{{ figure.path }}</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Tables</h2>
+    {% if tables.items %}
+        <div class="stack" style="margin-top: 12px;">
+            {% for table_item in tables.items %}
+                <article class="artifact-preview">
+                    <h3>{{ table_item.title }}</h3>
+                    <div class="artifact-path">
+                        <a href="{% url 'demo-research-artifact' table_item.path %}">{{ table_item.path }}</a>
+                    </div>
+                    {% if table_item.kind == "csv" and table_item.preview.available %}
+                        <div class="table-wrap" style="margin-top: 12px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        {% for header in table_item.preview.headers %}
+                                            <th>{{ header }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for row in table_item.preview.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% elif table_item.preview.available %}
+                        <pre style="margin-top: 12px;">{{ table_item.preview.preview }}</pre>
+                    {% else %}
+                        <p class="muted">artifact missing / not available</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>End-to-end pipeline diagnostics</h2>
+    <div class="grid grid-2" style="margin-top: 12px;">
+        <div class="artifact-preview">
+            <h3>Summary metrics</h3>
+            {% if diagnostics.summary.available %}
+                <div class="metric-list">
+                    {% for row in diagnostics.summary.data.items %}
+                        <div class="metric-row">
+                            <strong>{{ row.0 }}</strong>
+                            <div>{{ row.1 }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="artifact-path" style="margin-top: 10px;">
+                    <a href="{% url 'demo-research-artifact' diagnostics.summary.path %}">{{ diagnostics.summary.path }}</a>
+                </div>
+            {% else %}
+                <p class="muted">artifact missing / not available</p>
+            {% endif %}
+        </div>
+        <div class="artifact-preview">
+            <h3>Stage summary</h3>
+            {% if diagnostics.stage_summary.available %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for header in diagnostics.stage_summary.headers %}
+                                    <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in diagnostics.stage_summary.rows %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="artifact-path" style="margin-top: 10px;">
+                    <a href="{% url 'demo-research-artifact' diagnostics.stage_summary.path %}">{{ diagnostics.stage_summary.path }}</a>
+                </div>
+            {% else %}
+                <p class="muted">artifact missing / not available</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="grid grid-2" style="margin-top: 16px;">
+        <div class="artifact-preview">
+            <h3>Error propagation preview</h3>
+            {% if diagnostics.error_propagation.available %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for header in diagnostics.error_propagation.headers %}
+                                    <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in diagnostics.error_propagation.rows %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="muted">artifact missing / not available</p>
+            {% endif %}
+        </div>
+        <div class="artifact-preview">
+            <h3>End-to-end trace preview</h3>
+            {% if diagnostics.trace.available %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for header in diagnostics.trace.headers %}
+                                    <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in diagnostics.trace.rows %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="muted">artifact missing / not available</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Research limitations</h2>
+    <ul>
+        {% for item in limitations %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Experiment documentation and artifact inventory</h2>
+    <div class="grid grid-2" style="margin-top: 12px;">
+        <div class="artifact-preview">
+            <h3>Documentation</h3>
+            {% if documentation.items %}
+                <div class="stack">
+                    {% for item in documentation.items %}
+                        <details>
+                            <summary>{{ item.title }}</summary>
+                            <div class="artifact-path" style="margin-top: 10px;">
+                                <a href="{% url 'demo-research-artifact' item.path %}">{{ item.path }}</a>
+                            </div>
+                            {% if item.preview.available %}
+                                <pre style="margin-top: 12px;">{{ item.preview.preview }}</pre>
+                            {% else %}
+                                <p class="muted">artifact missing / not available</p>
+                            {% endif %}
+                        </details>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">artifact missing / not available</p>
+            {% endif %}
+        </div>
+        <div class="artifact-preview">
+            <h3>Inventory</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Group</th>
+                            <th>Status</th>
+                            <th>Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in artifact_inventory %}
+                        <tr>
+                            <td>{{ item.group }}</td>
+                            <td>{{ item.status }}</td>
+                            <td class="artifact-path">{{ item.path }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

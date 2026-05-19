@@ -10,6 +10,8 @@ from .views import (
     document_detail,
     moderate_api,
     moderate_page,
+    research_artifact_view,
+    research_dashboard_page,
     quiz_detail,
     quizzes_page,
     reject_quiz_view,
@@ -21,6 +23,12 @@ from .views import (
 
 urlpatterns = [
     path("", dashboard, name="demo-dashboard"),
+    path("research/", research_dashboard_page, name="demo-research-dashboard"),
+    path(
+        "research/artifacts/<path:artifact_path>/",
+        research_artifact_view,
+        name="demo-research-artifact",
+    ),
     path("documents/<int:document_id>/", document_detail, name="demo-document-detail"),
     path("compare/", compare_page, name="demo-compare"),
     path("visualize/", visualize_page, name="demo-visualize"),

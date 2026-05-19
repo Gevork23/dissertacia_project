@@ -242,10 +242,28 @@ node_modules/
 # Temporary files
 tmp/
 .cache_project/
+*.tmp
+*.bak
+*.orig
+*.rej
+*~
+*.swp
+*.swo
 
 # Local runtime artifacts
 backend/media/
 backend/logs/
+backend/uploads/
+backend/staticfiles/
+
+# Keep research and demo artifacts versioned
+!docs/**/*.md
+!experiments/**/*.json
+!experiments/**/*.csv
+!experiments/**/*.md
+!experiments/**/*.png
+!data/demo_corpus/**
+!data/evaluation_corpus/**
 
 # =========================
 # Phase 2 repository hygiene

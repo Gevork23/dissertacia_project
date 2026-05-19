@@ -204,6 +204,7 @@
         </p>
         <nav>
             <a href="{% url 'demo-dashboard' %}">Главная</a>
+            <a href="{% url 'demo-research-dashboard' %}">Исследовательская панель</a>
             <a href="{% url 'demo-quizzes' %}">Тесты</a>
             <a href="{% url 'rag-chat' %}">Чат</a>
             {% if request.user.is_authenticated and request.user.profile.role == "admin" %}

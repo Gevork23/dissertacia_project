@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Max
-from django.http import HttpRequest, HttpResponse
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
@@ -27,6 +27,7 @@ from ..models import (
     QuizAssignment,
     QuizAttempt,
 )
+from ..research_dashboard import build_research_dashboard_context, resolve_artifact_path
 from ..services.exceptions import DomainWorkflowError
 from ..services.moderation import (
     MODERATION_LABEL_OPTIONS,
@@ -374,6 +375,22 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             },
         },
     )
+
+
+@require_GET
+@login_required
+def research_dashboard_page(request: HttpRequest) -> HttpResponse:
+    context = build_research_dashboard_context()
+    return render(request, "demo/research_dashboard.html", context)
+
+
+@require_GET
+@login_required
+def research_artifact_view(request: HttpRequest, artifact_path: str) -> HttpResponse:
+    resolved = resolve_artifact_path(artifact_path)
+    if resolved is None:
+        raise Http404("Artifact not available.")
+    return FileResponse(resolved.open("rb"))
 
 
 @require_GET

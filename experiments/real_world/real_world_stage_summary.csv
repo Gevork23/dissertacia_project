@@ -1,0 +1,9 @@
+stage,component,status,main_metric,value,interpretation
+pair_discovery,ruslawod_weak_regression,available,pairs_discovered,49,Discovered candidate real-world or fallback regression pairs.
+extraction,plain_text_pair_loading,partial,processed_pairs,49,The suite loads prepared plain-text pairs; binary extraction is not exercised here.
+chunking,structural_chunking,available,average_chunks_old,1.0,Average number of structural chunks in source versions.
+diff,version_comparison,available,average_changes_per_pair,1.0,Average number of detected change items per processed pair.
+significance,rule_based_prioritization,available,significant_change_rate,0.7347,Share of non-editorial changes among all detected changes.
+summary,brief_summary_generation,available,summary_generation_available,1.0,Coverage of pairs for which summary generation completed in offline mode.
+quiz,quiz_generation,available,quiz_generation_available,1.0,Coverage of pairs for which quiz generation completed in offline mode.
+end_to_end,offline_regression_pipeline,available,pipeline_success_rate,1.0,Fraction of discovered pairs processed without fatal pipeline failure.

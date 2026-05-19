@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-05-19T10:06:13+00:00",
+  "corpus_source": "ruslawod_weak_regression",
+  "total_pairs": 49,
+  "processed_pairs": 49,
+  "failed_pairs": 0,
+  "metrics": {
+    "total_pairs": 49,
+    "processed_pairs": 49,
+    "failed_pairs": 0,
+    "total_changes": 49,
+    "average_changes_per_pair": 1.0,
+    "average_chunks_old": 1.0,
+    "average_chunks_new": 1.0,
+    "significant_change_rate": 0.7347,
+    "critical_or_important_rate": 0.7347,
+    "summary_generation_available": 1.0,
+    "quiz_generation_available": 1.0,
+    "warning_count": 0,
+    "pipeline_success_rate": 1.0
+  },
+  "limitations": [
+    "This suite is a regression/stability layer and does not claim strict gold accuracy in the absence of manual labels.",
+    "The dashboard and saved artifacts visualize already computed outputs and do not re-run the regression suite during HTTP requests.",
+    "The suite exercises normalized plain-text pair artifacts; binary extraction robustness must be validated separately.",
+    "RusLawOD pairs are treated as weak real-world regression material; pair construction depends on heuristic version-family grouping rather than authoritative legal lineage."
+  ],
+  "warnings": [],
+  "output_files": {
+    "summary": "experiments/real_world/real_world_summary.json",
+    "pair_results": "experiments/real_world/real_world_pair_results.csv",
+    "trace": "experiments/real_world/real_world_trace.csv",
+    "stage_summary": "experiments/real_world/real_world_stage_summary.csv"
+  }
+}

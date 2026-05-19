@@ -383,6 +383,106 @@
 </section>
 
 <section class="card" style="margin-top: 18px;">
+    <h2>Real-world regression suite</h2>
+    {% if real_world.summary.available %}
+        <div class="grid grid-2" style="margin-top: 12px;">
+            <div class="artifact-preview">
+                <h3>Status</h3>
+                <div class="metric-list">
+                    <div class="metric-row"><strong>Status</strong><div>{{ real_world.status }}</div></div>
+                    <div class="metric-row"><strong>Total pairs</strong><div>{{ real_world.metrics.total_pairs|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Processed pairs</strong><div>{{ real_world.metrics.processed_pairs|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Failed pairs</strong><div>{{ real_world.metrics.failed_pairs|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Total changes</strong><div>{{ real_world.metrics.total_changes|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Pipeline success rate</strong><div>{{ real_world.metrics.pipeline_success_rate|default:0 }}</div></div>
+                    <div class="metric-row"><strong>Significant change rate</strong><div>{{ real_world.metrics.significant_change_rate|default:0 }}</div></div>
+                </div>
+                <div class="artifact-path" style="margin-top: 10px;">
+                    <a href="{% url 'demo-research-artifact' real_world.summary.path %}">{{ real_world.summary.path }}</a>
+                </div>
+            </div>
+            <div class="artifact-preview">
+                <h3>Limitations</h3>
+                {% if real_world.limitations %}
+                    <ul>
+                        {% for item in real_world.limitations %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 16px;">
+            <div class="artifact-preview">
+                <h3>Pair results preview</h3>
+                {% if real_world.pair_results.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in real_world.pair_results.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in real_world.pair_results.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="artifact-path" style="margin-top: 10px;">
+                        <a href="{% url 'demo-research-artifact' real_world.pair_results.path %}">{{ real_world.pair_results.path }}</a>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+            <div class="artifact-preview">
+                <h3>Stage summary preview</h3>
+                {% if real_world.stage_summary.available %}
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {% for header in real_world.stage_summary.headers %}
+                                        <th>{{ header }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in real_world.stage_summary.rows %}
+                                    <tr>
+                                        {% for cell in row %}
+                                            <td>{{ cell }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="artifact-path" style="margin-top: 10px;">
+                        <a href="{% url 'demo-research-artifact' real_world.stage_summary.path %}">{{ real_world.stage_summary.path }}</a>
+                    </div>
+                {% else %}
+                    <p class="muted">artifact missing / not available</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <p class="muted">artifact missing / not available</p>
+    {% endif %}
+</section>
+
+<section class="card" style="margin-top: 18px;">
     <h2>Research limitations</h2>
     <ul>
         {% for item in limitations %}

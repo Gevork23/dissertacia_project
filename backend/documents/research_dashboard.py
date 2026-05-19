@@ -12,12 +12,14 @@ FINAL_DIR = PROJECT_ROOT / "experiments" / "final"
 FINAL_VISUALS_DIR = PROJECT_ROOT / "experiments" / "final_visuals"
 FINAL_FIGURES_DIR = FINAL_VISUALS_DIR / "figures"
 FINAL_TABLES_DIR = FINAL_VISUALS_DIR / "tables"
+REAL_WORLD_DIR = PROJECT_ROOT / "experiments" / "real_world"
 DOCS_EXPERIMENTS_DIR = PROJECT_ROOT / "docs" / "experiments"
 
 ARTIFACT_ROOTS = (
     FINAL_DIR,
     FINAL_FIGURES_DIR,
     FINAL_TABLES_DIR,
+    REAL_WORLD_DIR,
     DOCS_EXPERIMENTS_DIR,
 )
 
@@ -354,6 +356,36 @@ def collect_pipeline_diagnostics() -> dict[str, Any]:
     }
 
 
+def collect_real_world_regression() -> dict[str, Any]:
+    summary = safe_read_json(REAL_WORLD_DIR / "real_world_summary.json")
+    pair_results = safe_read_csv_preview(
+        REAL_WORLD_DIR / "real_world_pair_results.csv", max_rows=8
+    )
+    stage_summary = safe_read_csv_preview(
+        REAL_WORLD_DIR / "real_world_stage_summary.csv", max_rows=8
+    )
+    trace = safe_read_csv_preview(REAL_WORLD_DIR / "real_world_trace.csv", max_rows=8)
+
+    available_count = sum(
+        1
+        for item in (summary, pair_results, stage_summary, trace)
+        if item["available"]
+    )
+    summary_data = summary["data"] if summary["available"] and isinstance(summary["data"], dict) else {}
+    metrics = summary_data.get("metrics", {}) if isinstance(summary_data, dict) else {}
+    return {
+        "status": _artifact_status(available_count, 4),
+        "summary": summary,
+        "pair_results": pair_results,
+        "stage_summary": stage_summary,
+        "trace": trace,
+        "metrics": metrics if isinstance(metrics, dict) else {},
+        "limitations": summary_data.get("limitations", [])
+        if isinstance(summary_data, dict)
+        else [],
+    }
+
+
 def collect_stage_cards(
     final_metrics: dict[str, Any], diagnostics: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -386,12 +418,14 @@ def collect_artifact_inventory(
     tables: dict[str, Any],
     documentation: dict[str, Any],
     diagnostics: dict[str, Any],
+    real_world: dict[str, Any],
 ) -> list[dict[str, Any]]:
     inventory = [
         {"group": "Final metrics JSON", "status": "available" if final_metrics["json"]["available"] else "missing", "path": final_metrics["json"]["path"]},
         {"group": "Final metrics CSV", "status": "available" if final_metrics["csv_preview"]["available"] else "missing", "path": final_metrics["csv_preview"]["path"]},
         {"group": "Figures", "status": figures["status"], "path": rel_repo_path(FINAL_FIGURES_DIR)},
         {"group": "Tables", "status": tables["status"], "path": rel_repo_path(FINAL_TABLES_DIR)},
+        {"group": "Real-world regression", "status": real_world["status"], "path": rel_repo_path(REAL_WORLD_DIR)},
         {"group": "Experiment docs", "status": documentation["status"], "path": rel_repo_path(DOCS_EXPERIMENTS_DIR)},
         {"group": "Pipeline diagnostics", "status": diagnostics["status"], "path": rel_repo_path(FINAL_DIR)},
     ]
@@ -404,6 +438,7 @@ def build_research_dashboard_context() -> dict[str, Any]:
     tables = collect_table_artifacts()
     documentation = collect_documentation_artifacts()
     diagnostics = collect_pipeline_diagnostics()
+    real_world = collect_real_world_regression()
 
     return {
         "project_card": {
@@ -430,6 +465,7 @@ def build_research_dashboard_context() -> dict[str, Any]:
         "tables": tables,
         "documentation": documentation,
         "diagnostics": diagnostics,
+        "real_world": real_world,
         "limitations": [
             "Экспериментальный корпус ограничен по объёму и не исчерпывает все типы нормативных документов и редакционных сценариев.",
             "Часть выводов основана на synthetic/gold corpus и экспертной разметке, что корректно для исследовательской валидации, но не заменяет широкую полевую апробацию.",
@@ -437,7 +473,7 @@ def build_research_dashboard_context() -> dict[str, Any]:
             "Панель визуализирует уже рассчитанные artifacts и не пересчитывает эксперименты во время HTTP-запроса, чтобы не смешивать демонстрационный контур и исследовательский offline pipeline.",
         ],
         "artifact_inventory": collect_artifact_inventory(
-            final_metrics, figures, tables, documentation, diagnostics
+            final_metrics, figures, tables, documentation, diagnostics, real_world
         ),
     }
 

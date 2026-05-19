@@ -27,6 +27,10 @@ Research Dashboard предназначен для демонстрации ис
 - `experiments/final_visuals/figures/*.png`
 - `experiments/final_visuals/tables/*.csv`
 - `experiments/final_visuals/tables/*.md`
+- `experiments/real_world/real_world_summary.json`
+- `experiments/real_world/real_world_pair_results.csv`
+- `experiments/real_world/real_world_trace.csv`
+- `experiments/real_world/real_world_stage_summary.csv`
 - `docs/experiments/*.md`
 
 Если часть файлов отсутствует, панель не падает и вместо этого показывает предупреждение `artifact missing / not available`.
@@ -53,6 +57,13 @@ Research Dashboard предназначен для демонстрации ис
    - pipeline stage summary;
    - error propagation preview;
    - end-to-end trace preview.
+
+4. Real-world regression suite:
+   - статус offline weak regression contour;
+   - число найденных и обработанных пар;
+   - total changes и pipeline success rate;
+   - preview pair results и stage summary;
+   - ограничения интерпретации weak-labeled материала.
 
 ## Почему эксперименты не пересчитываются в runtime
 

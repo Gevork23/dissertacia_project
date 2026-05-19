@@ -320,3 +320,16 @@ DB_ENGINE=postgres
 - Demo UI and API now support explicit attempt start and final submission.
 - Canonical attempt submission payload now uses `question_id` and `selected_choice_id`; legacy `question_index` / `selected_choice_index` payload remains supported for backward compatibility.
 - Attempt execution logic is extracted into `documents/services/quiz_attempts.py`; `workflows.py` remains focused on quiz approval lifecycle.
+
+## Real-world regression suite
+
+- Offline regression artifacts are stored in `experiments/real_world/`.
+- Main outputs: `real_world_summary.json`, `real_world_pair_results.csv`, `real_world_trace.csv`, `real_world_stage_summary.csv`.
+- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
+
+Run locally:
+
+```bash
+python experiments/real_world/evaluate_real_world.py
+python backend/manage.py run_real_world_regression
+```

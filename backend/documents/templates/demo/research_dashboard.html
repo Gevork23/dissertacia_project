@@ -59,6 +59,9 @@
     <span class="pill primary">Research Dashboard</span>
     <h2>{{ project_card.method_name }}</h2>
     <p>{{ project_card.pipeline_description }}</p>
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'demo-annotations-dashboard' %}">Annotation Studio</a>
+    </div>
     <div class="grid grid-2">
         <div class="artifact-preview">
             <h3>Формула метода</h3>

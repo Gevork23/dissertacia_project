@@ -1,0 +1,266 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Annotation Studio · Comparison #{{ comparison.id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .annotation-layout {
+        display: grid;
+        gap: 18px;
+    }
+    .annotation-summary {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+    .annotation-stat {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+    }
+    .annotation-stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 24px;
+    }
+    .annotation-card {
+        display: grid;
+        gap: 16px;
+    }
+    .annotation-columns {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .annotation-box {
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+    }
+    .warning-box {
+        border: 1px solid #fed7aa;
+        background: #fff7ed;
+        color: #9a3412;
+        border-radius: 14px;
+        padding: 12px 14px;
+    }
+    .compact-form textarea {
+        min-height: 88px;
+    }
+    .compact-form .actions {
+        margin-top: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="annotation-layout">
+    <section class="card">
+        <span class="pill primary">Annotation Studio</span>
+        <h2 style="margin-top: 12px;">{{ comparison.document.title }}</h2>
+        <p class="muted">Comparison #{{ comparison.id }} · v{{ comparison.from_version.version_number }} → v{{ comparison.to_version.version_number }}</p>
+        <div class="actions">
+            <a class="btn secondary" href="{% url 'demo-annotations-dashboard' %}">К списку</a>
+            <a class="btn secondary" href="{% url 'demo-traceability' comparison.id %}">Traceability View</a>
+            <a class="btn secondary" href="{% url 'demo-annotations-export-json' %}">Export JSON</a>
+            <a class="btn secondary" href="{% url 'demo-annotations-export-csv' %}">Export CSV</a>
+        </div>
+    </section>
+
+    <section class="annotation-summary">
+        <div class="annotation-stat"><span class="muted">Changes</span><strong>{{ trace_summary.total_changes }}</strong></div>
+        <div class="annotation-stat"><span class="muted">Change annotations</span><strong>{{ annotation_counts.change_annotations }}</strong></div>
+        <div class="annotation-stat"><span class="muted">Summary annotations</span><strong>{{ annotation_counts.summary_annotations }}</strong></div>
+        <div class="annotation-stat"><span class="muted">Quiz annotations</span><strong>{{ annotation_counts.quiz_annotations }}</strong></div>
+        <div class="annotation-stat"><span class="muted">Partial traces</span><strong>{{ trace_summary.partial_traces }}</strong></div>
+    </section>
+
+    {% for item in trace_items %}
+        <section class="card annotation-card">
+            <div>
+                <span class="pill primary">Change #{{ item.change_id }}</span>
+                <span class="pill warning">{{ item.operation_type }}</span>
+                <span class="pill secondary">{{ item.semantic_type }}</span>
+                <span class="pill {% if item.significance_label == 'critical' %}danger{% elif item.significance_label == 'important' %}warning{% else %}primary{% endif %}">{{ item.significance_label }}</span>
+                {% if item.requires_manual_review %}<span class="pill danger">manual review</span>{% endif %}
+                <h3 style="margin-top: 12px;">{{ item.display_title }}</h3>
+                {% if item.significance_reason %}
+                    <p class="muted">{{ item.significance_reason }}</p>
+                {% endif %}
+            </div>
+
+            <div class="annotation-columns">
+                <div class="annotation-box">
+                    <strong>Old text</strong>
+                    <p style="margin-top: 10px;">{{ item.old_text|default:"—" }}</p>
+                </div>
+                <div class="annotation-box">
+                    <strong>New text</strong>
+                    <p style="margin-top: 10px;">{{ item.new_text|default:"—" }}</p>
+                </div>
+            </div>
+
+            <section class="annotation-box compact-form">
+                <h3>Change annotation</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_change">
+                    <input type="hidden" name="change_item_id" value="{{ item.change_item.id }}">
+                    <div class="annotation-columns">
+                        <label>
+                            Corrected semantic type
+                            <select name="corrected_semantic_type">
+                                <option value="">Keep original</option>
+                                {% for value, label in semantic_type_choices %}
+                                    <option value="{{ value }}" {% if item.change_annotation and item.change_annotation.corrected_semantic_type == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            Corrected significance label
+                            <select name="corrected_significance_label">
+                                <option value="">Keep original</option>
+                                {% for value, label in significance_label_choices %}
+                                    <option value="{{ value }}" {% if item.change_annotation and item.change_annotation.corrected_significance_label == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            Corrected manual review
+                            <select name="corrected_requires_manual_review">
+                                <option value="unknown" {% if not item.change_annotation or item.change_annotation.corrected_requires_manual_review is None %}selected{% endif %}>No override</option>
+                                <option value="true" {% if item.change_annotation and item.change_annotation.corrected_requires_manual_review is True %}selected{% endif %}>True</option>
+                                <option value="false" {% if item.change_annotation and item.change_annotation.corrected_requires_manual_review is False %}selected{% endif %}>False</option>
+                            </select>
+                        </label>
+                        <label>
+                            Relevance
+                            <select name="relevance">
+                                {% for value, label in change_relevance_choices %}
+                                    <option value="{{ value }}" {% if item.change_annotation and item.change_annotation.relevance == value %}selected{% elif not item.change_annotation and value == 'unknown' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            False positive
+                            <select name="is_false_positive">
+                                <option value="false" {% if not item.change_annotation or not item.change_annotation.is_false_positive %}selected{% endif %}>False</option>
+                                <option value="true" {% if item.change_annotation and item.change_annotation.is_false_positive %}selected{% endif %}>True</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label>
+                        Expert comment
+                        <textarea name="comment">{{ item.change_annotation.comment|default:"" }}</textarea>
+                    </label>
+                    <div class="actions">
+                        <button class="btn" type="submit">Save change annotation</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="annotation-columns">
+                <div class="annotation-box">
+                    <h3>Summary highlights</h3>
+                    {% if item.summary_links %}
+                        {% for summary_link in item.summary_links %}
+                            <div class="question-card" style="margin-top: 12px;">
+                                <p><strong>{{ summary_link.title|default:"Summary highlight" }}</strong></p>
+                                <p class="muted">{{ summary_link.concise_explanation|default:summary_link.description|default:"—" }}</p>
+                                <form method="post" class="compact-form" style="margin-top: 12px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="save_summary">
+                                    <input type="hidden" name="summary_id" value="{{ comparison.summary.id }}">
+                                    <input type="hidden" name="highlight_index" value="{{ summary_link.index }}">
+                                    <input type="hidden" name="source_change_item_id" value="{{ item.change_item.id }}">
+                                    <label>
+                                        Quality label
+                                        <select name="quality_label">
+                                            {% for value, label in summary_quality_choices %}
+                                                <option value="{{ value }}" {% if summary_link.annotation and summary_link.annotation.quality_label == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Corrected text
+                                        <textarea name="corrected_text">{{ summary_link.annotation.corrected_text|default:summary_link.concise_explanation|default:"" }}</textarea>
+                                    </label>
+                                    <label>
+                                        Comment
+                                        <textarea name="comment">{{ summary_link.annotation.comment|default:"" }}</textarea>
+                                    </label>
+                                    <div class="actions">
+                                        <button class="btn secondary" type="submit">Save summary annotation</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="warning-box">No linked summary highlight found.</div>
+                    {% endif %}
+                </div>
+
+                <div class="annotation-box">
+                    <h3>Quiz questions</h3>
+                    {% if item.quiz_links %}
+                        {% for quiz_link in item.quiz_links %}
+                            <div class="question-card" style="margin-top: 12px;">
+                                <p><strong>{{ quiz_link.prompt }}</strong></p>
+                                <p class="muted">Quiz #{{ quiz_link.quiz_id }} · Question #{{ quiz_link.question_id }}</p>
+                                <ul>
+                                    {% for choice in quiz_link.choices %}
+                                        <li>{{ choice.text }}{% if choice.is_correct %} <span class="pill success">correct</span>{% endif %}</li>
+                                    {% endfor %}
+                                </ul>
+                                <form method="post" class="compact-form" style="margin-top: 12px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="save_quiz">
+                                    <input type="hidden" name="question_id" value="{{ quiz_link.question_id }}">
+                                    <label>
+                                        Quality label
+                                        <select name="quality_label">
+                                            {% for value, label in quiz_quality_choices %}
+                                                <option value="{{ value }}" {% if quiz_link.annotation and quiz_link.annotation.quality_label == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Corrected question text
+                                        <textarea name="corrected_question_text">{{ quiz_link.annotation.corrected_question_text|default:quiz_link.prompt|default:"" }}</textarea>
+                                    </label>
+                                    <label>
+                                        Corrected explanation
+                                        <textarea name="corrected_explanation">{{ quiz_link.annotation.corrected_explanation|default:quiz_link.explanation|default:"" }}</textarea>
+                                    </label>
+                                    <label>
+                                        Keep question
+                                        <select name="should_keep">
+                                            <option value="true" {% if not quiz_link.annotation or quiz_link.annotation.should_keep %}selected{% endif %}>True</option>
+                                            <option value="false" {% if quiz_link.annotation and not quiz_link.annotation.should_keep %}selected{% endif %}>False</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        Comment
+                                        <textarea name="comment">{{ quiz_link.annotation.comment|default:"" }}</textarea>
+                                    </label>
+                                    <div class="actions">
+                                        <button class="btn secondary" type="submit">Save quiz annotation</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="warning-box">No linked quiz question found.</div>
+                    {% endif %}
+                </div>
+            </section>
+        </section>
+    {% empty %}
+        <section class="card">
+            <p class="muted">Для этого comparison нет materialized change items.</p>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

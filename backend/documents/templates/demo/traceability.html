@@ -78,6 +78,7 @@
     <div class="actions">
         <a class="btn secondary" href="{% url 'demo-compare' %}?from_version={{ comparison.from_version.id }}&to_version={{ comparison.to_version.id }}">К сравнению</a>
         <a class="btn secondary" href="{% url 'demo-visualize' %}?from_version={{ comparison.from_version.id }}&to_version={{ comparison.to_version.id }}">Visualize</a>
+        <a class="btn secondary" href="{% url 'demo-annotations-comparison' comparison.id %}">Annotate this comparison</a>
         {% if counts.quizzes %}
             <a class="btn secondary" href="{% url 'demo-quizzes' %}">К тестам</a>
         {% endif %}

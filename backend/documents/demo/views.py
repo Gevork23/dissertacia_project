@@ -22,13 +22,27 @@ from ..domain.diff_summary import build_brief_summary
 from ..models import (
     Document,
     DocumentVersion,
+    GoldChangeAnnotation,
+    GoldQuizAnnotation,
+    GoldSummaryAnnotation,
     GeneratedQuiz,
     ModeratedChange,
+    Question,
     QuizAssignment,
     QuizAttempt,
+    Summary,
+    VersionChangeItem,
     VersionComparison,
 )
 from ..research_dashboard import build_research_dashboard_context, resolve_artifact_path
+from ..services.annotations import (
+    collect_annotation_context_for_comparison,
+    export_annotations_to_dict,
+    render_annotations_csv,
+    save_change_annotation,
+    save_quiz_annotation,
+    save_summary_annotation,
+)
 from ..services.exceptions import DomainWorkflowError
 from ..services.moderation import (
     MODERATION_LABEL_OPTIONS,
@@ -559,6 +573,122 @@ def traceability_page(request: HttpRequest, comparison_id: int) -> HttpResponse:
     )
     context = build_comparison_trace(comparison)
     return render(request, "demo/traceability.html", context)
+
+
+@require_GET
+@admin_required
+def annotations_dashboard_page(request: HttpRequest) -> HttpResponse:
+    comparisons = (
+        VersionComparison.objects.select_related(
+            "document",
+            "from_version",
+            "to_version",
+        )
+        .annotate(
+            changes_count=Count("change_items"),
+            change_annotations_count=Count("change_items__gold_annotations", distinct=True),
+            summary_annotations_count=Count("summary__gold_annotations", distinct=True),
+            quiz_annotations_count=Count(
+                "generated_quizzes__questions__gold_annotations",
+                distinct=True,
+            ),
+        )
+        .order_by("-created_at")
+    )
+    return render(
+        request,
+        "demo/annotations_dashboard.html",
+        {"comparisons": comparisons},
+    )
+
+
+@require_http_methods(["GET", "POST"])
+@admin_required
+def annotations_comparison_page(
+    request: HttpRequest,
+    comparison_id: int,
+) -> HttpResponse:
+    comparison = get_object_or_404(
+        VersionComparison.objects.select_related(
+            "document",
+            "from_version",
+            "to_version",
+        ),
+        pk=comparison_id,
+    )
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "").strip()
+        if action == "save_change":
+            change_item = get_object_or_404(
+                VersionChangeItem.objects.select_related("comparison"),
+                pk=request.POST.get("change_item_id"),
+                comparison=comparison,
+            )
+            save_change_annotation(change_item, request.user, request.POST)
+            messages.success(request, "Change annotation saved.")
+        elif action == "save_summary":
+            summary = get_object_or_404(
+                Summary.objects.select_related("comparison"),
+                comparison=comparison,
+                pk=request.POST.get("summary_id"),
+            )
+            source_change_item_id = request.POST.get("source_change_item_id")
+            source_change_item = None
+            if source_change_item_id:
+                source_change_item = get_object_or_404(
+                    VersionChangeItem,
+                    comparison=comparison,
+                    pk=source_change_item_id,
+                )
+            save_summary_annotation(
+                summary,
+                request.user,
+                request.POST,
+                source_change_item=source_change_item,
+            )
+            messages.success(request, "Summary annotation saved.")
+        elif action == "save_quiz":
+            question = get_object_or_404(
+                Question.objects.select_related("quiz__comparison"),
+                pk=request.POST.get("question_id"),
+                quiz__comparison=comparison,
+            )
+            save_quiz_annotation(question, request.user, request.POST)
+            messages.success(request, "Quiz annotation saved.")
+        else:
+            messages.error(request, "Unknown annotation action.")
+        return redirect("demo-annotations-comparison", comparison_id=comparison.id)
+
+    context = collect_annotation_context_for_comparison(comparison, request.user)
+    context.update(
+        {
+            "change_relevance_choices": GoldChangeAnnotation.Relevance.choices,
+            "summary_quality_choices": GoldSummaryAnnotation.QualityLabel.choices,
+            "quiz_quality_choices": GoldQuizAnnotation.QualityLabel.choices,
+            "semantic_type_choices": VersionChangeItem.SemanticType.choices,
+            "significance_label_choices": VersionChangeItem.SignificanceLabel.choices,
+        }
+    )
+    return render(request, "demo/annotation_studio.html", context)
+
+
+@require_GET
+@admin_required
+def annotations_export_json(request: HttpRequest) -> HttpResponse:
+    payload = export_annotations_to_dict()
+    return HttpResponse(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        content_type="application/json",
+    )
+
+
+@require_GET
+@admin_required
+def annotations_export_csv(request: HttpRequest) -> HttpResponse:
+    response = HttpResponse(render_annotations_csv(), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="annotations_export.csv"'
+    return response
 
 
 @require_GET

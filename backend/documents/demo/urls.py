@@ -3,6 +3,10 @@ from django.urls import path
 from .views import (
     assign_quiz_view,
     approve_quiz_view,
+    annotations_comparison_page,
+    annotations_dashboard_page,
+    annotations_export_csv,
+    annotations_export_json,
     attempt_detail,
     compare_page,
     create_quiz,
@@ -34,6 +38,22 @@ urlpatterns = [
     path("compare/", compare_page, name="demo-compare"),
     path("visualize/", visualize_page, name="demo-visualize"),
     path("trace/<int:comparison_id>/", traceability_page, name="demo-traceability"),
+    path("annotations/", annotations_dashboard_page, name="demo-annotations-dashboard"),
+    path(
+        "annotations/comparisons/<int:comparison_id>/",
+        annotations_comparison_page,
+        name="demo-annotations-comparison",
+    ),
+    path(
+        "annotations/export.json",
+        annotations_export_json,
+        name="demo-annotations-export-json",
+    ),
+    path(
+        "annotations/export.csv",
+        annotations_export_csv,
+        name="demo-annotations-export-csv",
+    ),
     path("moderate/", moderate_page, name="demo-moderate"),
     path("api/moderate/", moderate_api, name="demo-moderate-api"),
     path("compare/create-quiz/", create_quiz, name="demo-create-quiz"),

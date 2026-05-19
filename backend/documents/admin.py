@@ -9,6 +9,9 @@ from .models import (
     Document,
     DocumentVersion,
     Employee,
+    GoldChangeAnnotation,
+    GoldQuizAnnotation,
+    GoldSummaryAnnotation,
     GeneratedQuiz,
     Question,
     QuizAttempt,
@@ -345,3 +348,67 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ("id", "attempt", "question", "is_correct", "created_at")
     list_filter = ("is_correct",)
     ordering = ("attempt", "id")
+
+
+@admin.register(GoldChangeAnnotation)
+class GoldChangeAnnotationAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "change_item",
+        "annotator",
+        "corrected_semantic_type",
+        "corrected_significance_label",
+        "relevance",
+        "is_false_positive",
+        "updated_at",
+    )
+    list_filter = (
+        "corrected_semantic_type",
+        "corrected_significance_label",
+        "relevance",
+        "is_false_positive",
+    )
+    search_fields = (
+        "change_item__comparison__document__title",
+        "annotator__username",
+        "comment",
+    )
+
+
+@admin.register(GoldSummaryAnnotation)
+class GoldSummaryAnnotationAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "summary",
+        "highlight_index",
+        "source_change_item",
+        "annotator",
+        "quality_label",
+        "updated_at",
+    )
+    list_filter = ("quality_label",)
+    search_fields = (
+        "summary__comparison__document__title",
+        "annotator__username",
+        "comment",
+        "corrected_text",
+    )
+
+
+@admin.register(GoldQuizAnnotation)
+class GoldQuizAnnotationAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "question",
+        "annotator",
+        "quality_label",
+        "should_keep",
+        "updated_at",
+    )
+    list_filter = ("quality_label", "should_keep")
+    search_fields = (
+        "question__prompt",
+        "annotator__username",
+        "comment",
+        "corrected_question_text",
+    )

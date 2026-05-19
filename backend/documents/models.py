@@ -879,6 +879,157 @@ class ModeratedChange(models.Model):
         )
 
 
+class GoldChangeAnnotation(models.Model):
+    class Relevance(models.TextChoices):
+        RELEVANT = "relevant", "Relevant"
+        NOT_RELEVANT = "not_relevant", "Not relevant"
+        UNKNOWN = "unknown", "Unknown"
+
+    change_item = models.ForeignKey(
+        VersionChangeItem,
+        on_delete=models.CASCADE,
+        related_name="gold_annotations",
+    )
+    annotator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gold_change_annotations",
+    )
+    corrected_semantic_type = models.CharField(
+        max_length=32,
+        choices=VersionChangeItem.SemanticType.choices,
+        blank=True,
+    )
+    corrected_significance_label = models.CharField(
+        max_length=32,
+        choices=VersionChangeItem.SignificanceLabel.choices,
+        blank=True,
+    )
+    corrected_requires_manual_review = models.BooleanField(null=True, blank=True)
+    relevance = models.CharField(
+        max_length=16,
+        choices=Relevance.choices,
+        default=Relevance.UNKNOWN,
+    )
+    is_false_positive = models.BooleanField(default=False)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["change_item", "annotator"],
+                name="uniq_gold_change_annotation_per_user",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["change_item", "annotator"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"GoldChangeAnnotation change={self.change_item_id} annotator={self.annotator_id}"
+
+
+class GoldSummaryAnnotation(models.Model):
+    class QualityLabel(models.TextChoices):
+        GOOD = "good", "Good"
+        PARTIALLY_CORRECT = "partially_correct", "Partially correct"
+        UNSUPPORTED = "unsupported", "Unsupported"
+        MISSING_KEY_POINT = "missing_key_point", "Missing key point"
+        OVEREMPHASIZED_NOISE = "overemphasized_noise", "Overemphasized noise"
+
+    summary = models.ForeignKey(
+        Summary,
+        on_delete=models.CASCADE,
+        related_name="gold_annotations",
+    )
+    source_change_item = models.ForeignKey(
+        VersionChangeItem,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gold_summary_annotations",
+    )
+    annotator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gold_summary_annotations",
+    )
+    highlight_index = models.PositiveIntegerField(null=True, blank=True)
+    quality_label = models.CharField(max_length=32, choices=QualityLabel.choices)
+    corrected_text = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["summary", "annotator", "highlight_index"],
+                name="uniq_gold_summary_annotation_per_user_and_highlight",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["summary", "annotator"]),
+            models.Index(fields=["source_change_item"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"GoldSummaryAnnotation summary={self.summary_id} highlight={self.highlight_index}"
+
+
+class GoldQuizAnnotation(models.Model):
+    class QualityLabel(models.TextChoices):
+        GOOD = "good", "Good"
+        PARTIALLY_CORRECT = "partially_correct", "Partially correct"
+        INCORRECT = "incorrect", "Incorrect"
+        IRRELEVANT = "irrelevant", "Irrelevant"
+        AMBIGUOUS = "ambiguous", "Ambiguous"
+        UNSUPPORTED = "unsupported", "Unsupported"
+
+    question = models.ForeignKey(
+        "Question",
+        on_delete=models.CASCADE,
+        related_name="gold_annotations",
+    )
+    annotator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gold_quiz_annotations",
+    )
+    quality_label = models.CharField(max_length=32, choices=QualityLabel.choices)
+    corrected_question_text = models.TextField(blank=True)
+    corrected_explanation = models.TextField(blank=True)
+    should_keep = models.BooleanField(default=True)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["question", "annotator"],
+                name="uniq_gold_quiz_annotation_per_user",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["question", "annotator"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"GoldQuizAnnotation question={self.question_id} annotator={self.annotator_id}"
+
+
 class RusLawODDocument(models.Model):
     pravo_gov_ru_nd = models.CharField(max_length=64, unique=True, db_index=True)
     heading = models.CharField(max_length=4096, verbose_name="Заголовок документа",blank=True)

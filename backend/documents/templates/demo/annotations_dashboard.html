@@ -1,0 +1,58 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Annotation Studio · Demo UI{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary">Annotation Studio</span>
+    <h2 style="margin-top: 12px;">Экспертная лаборатория разметки</h2>
+    <p class="muted">Страница показывает materialized comparisons, по которым можно сохранить gold annotations для change items, summary highlights и quiz questions.</p>
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'demo-annotations-export-json' %}">Export JSON</a>
+        <a class="btn secondary" href="{% url 'demo-annotations-export-csv' %}">Export CSV</a>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Список сравнений</h2>
+    {% if comparisons %}
+        <div class="table-wrap" style="margin-top: 12px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Comparison</th>
+                        <th>Документ</th>
+                        <th>Версии</th>
+                        <th>Changes</th>
+                        <th>Annotations</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comparison in comparisons %}
+                        <tr>
+                            <td>#{{ comparison.id }}</td>
+                            <td>{{ comparison.document.title }}</td>
+                            <td>v{{ comparison.from_version.version_number }} → v{{ comparison.to_version.version_number }}</td>
+                            <td>{{ comparison.changes_count }}</td>
+                            <td>
+                                change: {{ comparison.change_annotations_count }}<br>
+                                summary: {{ comparison.summary_annotations_count }}<br>
+                                quiz: {{ comparison.quiz_annotations_count }}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="btn secondary" href="{% url 'demo-annotations-comparison' comparison.id %}">Open studio</a>
+                                    <a class="btn secondary" href="{% url 'demo-traceability' comparison.id %}">Traceability</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="muted">VersionComparison ещё не materialized. Откройте /demo/compare/?from_version=...&to_version=... для создания comparison.</p>
+    {% endif %}
+</section>
+{% endblock %}

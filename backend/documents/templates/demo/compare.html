@@ -53,6 +53,7 @@
     <section class="card">
         <h2>Создать тест по значимым изменениям</h2>
         <p class="muted">В превью уже доступно {{ quiz_preview.questions_count }} вопросов. Базовая генерация опирается на materialized summary/highlights: сначала используются значимые изменения, а если significance-слой дал только editorial, допускается ограниченный fallback лишь для явно содержательных added/removed/modified фрагментов.</p>
+        <p class="muted">Отмодерировано изменений: {{ moderation_summary.moderated }}/{{ moderation_summary.total }}.</p>
         <form method="post" action="{% url 'demo-create-quiz' %}">
             {% csrf_token %}
             <input type="hidden" name="from_version" value="{{ from_version.id }}">
@@ -65,8 +66,15 @@
                 Количество вопросов
                 <input type="number" name="limit" min="1" max="20" value="5">
             </label>
+            <label style="display:flex; align-items:center; gap:10px; font-weight:500;">
+                <input type="checkbox" name="use_moderation" style="width:auto;">
+                Использовать отредактированные изменения (модерацию)
+            </label>
             <div class="actions">
                 {% if quiz_preview.questions_count %}<button class="btn" type="submit">Сохранить тест</button>{% else %}<button class="btn" type="submit" disabled>Сохранить тест</button>{% endif %}
+                <a class="btn secondary" href="{% url 'demo-visualize' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Visualize</a>
+                <a class="btn secondary" href="{% url 'demo-moderate' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Модерация</a>
+                <a class="btn secondary" href="{% url 'rag-chat' %}">Задать вопрос чату</a>
                 <a class="btn secondary" href="/api/compare/?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Открыть JSON compare</a>
             </div>
         {% if not quiz_preview.questions_count %}<p class="muted" style="margin-top: 12px;">Для этой пары версий система не смогла сформировать устойчивый quiz по значимым изменениям. Обычно это означает отсутствие содержательных изменений или только редакционные правки.</p>{% endif %}

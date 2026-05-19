@@ -1,0 +1,103 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:start;">
+        <div>
+            <span class="pill primary">{{ request.user.profile.get_role_display }}</span>
+            <h2 style="margin-top: 12px;">{{ request.user.get_full_name|default:request.user.username }}</h2>
+            <p class="muted">Логин: {{ request.user.username }}{% if request.user.email %} · {{ request.user.email }}{% endif %}</p>
+        </div>
+        <div class="actions">
+            <a class="btn secondary" href="{% url 'demo-quizzes' %}">Открыть тесты</a>
+            <a class="btn secondary" href="{% url 'rag-chat' %}">Открыть чат</a>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Назначенные тесты</h2>
+        <div class="stack">
+            {% for assignment in assignments %}
+                <div class="question-card">
+                    <div><strong>{{ assignment.quiz.title }}</strong></div>
+                    <div class="muted">{{ assignment.quiz.from_version.document.title }} · v{{ assignment.quiz.from_version.version_number }} → v{{ assignment.quiz.to_version.version_number }}</div>
+                    <div class="actions">
+                        <a class="btn secondary" href="{% url 'demo-quiz-detail' assignment.quiz_id %}">Открыть</a>
+                        <a class="btn secondary" href="{% url 'demo-report' assignment.quiz_id %}">Отчёт</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted">Назначений пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Последние попытки</h2>
+        <div class="stack">
+            {% for attempt in attempts %}
+                <div class="question-card">
+                    <div><strong>{{ attempt.quiz.title }}</strong></div>
+                    <div class="muted">{{ attempt.score }}/{{ attempt.total_questions }} · {{ attempt.get_status_display }}</div>
+                    <div class="actions">
+                        <a class="btn secondary" href="{% url 'demo-attempt-detail' attempt.id %}">Результат</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted">Попыток пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+{% if is_admin %}
+<section class="card" style="margin-top: 18px;">
+    <h2>Управление пользователями</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Роль</th>
+                    <th>Аккаунт</th>
+                    <th>Назначения</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for managed_user in managed_users %}
+                    <tr>
+                        <td>
+                            <strong>{{ managed_user.username }}</strong><br>
+                            <span class="muted">{{ managed_user.get_full_name|default:"—" }}</span>
+                        </td>
+                        <td>{{ managed_user.profile.get_role_display }}</td>
+                        <td>{% if managed_user.is_active %}Активен{% else %}Отключён{% endif %}</td>
+                        <td>{{ managed_user.quiz_assignments.count }}</td>
+                        <td>
+                            <form method="post" class="actions" style="margin-top:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ managed_user.id }}">
+                                <select name="role" style="max-width: 180px;">
+                                    <option value="employee" {% if managed_user.profile.role == "employee" %}selected{% endif %}>Employee</option>
+                                    <option value="admin" {% if managed_user.profile.role == "admin" %}selected{% endif %}>Admin</option>
+                                </select>
+                                <label style="display:flex; align-items:center; gap:8px; margin:0; font-weight:400;">
+                                    <input type="checkbox" name="is_active" {% if managed_user.is_active %}checked{% endif %} style="width:auto;">
+                                    Активен
+                                </label>
+                                <button class="btn secondary" type="submit">Сохранить</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

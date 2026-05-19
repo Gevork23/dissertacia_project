@@ -1,0 +1,58 @@
+[
+  {
+    "id": "pair_01_deadline_change",
+    "name": "Deadline reduction",
+    "v1_path": "data/evaluation_corpus/pair_01_deadline_change/old.txt",
+    "v2_path": "data/evaluation_corpus/pair_01_deadline_change/new.txt",
+    "expected_significance_label": "critical",
+    "expected_key_reason": "deadline"
+  },
+  {
+    "id": "pair_02_added_obligation",
+    "name": "Added applicant notification obligation",
+    "v1_path": "data/evaluation_corpus/pair_02_added_obligation/old.txt",
+    "v2_path": "data/evaluation_corpus/pair_02_added_obligation/new.txt",
+    "expected_significance_label": "critical",
+    "expected_key_reason": "obligation"
+  },
+  {
+    "id": "pair_03_document_list_change",
+    "name": "Required document list change",
+    "v1_path": "data/evaluation_corpus/pair_03_document_list_change/old.txt",
+    "v2_path": "data/evaluation_corpus/pair_03_document_list_change/new.txt",
+    "expected_significance_label": "critical",
+    "expected_key_reason": "document"
+  },
+  {
+    "id": "pair_04_refusal_ground_change",
+    "name": "Added refusal ground",
+    "v1_path": "data/evaluation_corpus/pair_04_refusal_ground_change/old.txt",
+    "v2_path": "data/evaluation_corpus/pair_04_refusal_ground_change/new.txt",
+    "expected_significance_label": "critical",
+    "expected_key_reason": "refusal"
+  },
+  {
+    "id": "fixture_editorial_minor",
+    "name": "Synthetic editorial wording change",
+    "v1_path": "regression/fixtures/editorial_minor/v1.txt",
+    "v2_path": "regression/fixtures/editorial_minor/v2.txt",
+    "expected_significance_label": "minor",
+    "expected_key_reason": "editorial"
+  },
+  {
+    "id": "fixture_procedure_important",
+    "name": "Synthetic procedure channel change",
+    "v1_path": "regression/fixtures/procedure_important/v1.txt",
+    "v2_path": "regression/fixtures/procedure_important/v2.txt",
+    "expected_significance_label": "important",
+    "expected_key_reason": "procedure"
+  },
+  {
+    "id": "pair_10_weakly_structured_document",
+    "name": "Weakly structured fallback chunking",
+    "v1_path": "data/evaluation_corpus/pair_10_weakly_structured_document/old.txt",
+    "v2_path": "data/evaluation_corpus/pair_10_weakly_structured_document/new.txt",
+    "expected_significance_label": "critical",
+    "expected_key_reason": "deadline"
+  }
+]

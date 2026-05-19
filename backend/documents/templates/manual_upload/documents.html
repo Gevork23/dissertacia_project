@@ -1,0 +1,89 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Все документы{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="actions" style="justify-content: space-between; align-items: center;">
+        <div>
+            <span class="pill primary">Документы</span>
+            <h2 style="margin-top: 12px;">Загруженные документы</h2>
+            <p class="muted">Администратор может добавлять версии, сравнивать их и сразу передавать в RAG-чат.</p>
+        </div>
+        <a class="btn" href="{% url 'manual-upload' %}">Загрузить документ</a>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Список документов</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Документ</th>
+                    <th>Версий</th>
+                    <th>Последняя версия</th>
+                    <th>Обновлён</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in document_rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.document.title }}</strong><br>
+                        <span class="muted">ID {{ row.document.id }}</span>
+                    </td>
+                    <td>{{ row.document.versions_count|default:0 }}</td>
+                    <td>{% if row.document.latest_version_number %}v{{ row.document.latest_version_number }}{% else %}—{% endif %}</td>
+                    <td>{{ row.document.updated_at }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn secondary" href="{{ row.add_version_url }}">Добавить версию</a>
+                            <a class="btn secondary" href="{{ row.detail_url }}">Открыть</a>
+                            {% if row.compare_url %}
+                                <a class="btn" href="{{ row.compare_url }}">Сравнить</a>
+                            {% endif %}
+                            <form method="post" action="{% url 'manual-delete-document' row.document.id %}" onsubmit="return confirm('Удалить документ и все версии?');" style="display:inline;">
+                                {% csrf_token %}
+                                <button class="btn secondary" type="submit" title="Удалить документ" aria-label="Удалить документ">✕</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">Документы пока не загружены.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <h2>Последние загрузки</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Документ</th>
+                    <th>Версия</th>
+                    <th>Пользователь</th>
+                    <th>Загружен</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in upload_log %}
+                <tr>
+                    <td>{{ row.title }}</td>
+                    <td>v{{ row.version }}</td>
+                    <td>{{ row.uploaded_by.username|default:"—" }}</td>
+                    <td>{{ row.uploaded_at }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Журнал загрузок пуст.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

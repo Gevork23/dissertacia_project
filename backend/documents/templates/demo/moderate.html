@@ -1,0 +1,237 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Модерация изменений · Demo UI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .moderation-layout {
+        display: grid;
+        gap: 18px;
+    }
+    .moderation-stats {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .moderation-table textarea,
+    .moderation-table select {
+        min-width: 140px;
+    }
+    .moderation-table textarea {
+        min-height: 72px;
+    }
+    .change-snippet {
+        display: grid;
+        gap: 10px;
+    }
+    .change-box {
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+    .save-banner {
+        display: none;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid #bbf7d0;
+        background: #dcfce7;
+        color: #166534;
+    }
+    .save-banner.error {
+        border-color: #fecaca;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="moderation-layout">
+    <section class="card">
+        <span class="pill primary">Human-in-the-loop</span>
+        <h2 style="margin-top: 12px;">Модерация изменений</h2>
+        {% if document %}
+            <p class="muted">{{ document.title }} · версия {{ from_version.version_number }} → версия {{ to_version.version_number }}</p>
+            <div class="actions">
+                <a class="btn secondary" href="{% url 'demo-compare' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">К сравнению</a>
+                <a class="btn secondary" href="{% url 'demo-visualize' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Visualize</a>
+            </div>
+        {% else %}
+            <p class="muted">Выберите документ и пару версий. После этого можно скорректировать значимость изменений и использовать модерацию при генерации тестов.</p>
+            <form method="get" class="stack" style="margin-top: 14px;">
+                <label>
+                    Документ
+                    <select name="document_id" onchange="this.form.submit()">
+                        <option value="">Выберите документ</option>
+                        {% for row in document_rows %}
+                            <option value="{{ row.document.id }}" {% if selected_document and selected_document.id == row.document.id %}selected{% endif %}>
+                                {{ row.document.title }}{% if not row.has_pair %} · недостаточно версий{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                {% if selected_versions %}
+                    <div class="grid grid-2">
+                        <label>
+                            Версия «было»
+                            <select name="from_version" required>
+                                {% for version in selected_versions %}
+                                    <option value="{{ version.id }}">v{{ version.version_number }} · {{ version.source_filename }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            Версия «стало»
+                            <select name="to_version" required>
+                                {% for version in selected_versions %}
+                                    <option value="{{ version.id }}" {% if forloop.last %}selected{% endif %}>v{{ version.version_number }} · {{ version.source_filename }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                    </div>
+                    <div class="actions">
+                        <button class="btn" type="submit">Открыть модерацию</button>
+                    </div>
+                {% endif %}
+            </form>
+        {% endif %}
+    </section>
+
+    {% if document %}
+        <section class="moderation-stats">
+            <div class="card"><div class="muted">Всего изменений</div><div class="metric">{{ moderation_summary.total }}</div></div>
+            <div class="card"><div class="muted">Отмодерировано</div><div class="metric">{{ moderation_summary.moderated }}</div></div>
+            <div class="card"><div class="muted">Автоматически</div><div class="metric">{{ moderation_summary.automatic }}</div></div>
+        </section>
+
+        <section class="card moderation-table">
+            <div style="display:flex; justify-content:space-between; gap:16px; align-items:center; flex-wrap:wrap;">
+                <div>
+                    <h2>Таблица изменений</h2>
+                    <p class="muted">Исправленные значения сохраняются отдельно и могут использоваться при генерации тестов.</p>
+                </div>
+                <button class="btn" type="button" id="saveModerationBtn">Сохранить все изменения</button>
+            </div>
+            <div id="saveBanner" class="save-banner" style="margin-top: 14px;"></div>
+            <div class="table-wrap" style="margin-top: 14px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Изменение</th>
+                            <th>Авто</th>
+                            <th>Новая значимость</th>
+                            <th>Комментарий</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in moderation_rows %}
+                            <tr data-change-id="{{ row.change_id }}">
+                                <td>{{ row.index }}</td>
+                                <td style="min-width: 420px;">
+                                    <div><strong>{{ row.title }}</strong></div>
+                                    <div class="muted">{{ row.change_type }} / {{ row.semantic_type }}</div>
+                                    <div class="change-snippet" style="margin-top: 10px;">
+                                        <div class="change-box">
+                                            <div class="muted">Старый текст</div>
+                                            <div>{{ row.old_text|default:"—" }}</div>
+                                        </div>
+                                        <div class="change-box">
+                                            <div class="muted">Новый текст</div>
+                                            <div>{{ row.new_text|default:"—" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="pill primary">{{ row.original_label }}</span>
+                                </td>
+                                <td>
+                                    <select class="moderation-label">
+                                        {% for value, label in moderation_label_options %}
+                                            <option value="{{ value }}" {% if row.corrected_label == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <textarea class="moderation-comment">{{ row.comment }}</textarea>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5">Изменения для этой пары версий не обнаружены.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if document %}
+<script>
+    (function () {
+        const saveButton = document.getElementById("saveModerationBtn");
+        const banner = document.getElementById("saveBanner");
+        if (!saveButton) {
+            return;
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie ? document.cookie.split("; ") : [];
+            for (const cookie of cookies) {
+                const [key, ...rest] = cookie.split("=");
+                if (key === name) {
+                    return decodeURIComponent(rest.join("="));
+                }
+            }
+            return "";
+        }
+
+        function showBanner(message, isError) {
+            banner.textContent = message;
+            banner.classList.toggle("error", Boolean(isError));
+            banner.style.display = "block";
+        }
+
+        saveButton.addEventListener("click", async function () {
+            const rows = Array.from(document.querySelectorAll("tbody tr[data-change-id]"));
+            const changes = rows.map((row) => ({
+                change_id: row.dataset.changeId,
+                corrected_label: row.querySelector(".moderation-label").value,
+                comment: row.querySelector(".moderation-comment").value
+            }));
+
+            saveButton.disabled = true;
+            saveButton.textContent = "Сохранение...";
+
+            try {
+                const response = await fetch("{% url 'demo-moderate-api' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({
+                        from_version: {{ from_version.id }},
+                        to_version: {{ to_version.id }},
+                        changes: changes
+                    })
+                });
+                const payload = await response.json();
+                if (!response.ok || payload.status !== "ok") {
+                    throw new Error(payload.detail || "Не удалось сохранить модерацию.");
+                }
+                showBanner(`Сохранено записей: ${payload.saved}.`, false);
+            } catch (error) {
+                showBanner(error.message || "Ошибка сохранения.", true);
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = "Сохранить все изменения";
+            }
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

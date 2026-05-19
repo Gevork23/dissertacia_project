@@ -1,0 +1,370 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Visualize · Demo UI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .visual-layout {
+        display: grid;
+        gap: 18px;
+    }
+    .visual-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+        align-items: start;
+    }
+    .chart-card,
+    .timeline-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .chart-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 320px;
+        padding: 8px 0 0;
+    }
+    .chart-canvas {
+        width: min(100%, 300px);
+        aspect-ratio: 1;
+    }
+    .legend {
+        display: grid;
+        gap: 10px;
+    }
+    .legend-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+    .legend-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        flex: 0 0 12px;
+    }
+    .legend-dot.critical { background: #dc2626; }
+    .legend-dot.important { background: #ea580c; }
+    .legend-dot.minor { background: #2563eb; }
+    .timeline-shell {
+        position: relative;
+        padding: 32px 8px 8px;
+    }
+    .timeline-line {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 74px;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #cbd5e1, #94a3b8);
+    }
+    .timeline-points {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 14px;
+        align-items: start;
+    }
+    .timeline-point {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+        text-align: center;
+        min-width: 0;
+    }
+    .timeline-marker {
+        position: relative;
+        z-index: 1;
+        width: 42px;
+        height: 42px;
+        border: 2px solid #fff;
+        border-radius: 999px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        cursor: default;
+    }
+    .timeline-marker.critical { background: #dc2626; }
+    .timeline-marker.important { background: #ea580c; }
+    .timeline-marker.minor { background: #2563eb; }
+    .timeline-step {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+    }
+    .timeline-title {
+        width: 100%;
+        font-size: 13px;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    .timeline-tooltip {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 12px);
+        transform: translateX(-50%);
+        width: min(320px, calc(100vw - 48px));
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #0f172a;
+        color: #e2e8f0;
+        text-align: left;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.16s ease;
+    }
+    .timeline-tooltip::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -8px;
+        width: 14px;
+        height: 14px;
+        background: #0f172a;
+        transform: translateX(-50%) rotate(45deg);
+    }
+    .timeline-marker:hover .timeline-tooltip,
+    .timeline-marker:focus-visible .timeline-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    .tooltip-line {
+        display: grid;
+        gap: 4px;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+    .tooltip-key {
+        color: #93c5fd;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+    }
+    .summary-band {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .summary-stat {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+    }
+    .summary-stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 28px;
+    }
+    @media (max-width: 960px) {
+        .visual-grid {
+            grid-template-columns: 1fr;
+        }
+        .timeline-line {
+            top: 66px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="visual-layout">
+    <section class="card">
+        <span class="pill primary"><i class="fa-solid fa-chart-pie"></i> Visualize</span>
+        <h2 style="margin-top: 12px;">{{ document.title }}</h2>
+        <p class="muted">Версия {{ from_version.version_number }} → версия {{ to_version.version_number }}</p>
+        <div class="actions">
+            <a class="btn secondary" href="{% url 'demo-compare' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">К сравнению</a>
+            <a class="btn secondary" href="{% url 'demo-moderate' %}?from_version={{ from_version.id }}&to_version={{ to_version.id }}">Модерация</a>
+            <a class="btn secondary" href="{% url 'rag-chat' %}">Задать вопрос чату</a>
+            <a class="btn secondary" href="/api/compare/?from_version={{ from_version.id }}&to_version={{ to_version.id }}">JSON compare</a>
+        </div>
+    </section>
+
+    <section class="summary-band">
+        <div class="summary-stat">
+            <span class="muted">Всего изменений</span>
+            <strong>{{ visual_summary.total }}</strong>
+        </div>
+        <div class="summary-stat">
+            <span class="muted">Critical</span>
+            <strong>{{ visual_summary.critical }}</strong>
+        </div>
+        <div class="summary-stat">
+            <span class="muted">Important</span>
+            <strong>{{ visual_summary.important }}</strong>
+        </div>
+        <div class="summary-stat">
+            <span class="muted">Minor</span>
+            <strong>{{ visual_summary.minor }}</strong>
+        </div>
+        <div class="summary-stat">
+            <span class="muted">Отмодерировано</span>
+            <strong>{{ moderation_summary.moderated }}</strong>
+        </div>
+    </section>
+
+    <section class="visual-grid">
+        <div class="card chart-card">
+            <h2>Доли значимости</h2>
+            <p class="muted">`minor` агрегирует `informational`, `editorial` и `not_evaluated`.</p>
+            <div class="chart-wrap">
+                <canvas
+                    id="severityChart"
+                    class="chart-canvas"
+                    width="300"
+                    height="300"
+                    data-critical="{{ visual_summary.critical }}"
+                    data-important="{{ visual_summary.important }}"
+                    data-minor="{{ visual_summary.minor }}"
+                ></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-row">
+                    <span class="legend-label"><span class="legend-dot critical"></span>Critical</span>
+                    <strong>{{ visual_summary.critical }}</strong>
+                </div>
+                <div class="legend-row">
+                    <span class="legend-label"><span class="legend-dot important"></span>Important</span>
+                    <strong>{{ visual_summary.important }}</strong>
+                </div>
+                <div class="legend-row">
+                    <span class="legend-label"><span class="legend-dot minor"></span>Minor</span>
+                    <strong>{{ visual_summary.minor }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card timeline-card">
+            <h2>Timeline изменений</h2>
+            <p class="muted">Каждый маркер соответствует одному diff item. Наведение показывает старый и новый текст.</p>
+            {% if timeline_items %}
+                <div class="timeline-shell">
+                    <div class="timeline-line" aria-hidden="true"></div>
+                    <div class="timeline-points">
+                        {% for item in timeline_items %}
+                            <div class="timeline-point">
+                                <div class="timeline-step">#{{ item.index }}</div>
+                                <div
+                                    class="timeline-marker {{ item.label }}"
+                                    tabindex="0"
+                                    aria-label="{{ item.title }}"
+                                >
+                                    {% if item.change_type == "added" %}
+                                        <i class="fa-solid fa-plus"></i>
+                                    {% elif item.change_type == "removed" %}
+                                        <i class="fa-solid fa-minus"></i>
+                                    {% elif item.change_type == "moved" %}
+                                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-pen"></i>
+                                    {% endif %}
+                                    <div class="timeline-tooltip">
+                                        <strong>{{ item.title }}</strong>
+                                        <div class="tooltip-line">
+                                            <span class="tooltip-key">Type</span>
+                                            <span>{{ item.change_type }} / {{ item.raw_label }}</span>
+                                        </div>
+                                        <div class="tooltip-line">
+                                            <span class="tooltip-key">Old</span>
+                                            <span>{{ item.old_text|default:"—" }}</span>
+                                        </div>
+                                        <div class="tooltip-line">
+                                            <span class="tooltip-key">New</span>
+                                            <span>{{ item.new_text|default:"—" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-title">{{ item.semantic_type }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p class="muted">Изменения не обнаружены.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function () {
+        const canvas = document.getElementById("severityChart");
+        if (!canvas) {
+            return;
+        }
+
+        const counts = [
+            { label: "critical", value: Number(canvas.dataset.critical || 0), color: "#dc2626" },
+            { label: "important", value: Number(canvas.dataset.important || 0), color: "#ea580c" },
+            { label: "minor", value: Number(canvas.dataset.minor || 0), color: "#2563eb" }
+        ];
+        const total = counts.reduce((sum, item) => sum + item.value, 0);
+        const ctx = canvas.getContext("2d");
+        const size = canvas.width;
+        const center = size / 2;
+        const radius = 112;
+        const innerRadius = 62;
+
+        ctx.clearRect(0, 0, size, size);
+
+        if (!total) {
+            ctx.fillStyle = "#cbd5e1";
+            ctx.beginPath();
+            ctx.arc(center, center, radius, 0, Math.PI * 2);
+            ctx.arc(center, center, innerRadius, 0, Math.PI * 2, true);
+            ctx.fill();
+        } else {
+            let startAngle = -Math.PI / 2;
+            counts.forEach((item) => {
+                if (!item.value) {
+                    return;
+                }
+                const slice = (item.value / total) * Math.PI * 2;
+                const endAngle = startAngle + slice;
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, innerRadius, 0, Math.PI * 2);
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+                startAngle = endAngle;
+            });
+        }
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "700 32px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(String(total), center, center + 8);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "600 14px Arial";
+        ctx.fillText("changes", center, center + 32);
+    })();
+</script>
+{% endblock %}

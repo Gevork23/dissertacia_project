@@ -19,6 +19,7 @@
 </div>
 
 <div class="grid grid-2" style="margin-top: 18px;">
+    {% if request.user.profile.role == "admin" %}
     <section class="card">
         <h2>Маршрут демонстрации</h2>
         <ol>
@@ -45,8 +46,27 @@
             <li>Admin остаётся резервным маршрутом, но не основным экраном показа.</li>
         </ul>
     </section>
+    {% else %}
+    <section class="card">
+        <h2>Рабочая область сотрудника</h2>
+        <ul>
+            <li>Откройте назначенный тест.</li>
+            <li>Пройдите попытку и проверьте результат.</li>
+            <li>Используйте чат только после загрузки документов администратором.</li>
+        </ul>
+        <div class="actions">
+            <a class="btn secondary" href="{% url 'accounts-profile' %}">Профиль</a>
+            <a class="btn secondary" href="{% url 'demo-quizzes' %}">Назначенные тесты</a>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Ограничения доступа</h2>
+        <p class="muted">Сотруднику доступны только назначенные тесты, отчёты и собственные результаты.</p>
+    </section>
+    {% endif %}
 </div>
 
+{% if request.user.profile.role == "admin" %}
 <section class="card" style="margin-top: 18px;">
     <h2>Доступные документы</h2>
     <div class="table-wrap">
@@ -79,6 +99,7 @@
         </table>
     </div>
 </section>
+{% endif %}
 
 <div class="grid grid-2" style="margin-top: 18px;">
     <section class="card">

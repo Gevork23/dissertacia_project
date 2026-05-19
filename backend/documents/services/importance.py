@@ -6,6 +6,9 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
 LABELS = ("critical", "important", "informational", "editorial")
+significance_rules_version = "significance-rules-v1"
+SIGNIFICANCE_RULES_VERSION = significance_rules_version
+
 LABEL_PRIORITY = {
     "critical": 4,
     "important": 3,

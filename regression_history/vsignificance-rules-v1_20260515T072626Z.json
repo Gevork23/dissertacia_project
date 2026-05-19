@@ -1,0 +1,487 @@
+{
+  "generated_at": "2026-05-15T07:26:26+00:00",
+  "rule_version": "significance-rules-v1",
+  "thresholds": {
+    "min_accuracy": 0.85
+  },
+  "passed": true,
+  "failed_cases": [],
+  "metrics": {
+    "accuracy": {
+      "value": 1.0,
+      "correct": 7,
+      "total": 7
+    },
+    "f1_by_label": {
+      "critical": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "important": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "minor": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "fallback_ratio": {
+      "value": 0.1468,
+      "fallback_chunks": 16,
+      "total_chunks": 109
+    },
+    "average_unmatched_chunk_ratio": 0.02
+  },
+  "labels": [
+    "critical",
+    "important",
+    "minor"
+  ],
+  "cases": [
+    {
+      "id": "pair_01_deadline_change",
+      "name": "Deadline reduction",
+      "v1_path": "data\\evaluation_corpus\\pair_01_deadline_change\\old.txt",
+      "v2_path": "data\\evaluation_corpus\\pair_01_deadline_change\\new.txt",
+      "expected_label": "critical",
+      "expected_key_reason": "deadline",
+      "predicted_label": "critical",
+      "predicted_raw_label": "critical",
+      "predicted_semantic_type": "deadline",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 10,
+        "new_chunks": 10,
+        "total_chunks": 20,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 0,
+        "unmatched_chunk_ratio": 0.0
+      },
+      "comparison_summary": {
+        "added": 0,
+        "removed": 0,
+        "modified": 1,
+        "moved": 0,
+        "unchanged": 9,
+        "by_type": {
+          "deadline_change": 1,
+          "document_change": 0,
+          "obligation_change": 0,
+          "service_procedure_change": 0,
+          "refusal_change": 0,
+          "editorial_change": 0,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "critical": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "modified",
+          "predicted_raw_label": "critical",
+          "predicted_label": "critical",
+          "semantic_type": "deadline",
+          "score": 1.0,
+          "rules": [
+            "change_type=deadline",
+            "entities=deadline_new,deadline_old",
+            "critical_keywords"
+          ],
+          "reason": "Изменение затрагивает ключевые условия применения документа, обязанности, сроки или основания отказа. Сработали правила: change_type=deadline, entities=deadline_new,deadline_old, critical_keywords.",
+          "old_text": "Срок рассмотрения заявления составляет 10 рабочих дней со дня его регистрации.",
+          "new_text": "Срок рассмотрения заявления составляет 7 рабочих дней со дня его регистрации."
+        }
+      ]
+    },
+    {
+      "id": "pair_02_added_obligation",
+      "name": "Added applicant notification obligation",
+      "v1_path": "data\\evaluation_corpus\\pair_02_added_obligation\\old.txt",
+      "v2_path": "data\\evaluation_corpus\\pair_02_added_obligation\\new.txt",
+      "expected_label": "critical",
+      "expected_key_reason": "obligation",
+      "predicted_label": "critical",
+      "predicted_raw_label": "critical",
+      "predicted_semantic_type": "obligation",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 10,
+        "new_chunks": 11,
+        "total_chunks": 21,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 1,
+        "unmatched_chunk_ratio": 0.0476
+      },
+      "comparison_summary": {
+        "added": 1,
+        "removed": 0,
+        "modified": 0,
+        "moved": 0,
+        "unchanged": 10,
+        "by_type": {
+          "deadline_change": 0,
+          "document_change": 0,
+          "obligation_change": 1,
+          "service_procedure_change": 0,
+          "refusal_change": 0,
+          "editorial_change": 0,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "critical": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "added",
+          "predicted_raw_label": "critical",
+          "predicted_label": "critical",
+          "semantic_type": "obligation",
+          "score": 1.0,
+          "rules": [
+            "change_type=obligation",
+            "entities=staff_action"
+          ],
+          "reason": "Изменение затрагивает ключевые условия применения документа, обязанности, сроки или основания отказа. Сработали правила: change_type=obligation, entities=staff_action.",
+          "old_text": "",
+          "new_text": ""
+        }
+      ]
+    },
+    {
+      "id": "pair_03_document_list_change",
+      "name": "Required document list change",
+      "v1_path": "data\\evaluation_corpus\\pair_03_document_list_change\\old.txt",
+      "v2_path": "data\\evaluation_corpus\\pair_03_document_list_change\\new.txt",
+      "expected_label": "critical",
+      "expected_key_reason": "document",
+      "predicted_label": "critical",
+      "predicted_raw_label": "critical",
+      "predicted_semantic_type": "document",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 12,
+        "new_chunks": 13,
+        "total_chunks": 25,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 1,
+        "unmatched_chunk_ratio": 0.04
+      },
+      "comparison_summary": {
+        "added": 1,
+        "removed": 0,
+        "modified": 1,
+        "moved": 0,
+        "unchanged": 11,
+        "by_type": {
+          "deadline_change": 0,
+          "document_change": 1,
+          "obligation_change": 0,
+          "service_procedure_change": 0,
+          "refusal_change": 0,
+          "editorial_change": 1,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "critical": 1,
+          "editorial": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "modified",
+          "predicted_raw_label": "editorial",
+          "predicted_label": "minor",
+          "semantic_type": "editorial",
+          "score": 1.0,
+          "rules": [
+            "change_type=editorial",
+            "entities=editorial_change",
+            "normalized_text_equal"
+          ],
+          "reason": "Изменение похоже на редакционное или структурное и не меняет смысл по существу. Сработали правила: change_type=editorial, entities=editorial_change, normalized_text_equal.",
+          "old_text": "согласие на обработку сведений, необходимых для рассмотрения заявления.",
+          "new_text": "согласие на обработку сведений, необходимых для рассмотрения заявления;"
+        },
+        {
+          "sort_order": 2,
+          "operation": "added",
+          "predicted_raw_label": "critical",
+          "predicted_label": "critical",
+          "semantic_type": "document",
+          "score": 1.0,
+          "rules": [
+            "change_type=document"
+          ],
+          "reason": "Изменение затрагивает ключевые условия применения документа, обязанности, сроки или основания отказа. Сработали правила: change_type=document.",
+          "old_text": "",
+          "new_text": ""
+        }
+      ]
+    },
+    {
+      "id": "pair_04_refusal_ground_change",
+      "name": "Added refusal ground",
+      "v1_path": "data\\evaluation_corpus\\pair_04_refusal_ground_change\\old.txt",
+      "v2_path": "data\\evaluation_corpus\\pair_04_refusal_ground_change\\new.txt",
+      "expected_label": "critical",
+      "expected_key_reason": "refusal",
+      "predicted_label": "critical",
+      "predicted_raw_label": "critical",
+      "predicted_semantic_type": "refusal",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 9,
+        "new_chunks": 10,
+        "total_chunks": 19,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 1,
+        "unmatched_chunk_ratio": 0.0526
+      },
+      "comparison_summary": {
+        "added": 1,
+        "removed": 0,
+        "modified": 0,
+        "moved": 0,
+        "unchanged": 9,
+        "by_type": {
+          "deadline_change": 0,
+          "document_change": 0,
+          "obligation_change": 0,
+          "service_procedure_change": 0,
+          "refusal_change": 1,
+          "editorial_change": 0,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "critical": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "added",
+          "predicted_raw_label": "critical",
+          "predicted_label": "critical",
+          "semantic_type": "refusal",
+          "score": 1.0,
+          "rules": [
+            "change_type=refusal",
+            "entities=refusal_change"
+          ],
+          "reason": "Изменение затрагивает ключевые условия применения документа, обязанности, сроки или основания отказа. Сработали правила: change_type=refusal, entities=refusal_change.",
+          "old_text": "",
+          "new_text": ""
+        }
+      ]
+    },
+    {
+      "id": "fixture_editorial_minor",
+      "name": "Synthetic editorial wording change",
+      "v1_path": "regression\\fixtures\\editorial_minor\\v1.txt",
+      "v2_path": "regression\\fixtures\\editorial_minor\\v2.txt",
+      "expected_label": "minor",
+      "expected_key_reason": "editorial",
+      "predicted_label": "minor",
+      "predicted_raw_label": "editorial",
+      "predicted_semantic_type": "editorial",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 2,
+        "new_chunks": 2,
+        "total_chunks": 4,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 0,
+        "unmatched_chunk_ratio": 0.0
+      },
+      "comparison_summary": {
+        "added": 0,
+        "removed": 0,
+        "modified": 1,
+        "moved": 0,
+        "unchanged": 1,
+        "by_type": {
+          "deadline_change": 0,
+          "document_change": 0,
+          "obligation_change": 0,
+          "service_procedure_change": 0,
+          "refusal_change": 0,
+          "editorial_change": 1,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "editorial": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "modified",
+          "predicted_raw_label": "editorial",
+          "predicted_label": "minor",
+          "semantic_type": "editorial",
+          "score": 1.0,
+          "rules": [
+            "change_type=editorial",
+            "entities=editorial_change"
+          ],
+          "reason": "Изменение похоже на редакционное или структурное и не меняет смысл по существу. Сработали правила: change_type=editorial, entities=editorial_change.",
+          "old_text": "Материал изложен в справочном разделе.",
+          "new_text": "Материал приведен в справочном разделе."
+        }
+      ]
+    },
+    {
+      "id": "fixture_procedure_important",
+      "name": "Synthetic procedure channel change",
+      "v1_path": "regression\\fixtures\\procedure_important\\v1.txt",
+      "v2_path": "regression\\fixtures\\procedure_important\\v2.txt",
+      "expected_label": "important",
+      "expected_key_reason": "procedure",
+      "predicted_label": "important",
+      "predicted_raw_label": "important",
+      "predicted_semantic_type": "procedure",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 2,
+        "new_chunks": 2,
+        "total_chunks": 4,
+        "fallback_chunks": 0,
+        "fallback_ratio": 0.0,
+        "unmatched_chunks": 0,
+        "unmatched_chunk_ratio": 0.0
+      },
+      "comparison_summary": {
+        "added": 0,
+        "removed": 0,
+        "modified": 1,
+        "moved": 0,
+        "unchanged": 1,
+        "by_type": {
+          "deadline_change": 0,
+          "document_change": 0,
+          "obligation_change": 0,
+          "service_procedure_change": 1,
+          "refusal_change": 0,
+          "editorial_change": 0,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "important": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "modified",
+          "predicted_raw_label": "important",
+          "predicted_label": "important",
+          "semantic_type": "procedure",
+          "score": 1.0,
+          "rules": [
+            "change_type=procedure",
+            "entities=procedure_change",
+            "important_keywords"
+          ],
+          "reason": "Изменение влияет на порядок работы или условия взаимодействия, но не относится к наиболее критичным. Сработали правила: change_type=procedure, entities=procedure_change, important_keywords.",
+          "old_text": "Консультирование проводится в окне обслуживания.",
+          "new_text": "Консультирование проводится в окне обслуживания или через личный кабинет."
+        }
+      ]
+    },
+    {
+      "id": "pair_10_weakly_structured_document",
+      "name": "Weakly structured fallback chunking",
+      "v1_path": "data\\evaluation_corpus\\pair_10_weakly_structured_document\\old.txt",
+      "v2_path": "data\\evaluation_corpus\\pair_10_weakly_structured_document\\new.txt",
+      "expected_label": "critical",
+      "expected_key_reason": "deadline",
+      "predicted_label": "critical",
+      "predicted_raw_label": "critical",
+      "predicted_semantic_type": "deadline",
+      "correct": true,
+      "key_reason_matched": true,
+      "chunking": {
+        "old_chunks": 8,
+        "new_chunks": 8,
+        "total_chunks": 16,
+        "fallback_chunks": 16,
+        "fallback_ratio": 1.0,
+        "unmatched_chunks": 0,
+        "unmatched_chunk_ratio": 0.0
+      },
+      "comparison_summary": {
+        "added": 0,
+        "removed": 0,
+        "modified": 1,
+        "moved": 0,
+        "unchanged": 7,
+        "by_type": {
+          "deadline_change": 1,
+          "document_change": 0,
+          "obligation_change": 0,
+          "service_procedure_change": 0,
+          "refusal_change": 0,
+          "editorial_change": 0,
+          "structural_change": 0
+        },
+        "by_significance": {
+          "critical": 1
+        },
+        "manual_review_count": 0
+      },
+      "predicted_changes": [
+        {
+          "sort_order": 1,
+          "operation": "modified",
+          "predicted_raw_label": "critical",
+          "predicted_label": "critical",
+          "semantic_type": "deadline",
+          "score": 1.0,
+          "rules": [
+            "change_type=deadline",
+            "entities=deadline_new,deadline_old",
+            "critical_keywords"
+          ],
+          "reason": "Изменение затрагивает ключевые условия применения документа, обязанности, сроки или основания отказа. Сработали правила: change_type=deadline, entities=deadline_new,deadline_old, critical_keywords.",
+          "old_text": "Рассмотрение обращения\nОбращение рассматривается ответственным подразделением в течение 5 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий.",
+          "new_text": "Рассмотрение обращения\nОбращение рассматривается ответственным подразделением в течение 3 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий."
+        }
+      ]
+    }
+  ]
+}

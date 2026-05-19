@@ -1,6 +1,7 @@
 import shutil
 import tempfile
 
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -12,6 +13,7 @@ from ..models import (
     DocumentVersion,
     GeneratedQuiz,
     Question,
+    QuizAssignment,
     QuizAttempt,
 )
 
@@ -26,6 +28,10 @@ class DemoViewsTests(TestCase):
         shutil.rmtree(TEST_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
+        self.admin_user = User.objects.get(username="admin")
+        self.employee_user = User.objects.get(username="user")
+        self.client.force_login(self.admin_user)
+
         self.document = Document.objects.create(
             title="Демо-регламент",
             description="Проверка demo UI",
@@ -83,10 +89,16 @@ class DemoViewsTests(TestCase):
             correct_text_answer="7 рабочих дней",
         )
         Choice.objects.create(
-            question=question, order=0, text="7 рабочих дней", is_correct=True
+            question=question,
+            order=0,
+            text="7 рабочих дней",
+            is_correct=True,
         )
         Choice.objects.create(
-            question=question, order=1, text="10 рабочих дней", is_correct=False
+            question=question,
+            order=1,
+            text="10 рабочих дней",
+            is_correct=False,
         )
 
     def _make_version(self, *, version_number: int, filename: str, text: str):
@@ -104,6 +116,11 @@ class DemoViewsTests(TestCase):
             normalized_text=text,
             content_hash=sha256_hex(text),
         )
+
+    def _approve_quiz(self):
+        self.quiz.status = GeneratedQuiz.Status.APPROVED
+        self.quiz.approved_by_name = "Иванова Е.А."
+        self.quiz.save(update_fields=["status", "approved_by_name", "updated_at"])
 
     def test_dashboard_is_available(self):
         response = self.client.get(reverse("demo-dashboard"))
@@ -126,6 +143,20 @@ class DemoViewsTests(TestCase):
         self.assertContains(response, "Critical")
         self.assertContains(response, "Manual review")
 
+    def test_visualize_page_is_available(self):
+        response = self.client.get(
+            reverse("demo-visualize"),
+            {
+                "from_version": self.version_one.id,
+                "to_version": self.version_two.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Timeline")
+        self.assertContains(response, 'id="severityChart"', html=False)
+        self.assertContains(response, "Visualize")
+
     def test_quiz_can_be_submitted_for_review_and_approved_from_demo_ui(self):
         review_response = self.client.post(
             reverse("demo-submit-review-quiz", kwargs={"quiz_id": self.quiz.id})
@@ -133,6 +164,7 @@ class DemoViewsTests(TestCase):
         self.assertEqual(review_response.status_code, 302)
         self.quiz.refresh_from_db()
         self.assertEqual(self.quiz.status, GeneratedQuiz.Status.PENDING_REVIEW)
+
         approve_response = self.client.post(
             reverse("demo-approve-quiz", kwargs={"quiz_id": self.quiz.id}),
             {"approved_by_name": "Иванова Е.А.", "approval_comment": "Согласовано."},
@@ -142,10 +174,8 @@ class DemoViewsTests(TestCase):
         self.assertEqual(self.quiz.status, GeneratedQuiz.Status.APPROVED)
         self.assertEqual(self.quiz.approved_by_name, "Иванова Е.А.")
 
-    def test_approved_quiz_can_be_taken_from_demo_ui(self):
-        self.quiz.status = GeneratedQuiz.Status.APPROVED
-        self.quiz.approved_by_name = "Иванова Е.А."
-        self.quiz.save(update_fields=["status", "approved_by_name", "updated_at"])
+    def test_admin_can_take_approved_quiz_from_demo_ui(self):
+        self._approve_quiz()
 
         start_response = self.client.post(
             reverse("demo-take-quiz", kwargs={"quiz_id": self.quiz.id}),
@@ -156,9 +186,9 @@ class DemoViewsTests(TestCase):
         )
 
         self.assertEqual(start_response.status_code, 302)
-        self.assertEqual(QuizAttempt.objects.count(), 1)
         attempt = QuizAttempt.objects.get()
         self.assertEqual(attempt.status, QuizAttempt.Status.IN_PROGRESS)
+
         question = self.quiz.questions.get()
         correct_choice = question.choices.get(is_correct=True)
         submit_response = self.client.post(
@@ -175,3 +205,64 @@ class DemoViewsTests(TestCase):
         self.assertEqual(attempt.score, 1)
         self.assertEqual(attempt.total_questions, 1)
         self.assertEqual(attempt.status, QuizAttempt.Status.COMPLETED)
+
+    def test_employee_sees_only_assigned_quiz(self):
+        self._approve_quiz()
+        QuizAssignment.objects.create(
+            quiz=self.quiz,
+            user=self.employee_user,
+            assigned_by=self.admin_user,
+        )
+        self.client.force_login(self.employee_user)
+
+        response = self.client.get(reverse("demo-quizzes"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.quiz.title)
+
+    def test_employee_cannot_open_unassigned_quiz(self):
+        self._approve_quiz()
+        self.client.force_login(self.employee_user)
+
+        response = self.client.get(
+            reverse("demo-quiz-detail", kwargs={"quiz_id": self.quiz.id})
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_employee_attempt_uses_account_name(self):
+        self._approve_quiz()
+        QuizAssignment.objects.create(
+            quiz=self.quiz,
+            user=self.employee_user,
+            assigned_by=self.admin_user,
+        )
+        self.client.force_login(self.employee_user)
+
+        response = self.client.post(
+            reverse("demo-take-quiz", kwargs={"quiz_id": self.quiz.id}),
+            {
+                "action": "start",
+                "participant_name": "Чужое имя",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        attempt = QuizAttempt.objects.get()
+        self.assertEqual(attempt.participant_name, self.employee_user.get_full_name())
+
+    def test_admin_can_assign_approved_quiz(self):
+        self._approve_quiz()
+
+        response = self.client.post(
+            reverse("demo-assign-quiz", kwargs={"quiz_id": self.quiz.id}),
+            {"user_id": self.employee_user.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            QuizAssignment.objects.filter(
+                quiz=self.quiz,
+                user=self.employee_user,
+            ).exists()
+        )

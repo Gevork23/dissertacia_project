@@ -7,13 +7,18 @@
     <span class="pill primary">Документ</span>
     <h2 style="margin-top: 12px;">{{ document.title }}</h2>
     <p class="muted">{{ document.description|default:"Описание не заполнено." }}</p>
-    {% if suggested_pair %}
-        <div class="actions">
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'manual-upload' %}?document_id={{ document.id }}">Добавить версию</a>
+        {% if suggested_pair %}
             <a class="btn" href="{% url 'demo-compare' %}?from_version={{ suggested_pair.0.id }}&to_version={{ suggested_pair.1.id }}">
                 Сравнить последние версии (v{{ suggested_pair.0.version_number }} → v{{ suggested_pair.1.version_number }})
             </a>
-        </div>
-    {% endif %}
+        {% endif %}
+        <form method="post" action="{{ delete_document_url }}" onsubmit="return confirm('Удалить документ и все его версии?');" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit" title="Удалить документ" aria-label="Удалить документ">✕</button>
+        </form>
+    </div>
 </section>
 
 <section class="card" style="margin-top: 18px;">
@@ -27,6 +32,7 @@
                     <th>Размер</th>
                     <th>Чанков</th>
                     <th>Создана</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -37,9 +43,15 @@
                     <td>{{ version.file_size|default:0 }}</td>
                     <td>{{ version.chunks.count }}</td>
                     <td>{{ version.created_at }}</td>
+                    <td>
+                        <form method="post" action="{% url 'manual-delete-version' version.id %}" onsubmit="return confirm('Удалить эту версию?');" style="display:inline;">
+                            {% csrf_token %}
+                            <button class="btn secondary" type="submit" title="Удалить версию" aria-label="Удалить версию">✕</button>
+                        </form>
+                    </td>
                 </tr>
             {% empty %}
-                <tr><td colspan="5">Версии отсутствуют.</td></tr>
+                <tr><td colspan="6">Версии отсутствуют.</td></tr>
             {% endfor %}
             </tbody>
         </table>

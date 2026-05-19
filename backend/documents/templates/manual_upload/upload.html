@@ -1,0 +1,51 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Загрузка документа{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="actions" style="justify-content: space-between; align-items: center;">
+        <div>
+            <span class="pill primary">Ручная загрузка</span>
+            <h2 style="margin-top: 12px;">
+                {% if existing_document %}Добавить версию{% else %}Загрузить документ{% endif %}
+            </h2>
+            <p class="muted">
+                {% if existing_document %}
+                    Документ: <strong>{{ existing_document.title }}</strong>. Будет создана версия <strong>v{{ next_version }}</strong>.
+                {% else %}
+                    Поддерживаются файлы `.txt`, `.docx`, `.pdf`, `.xml`.
+                {% endif %}
+            </p>
+        </div>
+        <a class="btn secondary" href="{{ back_url }}">К списку документов</a>
+    </div>
+</section>
+
+<section class="card" style="margin-top: 18px;">
+    <form method="post" enctype="multipart/form-data" class="stack">
+        {% csrf_token %}
+        {% if existing_document %}
+            <input type="hidden" name="document_id" value="{{ existing_document.id }}">
+        {% endif %}
+        <div class="grid grid-2">
+            <label>
+                Название документа
+                <input type="text" name="title" value="{{ prefill_title }}" {% if existing_document %}readonly{% endif %} required>
+            </label>
+            <label>
+                Версия
+                <input type="number" name="version" value="{{ next_version }}" min="1" readonly>
+            </label>
+        </div>
+        <label>
+            Файл
+            <input type="file" name="file" accept=".txt,.docx,.pdf,.xml" required>
+        </label>
+        <div class="actions">
+            <button class="btn" type="submit">Загрузить</button>
+            <a class="btn secondary" href="{{ back_url }}">Отмена</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

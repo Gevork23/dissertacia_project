@@ -1,0 +1,66 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-shell {
+        min-height: 62vh;
+        display: grid;
+        place-items: center;
+    }
+    .auth-card {
+        width: min(680px, 100%);
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    }
+    .auth-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .auth-grid .full {
+        grid-column: 1 / -1;
+    }
+    .errorlist {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        color: #b91c1c;
+    }
+    @media (max-width: 720px) {
+        .auth-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card">
+        <span class="pill primary">Новый пользователь</span>
+        <h2 style="margin-top: 12px;">Регистрация сотрудника</h2>
+        <p class="muted">Новая учётная запись создаётся с ролью Employee. Права Admin назначаются существующим администратором.</p>
+        <form method="post" class="stack" style="margin-top: 18px;">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="auth-grid">
+                {% for field in form %}
+                    <label class="{% if field.name == 'email' or field.name == 'password1' or field.name == 'password2' %}full{% endif %}">
+                        {{ field.label }}
+                        {{ field }}
+                        {{ field.errors }}
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="actions">
+                <button class="btn" type="submit">Создать аккаунт</button>
+                <a class="btn secondary" href="{% url 'accounts-login' %}">Назад ко входу</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

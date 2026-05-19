@@ -1,0 +1,17 @@
+FROM D:\models\Vikhr-Nemo-12B-Instruct-R-21-09-24-Q4_K_M.gguf
+
+PARAMETER temperature 0.2
+PARAMETER num_ctx 8192
+PARAMETER stop "<|eot_id|>"
+
+TEMPLATE """{{ if .System }}<|start_header_id|>system<|end_header_id|>
+
+{{ .System }}<|eot_id|>{{ end }}{{ if .Documents }}<|start_header_id|>documents<|end_header_id|>
+
+{{ .Documents }}<|eot_id|>{{ end }}<|start_header_id|>user<|end_header_id|>
+
+{{ .Prompt }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+"""
+
+SYSTEM """Your task is to answer the user's questions using only the information from the provided documents. Give two answers to each question: one with a list of relevant document identifiers and the second with the answer to the question itself, using documents with these identifiers. Respond in Russian. If the answer is absent in the provided documents, say so clearly."""

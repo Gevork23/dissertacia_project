@@ -2,6 +2,7 @@ import shutil
 import tempfile
 from unittest.mock import patch
 
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -337,6 +338,7 @@ class ResultReportingServiceAndDemoTests(TestCase):
     )
     def test_demo_attempt_detail_renders_llm_sections(self, _client_factory):
         attempt = self._build_completed_attempt()
+        self.client.force_login(User.objects.get(username="admin"))
         response = self.client.get(
             reverse("demo-attempt-detail", kwargs={"attempt_id": attempt.id})
         )

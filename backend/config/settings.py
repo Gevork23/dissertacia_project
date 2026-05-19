@@ -36,6 +36,8 @@ def split_csv(raw: str) -> list[str]:
 SECRET_KEY = env_str("DJANGO_SECRET_KEY", "change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 
+CSRF_COOKIE_HTTPONLY = False          # чтобы JavaScript мог читать cookie
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 
 env_hosts = split_csv(env_str("DJANGO_ALLOWED_HOSTS"))
 dev_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]
@@ -52,8 +54,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "accounts",
     "core",
     "documents",
+    "rag",
 ]
 
 MIDDLEWARE = [
@@ -130,6 +134,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+LOGIN_URL = "accounts-login"
+LOGIN_REDIRECT_URL = "demo-dashboard"
+LOGOUT_REDIRECT_URL = "accounts-login"
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
@@ -163,6 +170,20 @@ RESULT_LLM_TIMEOUT_SECONDS = env_int("RESULT_LLM_TIMEOUT_SECONDS", 60)
 RESULT_LLM_TEMPERATURE = env_int("RESULT_LLM_TEMPERATURE", 0)
 RESULT_LLM_SEED = env_int("RESULT_LLM_SEED", 42)
 RESULT_PASS_THRESHOLD_PERCENT = env_int("RESULT_PASS_THRESHOLD_PERCENT", 70)
+
+SIGNIFICANCE_RULES_VERSION = env_str(
+    "SIGNIFICANCE_RULES_VERSION",
+    "significance-rules-v1",
+)
+REGRESSION_MIN_ACCURACY = float(env_str("REGRESSION_MIN_ACCURACY", "0.85"))
+RAG_OLLAMA_MODEL = "vikhr_grounded"
+RAG_EMBEDDER_MODEL = env_str(
+    "RAG_EMBEDDER_MODEL",
+    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+)
+RAG_TOP_K = env_int("RAG_TOP_K", 5)
+RAG_TEMPERATURE = float(env_str("RAG_TEMPERATURE", "0.2"))
+RAG_MAX_TOKENS = env_int("RAG_MAX_TOKENS", 1024)
 
 LOG_LEVEL = env_str("DJANGO_LOG_LEVEL", "INFO").upper()
 LOG_DIR = BASE_DIR / "logs"

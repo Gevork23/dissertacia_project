@@ -4,6 +4,13 @@
     <meta charset="utf-8">
     <title>{% block title %}ДГТУ — Demo UI{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8wYChWzR5n7PkLJclKnx7Y1wYipXyTQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    >
     <style>
         :root {
             --bg: #0f172a;
@@ -42,6 +49,7 @@
             gap: 12px;
             flex-wrap: wrap;
             margin-top: 16px;
+            align-items: center;
         }
         nav a {
             color: #fff;
@@ -50,6 +58,17 @@
             border: 1px solid rgba(255,255,255,.18);
             border-radius: 999px;
             background: rgba(255,255,255,.08);
+        }
+        .nav-spacer { flex: 1 1 auto; }
+        .nav-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 999px;
+            background: rgba(255,255,255,.08);
+            color: #fff;
         }
         main { padding: 24px 0 48px; }
         .grid {
@@ -77,6 +96,19 @@
             border-radius: 999px;
             font-size: 13px;
             font-weight: 600;
+        }
+        .nav-link-button {
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 999px;
+            padding: 10px 14px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        .nav-link-button:hover {
+            background: rgba(255,255,255,.15);
         }
         .pill.primary { background: var(--primary-soft); color: var(--primary); }
         .pill.success { background: var(--success-soft); color: var(--success); }
@@ -160,6 +192,7 @@
             overflow-x: auto;
         }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
 <header>
@@ -172,8 +205,29 @@
         <nav>
             <a href="{% url 'demo-dashboard' %}">Главная</a>
             <a href="{% url 'demo-quizzes' %}">Тесты</a>
-            <a href="/api/">API</a>
-            <a href="/admin/">Admin</a>
+            <a href="{% url 'rag-chat' %}">Чат</a>
+            {% if request.user.is_authenticated and request.user.profile.role == "admin" %}
+                <a href="{% url 'manual-upload' %}">Загрузить документ</a>
+                <a href="{% url 'manual-documents' %}">Все документы</a>
+                <a href="{% url 'demo-moderate' %}">Модерация изменений</a>
+                <a href="/api/">API</a>
+                <a href="/admin/">Admin</a>
+            {% endif %}
+            <span class="nav-spacer"></span>
+            {% if request.user.is_authenticated %}
+                <span class="nav-user">
+                    <i class="fa-regular fa-user"></i>
+                    {{ request.user.username }}
+                </span>
+                <a href="{% url 'accounts-profile' %}">Профиль</a>
+                <form method="post" action="{% url 'accounts-logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-button">Выйти</button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts-login' %}">Войти</a>
+                <a href="{% url 'accounts-register' %}">Регистрация</a>
+            {% endif %}
         </nav>
     </div>
 </header>
@@ -187,5 +241,6 @@
         {% block content %}{% endblock %}
     </div>
 </main>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

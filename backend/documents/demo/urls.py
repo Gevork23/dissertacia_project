@@ -1,24 +1,31 @@
 from django.urls import path
 
 from .views import (
+    assign_quiz_view,
     approve_quiz_view,
     attempt_detail,
     compare_page,
     create_quiz,
     dashboard,
     document_detail,
+    moderate_api,
+    moderate_page,
     quiz_detail,
     quizzes_page,
     reject_quiz_view,
     report_page,
     submit_quiz_review_view,
     take_quiz,
+    visualize_page,
 )
 
 urlpatterns = [
     path("", dashboard, name="demo-dashboard"),
     path("documents/<int:document_id>/", document_detail, name="demo-document-detail"),
     path("compare/", compare_page, name="demo-compare"),
+    path("visualize/", visualize_page, name="demo-visualize"),
+    path("moderate/", moderate_page, name="demo-moderate"),
+    path("api/moderate/", moderate_api, name="demo-moderate-api"),
     path("compare/create-quiz/", create_quiz, name="demo-create-quiz"),
     path("quizzes/", quizzes_page, name="demo-quizzes"),
     path("quizzes/<int:quiz_id>/", quiz_detail, name="demo-quiz-detail"),
@@ -36,6 +43,11 @@ urlpatterns = [
         "quizzes/<int:quiz_id>/reject/",
         reject_quiz_view,
         name="demo-reject-quiz",
+    ),
+    path(
+        "quizzes/<int:quiz_id>/assign/",
+        assign_quiz_view,
+        name="demo-assign-quiz",
     ),
     path("quizzes/<int:quiz_id>/take/", take_quiz, name="demo-take-quiz"),
     path("quizzes/<int:quiz_id>/report/", report_page, name="demo-report"),

@@ -1,0 +1,93 @@
+{% extends "demo/base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-shell {
+        min-height: 62vh;
+        display: grid;
+        place-items: center;
+    }
+    .auth-grid {
+        display: grid;
+        grid-template-columns: minmax(320px, 460px) minmax(280px, 440px);
+        gap: 20px;
+        width: min(1040px, 100%);
+    }
+    .auth-panel {
+        background: linear-gradient(145deg, #0f172a, #1d4ed8);
+        color: #fff;
+        border-radius: 20px;
+        padding: 28px;
+        min-height: 100%;
+    }
+    .auth-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    }
+    .auth-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 18px;
+    }
+    .auth-hint {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 16px;
+        background: #eff6ff;
+        color: #1e3a8a;
+    }
+    .errorlist {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        color: #b91c1c;
+    }
+    @media (max-width: 860px) {
+        .auth-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-grid">
+        <div class="auth-panel">
+            <span class="pill primary" style="background: rgba(255,255,255,.14); color: #fff;">Доступ к системе</span>
+            <h2 style="margin-top: 16px;">Вход в контур анализа документов</h2>
+            <p style="color: rgba(255,255,255,.88);">
+                Для демонстрации доступны преднастроенные учётные записи:
+                `admin/admin` для полного доступа и `user/user` для роли сотрудника.
+            </p>
+            <div class="auth-hint">
+                <strong>Employee</strong> видит только назначенные тесты, отчёты и собственные попытки.
+            </div>
+        </div>
+        <div class="auth-card">
+            <h2>Войти</h2>
+            <form method="post" class="stack">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                    <label>
+                        {{ field.label }}
+                        {{ field }}
+                        {{ field.errors }}
+                    </label>
+                {% endfor %}
+                <div class="auth-actions">
+                    <button class="btn" type="submit">Войти</button>
+                    <a class="btn secondary" href="{% url 'accounts-register' %}">Регистрация</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

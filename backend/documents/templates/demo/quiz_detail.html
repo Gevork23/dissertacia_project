@@ -26,7 +26,9 @@
                 <a class="btn success" href="{% url 'demo-take-quiz' quiz.id %}">Начать прохождение</a>
                 <a class="btn secondary" href="{% url 'demo-report' quiz.id %}">Открыть отчёт</a>
             {% endif %}
-            <a class="btn secondary" href="/api/quizzes/{{ quiz.id }}/report/">JSON-отчёт</a>
+            {% if is_admin %}
+                <a class="btn secondary" href="/api/quizzes/{{ quiz.id }}/report/">JSON-отчёт</a>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -60,7 +62,7 @@
                     <button class="btn warning" type="submit">Отправить на проверку</button>
                 </div>
             </form>
-        {% elif quiz.status == "pending_review" %}
+        {% elif quiz.status == "pending_review" and is_admin %}
             <p class="muted">Тест ожидает решения ответственного лица. До утверждения прохождение заблокировано.</p>
             <form method="post" action="{% url 'demo-approve-quiz' quiz.id %}" style="margin-top:12px;">
                 {% csrf_token %}
@@ -90,7 +92,7 @@
                     <button class="btn" type="submit" style="background:#b91c1c;">Отклонить тест</button>
                 </div>
             </form>
-        {% elif quiz.status == "rejected" %}
+        {% elif quiz.status == "rejected" and is_admin %}
             <p class="muted">Отклонённый тест нельзя выдать сотруднику. Его можно повторно отправить на проверку после корректировки.</p>
             <form method="post" action="{% url 'demo-submit-review-quiz' quiz.id %}">
                 {% csrf_token %}
@@ -113,6 +115,40 @@
         <p class="muted">Пока quiz не утверждён, прохождение через demo и API заблокировано.</p>
     </section>
 </div>
+
+{% if is_admin and quiz.status == "approved" %}
+<section class="card" style="margin-top: 18px;">
+    <h2>Назначение сотрудникам</h2>
+    <form method="post" action="{% url 'demo-assign-quiz' quiz.id %}">
+        {% csrf_token %}
+        <label>
+            Сотрудник
+            <select name="user_id">
+                {% for employee_user in employee_users %}
+                    <option value="{{ employee_user.id }}">
+                        {{ employee_user.username }}{% if employee_user.get_full_name %} · {{ employee_user.get_full_name }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="actions">
+            <button class="btn" type="submit">Назначить тест</button>
+        </div>
+    </form>
+    <div class="stack" style="margin-top: 16px;">
+        {% for employee_user in employee_users %}
+            {% if employee_user.id in assigned_user_ids %}
+                <div class="question-card">
+                    <strong>{{ employee_user.username }}</strong>
+                    <div class="muted">{{ employee_user.get_full_name|default:"Employee" }}</div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <p class="muted">Нет сотрудников для назначения.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <section class="card" style="margin-top: 18px;">
     <h2>Содержимое теста</h2>

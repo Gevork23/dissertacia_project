@@ -27,6 +27,7 @@ from ..models import (
 from . import quiz_attempts as quiz_attempt_services
 from . import quiz_workflow as quiz_workflow_services
 from .exceptions import DomainWorkflowError
+from .moderation import annotate_diff_for_moderation
 
 
 class EmptyQuizError(ValueError):
@@ -194,12 +195,17 @@ def materialize_comparison(
     from_version: DocumentVersion,
     to_version: DocumentVersion,
     diff_payload: dict[str, Any] | None = None,
+    diff_payload_is_enriched: bool = False,
 ) -> tuple[VersionComparison, Summary, dict[str, Any], list[VersionChangeItem]]:
     raw_diff_payload = diff_payload or build_comparison_payload(
         from_version=from_version,
         to_version=to_version,
     )
-    diff_payload = enrich_compare_payload(raw_diff_payload)
+    diff_payload = (
+        raw_diff_payload
+        if diff_payload_is_enriched
+        else enrich_compare_payload(raw_diff_payload)
+    )
     brief_payload = build_brief_summary(diff_payload)
     comparison_meta = diff_payload.get("comparison_meta") or {}
     summary_payload = diff_payload.get("summary") or {}
@@ -327,14 +333,24 @@ def create_quiz_from_versions(
     to_version: DocumentVersion,
     title: str,
     max_questions: int = 10,
+    use_moderation: bool = False,
 ) -> GeneratedQuiz:
-    diff_payload = build_comparison_payload(
+    raw_diff_payload = build_comparison_payload(
         from_version=from_version, to_version=to_version
     )
+    diff_payload = enrich_compare_payload(raw_diff_payload)
+    if use_moderation:
+        diff_payload, _ = annotate_diff_for_moderation(
+            diff_payload,
+            from_version=from_version,
+            to_version=to_version,
+            apply_corrections=True,
+        )
     comparison, summary, diff_payload, change_items = materialize_comparison(
         from_version=from_version,
         to_version=to_version,
         diff_payload=diff_payload,
+        diff_payload_is_enriched=True,
     )
     quiz_payload = make_json_safe(
         build_quiz_from_summary(

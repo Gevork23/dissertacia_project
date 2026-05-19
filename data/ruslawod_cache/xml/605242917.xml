@@ -1,0 +1,121 @@
+<act><meta><identification><pravogovruNd val="605242917" /><issuedByIPS val="Постановление Государственной Думы Федерального Собрания Российской Федерации" /><doc_typeIPS val="Постановление" /><doc_author_normal_formIPS val="Государственная Дума" /><docdateIPS val="22.03.2023" /><docNumberIPS val="3395-8 ГД" /><headingIPS>О Федеральном законе "О внесении изменений в статью 4 Федерального закона "Об основных гарантиях избирательных прав и права на участие в референдуме граждан Российской Федерации" (проект № 1128633-7)</headingIPS><signedIPS val="Володин В." /><statusIPS val="Действует без изменений" /><actual_datetimeIPS val="1710772571.5676632" /><actual_datetime_humanIPS val="Mon Mar 18 17:36:11 2024" /><is_widely_used val="0" /></identification><classification><classifierByIPS val="010.080.010.010.000$Референдум Российской Федерации $010.080.020.010.000$Избирательная система Российской Федерации $010.140.020.010.000$Стадии прохождения законопроектов " /></classification></meta><text><textIPS> 
+ПОСТАНОВЛЕНИЕ
+ 
+ГОСУДАРСТВЕННОЙ ДУМЫ
+ФЕДЕРАЛЬНОГО СОБРАНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ
+ 
+О Федеральном законе "О внесении изменений в статью 4 Федерального закона "Об основных гарантиях избирательных прав и права на участие в референдуме граждан Российской Федерации"
+(проект № 1128633-7)
+ 
+Государственная Дума Федерального Собрания Российской Федерации постановляет:
+1. Принять Федеральный закон "О внесении изменений в статью 4 Федерального закона "Об основных гарантиях избирательных прав и права на участие в референдуме граждан Российской Федерации" (проект № 1128633-7).
+2. Направить указанный Федеральный закон в Совет Федерации Федерального Собрания Российской Федерации.
+3. Настоящее Постановление вступает в силу со дня его принятия.
+ 
+Председатель Государственной Думы
+Федерального Собрания
+Российской Федерации В.В.Володин
+ 
+Москва
+22 марта 2023 года
+№ 3395-8 ГД
+ </textIPS><taggedtextIPS>1	О	О	PR	PR	PR	0	ROOT	_	_
+2	Федеральном	ФЕДЕРАЛЬНЫЙ	A	A - loc sg plen m -	A - loc sg plen m -	3	опред	_	_
+3	законе	ЗАКОН	S	S m inan loc sg	S m inan loc sg	1	предл	_	_
+4	"	"	_	_	PUNC	5	PUNC	_	_
+5	О	О	PR	PR	PR	3	ном-аппоз	_	_
+6	внесении	ВНЕСЕНИЕ	S	S n inan loc sg	S n inan loc sg	5	предл	_	_
+7	изменений	ИЗМЕНЕНИЕ	S	S n inan gen pl	S n inan gen pl	6	1-компл	_	_
+8	в	В	PR	PR	PR	6	3-компл	_	_
+9	статью	СТАТЬЯ	S	S f inan acc sg	S f inan acc sg	8	предл	_	_
+10	4	4	NUM	NUM - - -	NUM - - -	9	нум-аппоз	_	_
+11	Федерального	ФЕДЕРАЛЬНЫЙ	A	A - gen sg plen m -	A - gen sg plen m -	12	опред	_	_
+12	закона	ЗАКОН	S	S m inan gen sg	S m inan gen sg	9	атриб	_	_
+13	"	"	_	_	PUNC	14	PUNC	_	_
+14	Об	ОБ	PR	PR	PR	21	3-компл	_	_
+15	основных	ОСНОВНОЙ	A	A - loc pl plen - -	A - loc pl plen - -	16	опред	_	_
+16	гарантиях	ГАРАНТИЯ	S	S f inan loc pl	S f inan loc pl	14	предл	_	_
+17	избирательных	ИЗБИРАТЕЛЬНЫЙ	A	A - gen pl plen - -	A - gen pl plen - -	18	опред	_	_
+18	прав	ПРАВО	S	S n inan gen pl	S n inan gen pl	16	1-компл	_	_
+19	и	И	CONJ	CONJ	CONJ	14	сочин	_	_
+20	права	ПРАВО	S	S n inan gen sg	S n inan gen sg	19	соч-союзн	_	_
+21	на	НА	PR	PR	PR	6	1-компл	_	_
+22	участие	УЧАСТИЕ	S	S n inan acc sg	S n inan acc sg	21	предл	_	_
+23	в	В	PR	PR	PR	22	1-компл	_	_
+24	референдуме	РЕФЕРЕНДУМ	S	S m inan loc sg	S m inan loc sg	23	предл	_	_
+25	граждан	ГРАЖДАНИН	S	S m anim gen pl	S m anim gen pl	24	квазиагент	_	_
+26	Российской	РОССИЙСКИЙ	A	A - gen sg plen f -	A - gen sg plen f -	27	опред	_	_
+27	Федерации	ФЕДЕРАЦИЯ	S	S f inan gen sg	S f inan gen sg	25	1-компл	_	_
+28	"	"	SENT	SENT	SENT	27	PUNC	_	_
+
+1	Государственная	ГОСУДАРСТВЕННЫЙ	A	A - nom sg plen f -	A - nom sg plen f -	2	опред	_	_
+2	Дума	ДУМА	S	S f inan nom sg	S f inan nom sg	7	предик	_	_
+3	Федерального	ФЕДЕРАЛЬНЫЙ	A	A - gen sg plen n -	A - gen sg plen n -	4	опред	_	_
+4	Собрания	СОБРАНИЕ	S	S n inan gen sg	S n inan gen sg	2	квазиагент	_	_
+5	Российской	РОССИЙСКИЙ	A	A - gen sg plen f -	A - gen sg plen f -	6	опред	_	_
+6	Федерации	ФЕДЕРАЦИЯ	S	S f inan gen sg	S f inan gen sg	4	1-компл	_	_
+7	постановляет	ПОСТАНОВЛЯТЬ	V	V ipf praes sg indic - 3p	V ipf praes sg indic - 3p	0	ROOT	_	_
+8	:	:	SENT	SENT	SENT	7	PUNC	_	_
+
+1	Принять	ПРИНИМАТЬ	V	V pf - - inf - -	V pf - - inf - -	0	ROOT	_	_
+2	Федеральный	ФЕДЕРАЛЬНЫЙ	A	A - acc sg plen m inan	A - acc sg plen m inan	3	опред	_	_
+3	закон	ЗАКОН	S	S m inan acc sg	S m inan acc sg	1	1-компл	_	_
+4	"	"	_	_	PUNC	5	PUNC	_	_
+5	О	О	PR	PR	PR	3	ном-аппоз	_	_
+6	внесении	ВНЕСЕНИЕ	S	S n inan loc sg	S n inan loc sg	5	предл	_	_
+7	изменений	ИЗМЕНЕНИЕ	S	S n inan gen pl	S n inan gen pl	6	1-компл	_	_
+8	в	В	PR	PR	PR	6	3-компл	_	_
+9	статью	СТАТЬЯ	S	S f inan acc sg	S f inan acc sg	8	предл	_	_
+10	4	4	NUM	NUM - - -	NUM - - -	9	нум-аппоз	_	_
+11	Федерального	ФЕДЕРАЛЬНЫЙ	A	A - gen sg plen m -	A - gen sg plen m -	12	опред	_	_
+12	закона	ЗАКОН	S	S m inan gen sg	S m inan gen sg	9	атриб	_	_
+13	"	"	_	_	PUNC	14	PUNC	_	_
+14	Об	ОБ	PR	PR	PR	21	3-компл	_	_
+15	основных	ОСНОВНОЙ	A	A - loc pl plen - -	A - loc pl plen - -	16	опред	_	_
+16	гарантиях	ГАРАНТИЯ	S	S f inan loc pl	S f inan loc pl	14	предл	_	_
+17	избирательных	ИЗБИРАТЕЛЬНЫЙ	A	A - gen pl plen - -	A - gen pl plen - -	18	опред	_	_
+18	прав	ПРАВО	S	S n inan gen pl	S n inan gen pl	16	1-компл	_	_
+19	и	И	CONJ	CONJ	CONJ	14	сочин	_	_
+20	права	ПРАВО	S	S n inan gen sg	S n inan gen sg	19	соч-союзн	_	_
+21	на	НА	PR	PR	PR	6	1-компл	_	_
+22	участие	УЧАСТИЕ	S	S n inan acc sg	S n inan acc sg	21	предл	_	_
+23	в	В	PR	PR	PR	22	1-компл	_	_
+24	референдуме	РЕФЕРЕНДУМ	S	S m inan loc sg	S m inan loc sg	23	предл	_	_
+25	граждан	ГРАЖДАНИН	S	S m anim gen pl	S m anim gen pl	24	квазиагент	_	_
+26	Российской	РОССИЙСКИЙ	A	A - gen sg plen f -	A - gen sg plen f -	27	опред	_	_
+27	Федерации	ФЕДЕРАЦИЯ	S	S f inan gen sg	S f inan gen sg	25	1-компл	_	_
+28	"	"	_	_	PUNC	30	PUNC	_	_
+29	(	(	_	_	PUNC	30	PUNC	_	_
+30	проект	ПРОЕКТ	S	S m inan nom sg	S m inan nom sg	3	примыкат	_	_
+31	№	№	№	№	PUNC	30	нум-аппоз	_	_
+32	9	9	NUM	NUM - - -	NUM - - -	31	нум-аппоз	_	_
+33	-	-	-	-	PUNC	32	PUNC	_	_
+34	7	7	NUM	NUM - - -	NUM - - -	31	нум-аппоз	_	_
+35	)	)	_	_	PUNC	34	PUNC	_	_
+36	.	.	SENT	SENT	SENT	34	PUNC	_	_
+
+1	Направить	НАПРАВЛЯТЬ	V	V pf - - inf - -	V pf - - inf - -	4	предик	_	_
+2	указанный	УКАЗАННЫЙ	A	A - nom sg plen m -	A - nom sg plen m -	4	опред	_	_
+3	Федеральный	ФЕДЕРАЛЬНЫЙ	A	A - nom sg plen m -	A - nom sg plen m -	4	опред	_	_
+4	закон	ЗАКОН	S	S m inan nom sg	S m inan nom sg	0	ROOT	_	_
+5	в	В	PR	PR	PR	4	1-компл	_	_
+6	Совет	СОВЕТ	S	S m inan acc sg	S m inan acc sg	5	предл	_	_
+7	Федерации	ФЕДЕРАЦИЯ	S	S f inan gen sg	S f inan gen sg	6	1-компл	_	_
+8	Федерального	ФЕДЕРАЛЬНЫЙ	A	A - gen sg plen n -	A - gen sg plen n -	9	опред	_	_
+9	Собрания	СОБРАНИЕ	S	S n inan gen sg	S n inan gen sg	4	квазиагент	_	_
+10	Российской	РОССИЙСКИЙ	A	A - gen sg plen f -	A - gen sg plen f -	11	опред	_	_
+11	Федерации	ФЕДЕРАЦИЯ	S	S f inan gen sg	S f inan gen sg	9	квазиагент	_	_
+12	.	.	SENT	SENT	SENT	11	PUNC	_	_
+
+1	Настоящее	НАСТОЯЩИЙ	A	A - nom sg plen n -	A - nom sg plen n -	2	опред	_	_
+2	Постановление	ПОСТАНОВЛЕНИЕ	S	S n inan nom sg	S n inan nom sg	3	предик	_	_
+3	вступает	ВСТУПАТЬ	V	V ipf praes sg indic - 3p	V ipf praes sg indic - 3p	0	ROOT	_	_
+4	в	В	PR	PR	PR	3	1-компл	_	_
+5	силу	СИЛА	S	S f inan acc sg	S f inan acc sg	4	предл	_	_
+6	со	СО	PR	PR	PR	3	обст	_	_
+7	дня	ДЕНЬ	S	S m inan gen sg	S m inan gen sg	6	предл	_	_
+8	его	ЕГО	A	A - nonflex nonflex plen - -	A - nonflex nonflex plen - -	9	квазиагент	_	_
+9	принятия	ПРИНЯТИЕ	S	S n inan gen sg	S n inan gen sg	7	квазиагент	_	_
+10	.	.	SENT	SENT	SENT	9	PUNC	_	_
+
+</taggedtextIPS></text><keywords><keywordsByIPS val="ВЫБОРЫ, ГАРАНТИЯ, ЗАКОН, ИЗБИРАТЕЛЬНЫЙ, ИЗМЕНЕНИЕ, ОСНОВНОЙ, ПРАВА, ПРИНЯТИЕ, РЕФЕРЕНДУМ, УЧАСТИЕ, ФЕДЕРАЛЬНЫЙ" /></keywords><reference><classifierByIPS val="010.080.010.010.000$Референдум Российской Федерации $010.080.020.010.000$Избирательная система Российской Федерации $010.140.020.010.000$Стадии прохождения законопроектов " /></reference></act>

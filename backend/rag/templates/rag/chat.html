@@ -1,0 +1,280 @@
+{% extends "demo/base.html" %}
+
+{% block title %}RAG Chat · Demo UI{% endblock %}
+
+{% block extra_head %}
+<style>
+    .chat-layout {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+        align-items: start;
+    }
+    .chat-history {
+        display: grid;
+        gap: 14px;
+    }
+    .chat-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        padding: 16px;
+    }
+    .chat-card.user {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
+    .chat-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .chat-answer {
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+    .source-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+    }
+    .source-item {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: #f8fafc;
+    }
+    .source-item summary {
+        list-style: none;
+    }
+    .source-item summary::-webkit-details-marker {
+        display: none;
+    }
+    .source-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .chat-form {
+        display: grid;
+        gap: 12px;
+    }
+    .chat-spinner {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+    .chat-spinner.active {
+        display: inline-flex;
+    }
+    .chat-empty {
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 22px;
+        color: var(--muted);
+        background: #fff;
+    }
+    @media (max-width: 960px) {
+        .chat-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="card">
+    <span class="pill primary"><i class="fa-solid fa-comments"></i> RAG Chat</span>
+    <h2 style="margin-top: 12px;">Вопросы по загруженным документам</h2>
+    <p class="muted">
+        Чат отвечает только по чанкам, сохранённым в текущей сессии после открытия
+        `/compare/` или `/visualize/`.
+    </p>
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'demo-dashboard' %}">К demo</a>
+        {% if has_rag_chunks %}
+            <span class="pill success">Документы в сессии доступны</span>
+        {% else %}
+            <span class="pill danger">Нет документов в сессии</span>
+        {% endif %}
+    </div>
+</section>
+
+<div class="chat-layout" style="margin-top: 18px;">
+    <section class="card">
+        <h2>Диалог</h2>
+        <div id="chatHistory" class="chat-history" style="margin-top: 14px;">
+            {% if chat_history %}
+                {% for item in chat_history %}
+                    <article class="chat-card user">
+                        <div class="chat-meta"><i class="fa-regular fa-circle-question"></i> Вопрос</div>
+                        <div class="chat-answer">{{ item.question }}</div>
+                    </article>
+                    <article class="chat-card">
+                        <div class="chat-meta"><i class="fa-solid fa-robot"></i> Ответ</div>
+                        <div class="chat-answer">{{ item.answer }}</div>
+                        {% if item.sources %}
+                            <div class="source-list">
+                                {% for source in item.sources %}
+                                    <details class="source-item">
+                                        <summary class="source-title">
+                                            <span>[S{{ source.doc_id }}] {{ source.title }}</span>
+                                            <span class="muted">score {{ source.score|floatformat:3 }}</span>
+                                        </summary>
+                                        <p style="margin-top: 10px;">{{ source.text }}</p>
+                                    </details>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            {% else %}
+                <div id="chatEmpty" class="chat-empty">
+                    История пуста. Откройте `/compare/` или `/visualize/`, затем задайте вопрос по документам.
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <aside class="card">
+        <h2>Новый вопрос</h2>
+        <form id="chatForm" class="chat-form" style="margin-top: 14px;">
+            {% csrf_token %}
+            <label>
+                Вопрос
+                <textarea
+                    id="questionInput"
+                    name="question"
+                    placeholder="Например: Какие сроки изменились?"
+                    required
+                ></textarea>
+            </label>
+            <div class="actions">
+                <button class="btn" type="submit">Отправить</button>
+                <button class="btn secondary" id="clearChatButton" type="button">Очистить историю</button>
+            </div>
+            <div id="chatSpinner" class="chat-spinner">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Модель думает...</span>
+            </div>
+            <p class="muted">
+                Источники показываются под каждым ответом. Если Ollama недоступна, вернётся понятное сообщение об ошибке.
+            </p>
+        </form>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function () {
+        const form = document.getElementById("chatForm");
+        const historyRoot = document.getElementById("chatHistory");
+        const spinner = document.getElementById("chatSpinner");
+        const questionInput = document.getElementById("questionInput");
+        const clearButton = document.getElementById("clearChatButton");
+
+        function csrfToken() {
+            const tokenInput = form.querySelector("input[name='csrfmiddlewaretoken']");
+            return tokenInput ? tokenInput.value : "";
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function renderHistory(history) {
+            if (!history || !history.length) {
+                historyRoot.innerHTML = "<div id=\"chatEmpty\" class=\"chat-empty\">История пуста. Откройте `/compare/` или `/visualize/`, затем задайте вопрос по документам.</div>";
+                return;
+            }
+
+            historyRoot.innerHTML = history.map((item) => {
+                const sourcesHtml = (item.sources || []).map((source) => `
+                    <details class="source-item">
+                        <summary class="source-title">
+                            <span>[S${escapeHtml(source.doc_id)}] ${escapeHtml(source.title)}</span>
+                            <span class="muted">score ${Number(source.score || 0).toFixed(3)}</span>
+                        </summary>
+                        <p style="margin-top: 10px;">${escapeHtml(source.text)}</p>
+                    </details>
+                `).join("");
+
+                return `
+                    <article class="chat-card user">
+                        <div class="chat-meta"><i class="fa-regular fa-circle-question"></i> Вопрос</div>
+                        <div class="chat-answer">${escapeHtml(item.question)}</div>
+                    </article>
+                    <article class="chat-card">
+                        <div class="chat-meta"><i class="fa-solid fa-robot"></i> Ответ</div>
+                        <div class="chat-answer">${escapeHtml(item.answer)}</div>
+                        ${sourcesHtml ? `<div class="source-list">${sourcesHtml}</div>` : ""}
+                    </article>
+                `;
+            }).join("");
+        }
+
+        async function postJson(data) {
+            const response = await fetch("{% url 'rag-chat-api' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken(),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data),
+            });
+            return response.json();
+        }
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            spinner.classList.add("active");
+            try {
+                const payload = await postJson({ action: "ask", question: question });
+                if (!payload.ok) {
+                    alert(payload.error || "Ошибка чата.");
+                    return;
+                }
+                renderHistory(payload.history || []);
+                questionInput.value = "";
+            } catch (error) {
+                console.error(error);
+                alert("Генератор временно недоступен.");
+            } finally {
+                spinner.classList.remove("active");
+            }
+        });
+
+        clearButton.addEventListener("click", async function () {
+            spinner.classList.add("active");
+            try {
+                const payload = await postJson({ action: "clear" });
+                renderHistory(payload.history || []);
+            } catch (error) {
+                alert("Не удалось очистить историю.");
+            } finally {
+                spinner.classList.remove("active");
+            }
+        });
+    })();
+</script>
+{% endblock %}

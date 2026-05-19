@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 from typing import Iterable
+from xml.etree import ElementTree as ET
 from zipfile import BadZipFile
 
 from docx import Document as DocxDocument
@@ -154,6 +155,24 @@ def extract_text_from_pdf_bytes(data: bytes) -> str:
     return PDF_PAGE_BREAK.join(pages_text).strip()
 
 
+def extract_text_from_xml_bytes(data: bytes) -> str:
+    try:
+        decoded = extract_text_from_txt_bytes(data)
+        root = ET.fromstring(decoded)
+    except ET.ParseError as error:
+        raise InvalidDocumentFileError(
+            "XML file is invalid or corrupted and cannot be processed."
+        ) from error
+    except InvalidDocumentFileError:
+        raise
+    except Exception as error:  # noqa: BLE001
+        raise InvalidDocumentFileError(
+            "XML file is invalid or corrupted and cannot be processed."
+        ) from error
+
+    return "\n".join(part.strip() for part in root.itertext() if part.strip()).strip()
+
+
 def extract_text_from_bytes(data: bytes, filename: str) -> str:
     extension = _detect_extension(filename)
 
@@ -163,6 +182,8 @@ def extract_text_from_bytes(data: bytes, filename: str) -> str:
         return extract_text_from_docx_bytes(data)
     if extension == ".pdf":
         return extract_text_from_pdf_bytes(data)
+    if extension == ".xml":
+        return extract_text_from_xml_bytes(data)
 
     raise UnsupportedFileTypeError(
         f"Unsupported file extension: {extension or 'unknown'}"

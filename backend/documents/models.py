@@ -1,12 +1,13 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.text import slugify
 
-ALLOWED_DOCUMENT_EXTENSIONS = {".txt", ".pdf", ".docx"}
+ALLOWED_DOCUMENT_EXTENSIONS = {".txt", ".pdf", ".docx", ".xml"}
 
 
 class DomainValidatedModel(models.Model):
@@ -771,6 +772,204 @@ class GeneratedQuiz(DomainValidatedModel):
                 kwargs["update_fields"] = list(update_fields)
 
         return super().save(*args, **kwargs)
+
+
+class QuizAssignment(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quiz_assignments",
+    )
+    quiz = models.ForeignKey(
+        GeneratedQuiz,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+    )
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="granted_quiz_assignments",
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-assigned_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "quiz"],
+                name="uniq_quiz_assignment_per_user",
+            )
+        ]
+
+    def clean(self):
+        errors = {}
+        if self.quiz_id and self.quiz.status != GeneratedQuiz.Status.APPROVED:
+            errors["quiz"] = "Only approved quizzes can be assigned to employees."
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self) -> str:
+        return f"{self.user} -> quiz {self.quiz_id}"
+
+
+class ModeratedChange(models.Model):
+    class Label(models.TextChoices):
+        CRITICAL = "critical", "Critical"
+        IMPORTANT = "important", "Important"
+        MINOR = "minor", "Minor"
+        IGNORED = "ignored", "Ignored"
+
+    from_version = models.ForeignKey(
+        "DocumentVersion",
+        on_delete=models.CASCADE,
+        related_name="moderated_from",
+    )
+    to_version = models.ForeignKey(
+        "DocumentVersion",
+        on_delete=models.CASCADE,
+        related_name="moderated_to",
+    )
+    change_id = models.CharField(max_length=64)
+    original_label = models.CharField(max_length=32, choices=Label.choices)
+    corrected_label = models.CharField(max_length=32, choices=Label.choices)
+    comment = models.TextField(blank=True)
+    moderated_at = models.DateTimeField(auto_now_add=True)
+    moderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moderated_changes",
+    )
+
+    class Meta:
+        ordering = ["-moderated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["from_version", "to_version", "change_id"],
+                name="uniq_moderated_change_per_pair_and_change",
+            ),
+            models.CheckConstraint(
+                condition=~Q(from_version=F("to_version")),
+                name="moderated_change_versions_must_differ",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["from_version", "to_version"]),
+            models.Index(fields=["change_id"]),
+        ]
+
+    def clean(self):
+        errors = {}
+        if self.from_version_id and self.to_version_id:
+            if self.from_version.document_id != self.to_version.document_id:
+                errors["to_version"] = "Moderated versions must belong to the same document."
+            if self.from_version.version_number >= self.to_version.version_number:
+                errors["to_version"] = "Moderated target version must be newer than source version."
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self) -> str:
+        return (
+            f"ModeratedChange {self.change_id} "
+            f"{self.from_version_id}->{self.to_version_id} "
+            f"{self.original_label}->{self.corrected_label}"
+        )
+
+
+class RusLawODDocument(models.Model):
+    pravo_gov_ru_nd = models.CharField(max_length=64, unique=True, db_index=True)
+    heading = models.CharField(max_length=4096, verbose_name="Заголовок документа",blank=True)
+    document_date = models.DateField(null=True, blank=True)
+    source_xml = models.TextField()
+    cleaned_text = models.TextField(blank=True, null=True, verbose_name="Очищенный текст")
+    version_family_key = models.CharField(max_length=255, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    imported_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["version_family_key", "document_date", "pravo_gov_ru_nd"]
+        indexes = [
+            models.Index(fields=["version_family_key", "document_date"]),
+        ]
+
+    def clean(self):
+        errors = {}
+        self.pravo_gov_ru_nd = (self.pravo_gov_ru_nd or "").strip()
+        self.heading = " ".join((self.heading or "").split())
+        self.cleaned_text = " ".join((self.cleaned_text or "").split())
+        self.version_family_key = (self.version_family_key or "").strip()
+
+        if not self.pravo_gov_ru_nd:
+            errors["pravo_gov_ru_nd"] = "pravo.gov.ru identifier cannot be empty."
+        if not self.source_xml:
+            errors["source_xml"] = "Source XML cannot be empty."
+        if not self.cleaned_text:
+            errors["cleaned_text"] = "Cleaned text cannot be empty."
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        title = self.heading or self.pravo_gov_ru_nd
+        return f"RusLawOD {title}"
+
+
+class ManualDocument(models.Model):
+    title = models.CharField(max_length=255)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="manual_documents",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="manual_uploads/%Y/%m/%d/", blank=True, null=True)
+    extracted_text = models.TextField()
+    version = models.PositiveIntegerField(default=1)
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="manual_uploads",
+    )
+    document_version = models.ForeignKey(
+        DocumentVersion,
+        on_delete=models.CASCADE,
+        related_name="manual_uploads",
+    )
+
+    class Meta:
+        ordering = ["-uploaded_at", "-id"]
+
+    def clean(self):
+        errors = {}
+        self.title = " ".join((self.title or "").split())
+        self.extracted_text = " ".join((self.extracted_text or "").split())
+
+        if not self.title:
+            errors["title"] = "Manual document title cannot be empty."
+        if not self.extracted_text:
+            errors["extracted_text"] = "Extracted text cannot be empty."
+        if self.document_version_id and self.document_id:
+            if self.document_version.document_id != self.document_id:
+                errors["document_version"] = (
+                    "Manual document version must belong to the selected document."
+                )
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        return super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.title} v{self.version}"
 
 
 class Question(models.Model):

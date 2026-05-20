@@ -1,0 +1,758 @@
+{
+  "false_positives": [
+    {
+      "document_id": "synthetic_doc_010",
+      "text": "Информация предоставляется в устной форме. Информация предоставляется в устной форме при необходимости дополнительного разъяснения. Уточнены условия разъяснения. Уточнены условия разъяснения. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.825478,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_012",
+      "text": "Описание процедуры размещается в приложении. Описание процедуры размещается в приложении и в краткой памятке для заявителя. Добавлена памятка для заявителя. Добавлена памятка для заявителя. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.799043,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_012",
+      "text": "Сведения о номере обращения предоставляются сотрудником. Сведения о номере обращения предоставляются сотрудником и через автоответчик. Добавлен справочный автоответчик. Добавлен справочный автоответчик. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.769586,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_012",
+      "text": "Заявитель получает справочную информацию после регистрации обращения. Заявитель получает справочную информацию после регистрации обращения через портал. Добавлен информационный канал без изменения обязанности. Добавлен информационный канал без изменения обязанности. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.750956,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_011",
+      "text": "Пояснение содержится в методических материалах. Пояснение содержится в методических материалах, утвержденных приказом № 22. Уточнена ссылка на методические материалы. Уточнена ссылка на методические материалы. reference_change reference_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.682951,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_010",
+      "text": "Пояснение предоставляется сотрудником подразделения. Пояснение предоставляется сотрудником подразделения в рамках консультации. Уточнен контекст пояснения. Уточнен контекст пояснения. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.575008,
+      "error_type": "false_positive"
+    }
+  ],
+  "false_negatives": [
+    {
+      "document_id": "synthetic_doc_005",
+      "text": "Проверка сведений проводится после регистрации обращения. Проверка сведений проводится до регистрации обращения. Изменена последовательность проверки. Изменена последовательность проверки. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996423,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Запрос подлежит обработке в течение 20 календарных дней. Запрос подлежит обработке в течение 12 календарных дней. Сокращен календарный срок обработки. Сокращен календарный срок обработки. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996362,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Проверка полномочий проводится в течение 8 рабочих дней. Проверка полномочий проводится в течение 2 рабочих дней. Сокращен срок проверки полномочий. Сокращен срок проверки полномочий. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996359,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Уточнение документов допускается в течение 9 рабочих дней. Уточнение документов допускается в течение 4 рабочих дней. Сокращен срок уточнения документов. Сокращен срок уточнения документов. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996232,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Платежный документ хранится в подразделении 10 дней. Платежный документ хранится в подразделении 30 дней. Изменен срок хранения платежного документа. Изменен срок хранения платежного документа. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996228,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Повторное заявление может быть подано через 30 дней. Повторное заявление может быть подано через 15 дней. Изменен срок повторного допуска. Изменен срок повторного допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996155,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Комиссия начисляется после регистрации обращения. Комиссия начисляется до регистрации обращения. Изменен момент начисления комиссии. Изменен момент начисления комиссии. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995718,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Размер внутреннего сбора составляет 300 рублей. Размер внутреннего сбора составляет 500 рублей. Изменен размер внутреннего сбора. Изменен размер внутреннего сбора. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995649,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Срок ответа на внутренний запрос составляет 11 рабочих дней. Срок ответа на внутренний запрос составляет 5 рабочих дней. Сокращен внутренний срок ответа. Сокращен внутренний срок ответа. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995553,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Справка выдается не позднее 7 рабочих дней. Справка выдается не позднее 3 рабочих дней. Срок выдачи справки сокращен. Срок выдачи справки сокращен. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995095,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Срок повторной проверки составляет 14 дней. Срок повторной проверки составляет 5 дней. Сокращен срок повторной проверки. Сокращен срок повторной проверки. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995022,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Оплата производится после завершения проверки. Оплата производится до начала проверки. Изменен момент оплаты. Изменен момент оплаты. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995009,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Обращение хранится до 30 календарных дней. Обращение хранится до 10 календарных дней. Сокращен срок хранения обращения. Сокращен срок хранения обращения. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.994976,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_005",
+      "text": "Уведомление направляется после завершения согласования. Уведомление направляется до передачи дела на согласование. Изменен порядок уведомления. Изменен порядок уведомления. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.994428,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_003",
+      "text": "Основанием для отказа является нарушение условий допуска к процедуре. Добавлено основание отказа по условиям допуска. Добавлено основание отказа по условиям допуска. refusal_ground_change refusal_ground_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993869,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_006",
+      "text": "В перечень обязательных документов включается копия решения комиссии. Добавлено решение комиссии. Добавлено решение комиссии. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.993814,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_004",
+      "text": "За утрату бумажного досье сотрудник несет материальную ответственность. Добавлена материальная ответственность. Добавлена материальная ответственность. responsibility_change responsibility_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993693,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_002",
+      "text": "Сотрудник обязан зафиксировать причину отказа в журнале регистрации. Добавлена обязанность фиксации причины отказа. Добавлена обязанность фиксации причины отказа. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993624,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_002",
+      "text": "Специалист обязан приложить копию доверенности к электронному досье. Добавлена обязанность приложить документ. Добавлена обязанность приложить документ. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993495,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Размер пошлины для повторного обращения составляет 150 рублей. Размер пошлины для повторного обращения составляет 250 рублей. Изменен размер пошлины для повторного обращения. Изменен размер пошлины для повторного обращения. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.993189,
+      "error_type": "false_negative"
+    }
+  ],
+  "most_confident_errors": [
+    {
+      "document_id": "synthetic_doc_005",
+      "text": "Проверка сведений проводится после регистрации обращения. Проверка сведений проводится до регистрации обращения. Изменена последовательность проверки. Изменена последовательность проверки. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996423,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Запрос подлежит обработке в течение 20 календарных дней. Запрос подлежит обработке в течение 12 календарных дней. Сокращен календарный срок обработки. Сокращен календарный срок обработки. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996362,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Проверка полномочий проводится в течение 8 рабочих дней. Проверка полномочий проводится в течение 2 рабочих дней. Сокращен срок проверки полномочий. Сокращен срок проверки полномочий. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996359,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Уточнение документов допускается в течение 9 рабочих дней. Уточнение документов допускается в течение 4 рабочих дней. Сокращен срок уточнения документов. Сокращен срок уточнения документов. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.996232,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Платежный документ хранится в подразделении 10 дней. Платежный документ хранится в подразделении 30 дней. Изменен срок хранения платежного документа. Изменен срок хранения платежного документа. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996228,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Повторное заявление может быть подано через 30 дней. Повторное заявление может быть подано через 15 дней. Изменен срок повторного допуска. Изменен срок повторного допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.996155,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Комиссия начисляется после регистрации обращения. Комиссия начисляется до регистрации обращения. Изменен момент начисления комиссии. Изменен момент начисления комиссии. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995718,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Размер внутреннего сбора составляет 300 рублей. Размер внутреннего сбора составляет 500 рублей. Изменен размер внутреннего сбора. Изменен размер внутреннего сбора. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995649,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Срок ответа на внутренний запрос составляет 11 рабочих дней. Срок ответа на внутренний запрос составляет 5 рабочих дней. Сокращен внутренний срок ответа. Сокращен внутренний срок ответа. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995553,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Справка выдается не позднее 7 рабочих дней. Справка выдается не позднее 3 рабочих дней. Срок выдачи справки сокращен. Срок выдачи справки сокращен. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995095,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Срок повторной проверки составляет 14 дней. Срок повторной проверки составляет 5 дней. Сокращен срок повторной проверки. Сокращен срок повторной проверки. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.995022,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_008",
+      "text": "Оплата производится после завершения проверки. Оплата производится до начала проверки. Изменен момент оплаты. Изменен момент оплаты. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.995009,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_001",
+      "text": "Обращение хранится до 30 календарных дней. Обращение хранится до 10 календарных дней. Сокращен срок хранения обращения. Сокращен срок хранения обращения. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "editorial",
+      "probability": 0.994976,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_005",
+      "text": "Уведомление направляется после завершения согласования. Уведомление направляется до передачи дела на согласование. Изменен порядок уведомления. Изменен порядок уведомления. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "probability": 0.994428,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_003",
+      "text": "Основанием для отказа является нарушение условий допуска к процедуре. Добавлено основание отказа по условиям допуска. Добавлено основание отказа по условиям допуска. refusal_ground_change refusal_ground_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993869,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_006",
+      "text": "В перечень обязательных документов включается копия решения комиссии. Добавлено решение комиссии. Добавлено решение комиссии. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.993814,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_004",
+      "text": "За утрату бумажного досье сотрудник несет материальную ответственность. Добавлена материальная ответственность. Добавлена материальная ответственность. responsibility_change responsibility_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993693,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_011",
+      "text": "Перечень контактов приводится в приложении. Перечень контактов приводится в приложении 4. Уточнена ссылка на приложение с контактами. Уточнена ссылка на приложение с контактами. reference_change reference_change",
+      "true_label": "informational",
+      "predicted_label": "editorial",
+      "probability": 0.993645,
+      "error_type": "multiclass_misclassification"
+    },
+    {
+      "document_id": "synthetic_doc_002",
+      "text": "Сотрудник обязан зафиксировать причину отказа в журнале регистрации. Добавлена обязанность фиксации причины отказа. Добавлена обязанность фиксации причины отказа. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993624,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_002",
+      "text": "Специалист обязан приложить копию доверенности к электронному досье. Добавлена обязанность приложить документ. Добавлена обязанность приложить документ. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "probability": 0.993495,
+      "error_type": "false_negative"
+    }
+  ],
+  "least_confident_predictions": [
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_clarification_change_008:chg_001",
+      "document_id": "synthetic_doc_010",
+      "pair_id": "synthetic_clarification_change_008",
+      "change_id": "chg_001",
+      "text": "Заявитель вправе ознакомиться с информацией о ходе процедуры. Заявитель вправе ознакомиться со справочной информацией о ходе процедуры. Уточнен тип информации. Уточнен тип информации. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.460988,
+      "probability_map": {
+        "critical": 0.46002,
+        "editorial": 0.460988,
+        "important": 0.071951,
+        "informational": 0.007041
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_eligibility_change_001:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_001",
+      "change_id": "chg_001",
+      "text": "К процедуре допускаются только сотрудники основного подразделения. К процедуре допускаются сотрудники основного и профильного подразделений. Расширены условия допуска. Расширены условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.471231,
+      "probability_map": {
+        "critical": 0.451643,
+        "editorial": 0.471231,
+        "important": 0.073967,
+        "informational": 0.003159
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_payment_or_fee_change_006:chg_001",
+      "document_id": "synthetic_doc_008",
+      "pair_id": "synthetic_payment_or_fee_change_006",
+      "change_id": "chg_001",
+      "text": "Возврат переплаты производится по письменному заявлению. Возврат переплаты производится по письменному или электронному заявлению. Изменен порядок возврата переплаты. Изменен порядок возврата переплаты. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.481812,
+      "probability_map": {
+        "critical": 0.409839,
+        "editorial": 0.481812,
+        "important": 0.091563,
+        "informational": 0.016786
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_mixed_change_006:chg_001",
+      "document_id": "synthetic_doc_012",
+      "pair_id": "synthetic_mixed_change_006",
+      "change_id": "chg_001",
+      "text": "Справочная информация обновляется ежемесячно. Справочная информация обновляется ежемесячно и при изменении регламента. Уточнен цикл обновления справки. Уточнен цикл обновления справки. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.511078,
+      "probability_map": {
+        "critical": 0.348254,
+        "editorial": 0.511078,
+        "important": 0.045046,
+        "informational": 0.095622
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_obligation_change_005:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_005",
+      "change_id": "chg_001",
+      "text": "Сотрудник обязан направить запрос в профильное подразделение при выявлении расхождений. Добавлена обязанность межведомственного запроса. Добавлена обязанность межведомственного запроса. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.519842,
+      "probability_map": {
+        "critical": 0.519842,
+        "editorial": 0.000174,
+        "important": 0.049841,
+        "informational": 0.430143
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_responsibility_change_001:chg_001",
+      "document_id": "synthetic_doc_004",
+      "pair_id": "synthetic_responsibility_change_001",
+      "change_id": "chg_001",
+      "text": "За нарушение срока обработки заявления сотрудник несет дисциплинарную ответственность. Добавлена дисциплинарная ответственность. Добавлена дисциплинарная ответственность. responsibility_change responsibility_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "rule_based_label": "critical",
+      "probability": 0.529759,
+      "probability_map": {
+        "critical": 0.428717,
+        "editorial": 0.000247,
+        "important": 0.041278,
+        "informational": 0.529759
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_eligibility_change_008:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_008",
+      "change_id": "chg_001",
+      "text": "Повторная подача допустима после письменного уведомления. Повторная подача допустима после письменного или электронного уведомления. Изменены условия повторной подачи. Изменены условия повторной подачи. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.560282,
+      "probability_map": {
+        "critical": 0.560282,
+        "editorial": 0.334449,
+        "important": 0.093929,
+        "informational": 0.011339
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_procedure_change_007:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_007",
+      "change_id": "chg_001",
+      "text": "Результат проверки согласуется только руководителем сектора. Результат проверки согласуется руководителем сектора и начальником отдела. Изменен маршрут согласования. Изменен маршрут согласования. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.565068,
+      "probability_map": {
+        "critical": 0.565068,
+        "editorial": 0.336021,
+        "important": 0.091965,
+        "informational": 0.006947
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_clarification_change_010:chg_001",
+      "document_id": "synthetic_doc_010",
+      "pair_id": "synthetic_clarification_change_010",
+      "change_id": "chg_001",
+      "text": "Пояснение предоставляется сотрудником подразделения. Пояснение предоставляется сотрудником подразделения в рамках консультации. Уточнен контекст пояснения. Уточнен контекст пояснения. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "rule_based_label": "informational",
+      "probability": 0.575008,
+      "probability_map": {
+        "critical": 0.575008,
+        "editorial": 0.31572,
+        "important": 0.084837,
+        "informational": 0.024434
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_procedure_change_001:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_001",
+      "change_id": "chg_001",
+      "text": "Заявление подается на бумажном носителе через ответственное подразделение. Заявление может быть подано через ответственное подразделение либо через электронную форму портала. Изменен порядок подачи заявления. Изменен порядок подачи заявления. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.576534,
+      "probability_map": {
+        "critical": 0.576534,
+        "editorial": 1e-06,
+        "important": 0.423465,
+        "informational": 0.0
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_responsibility_change_008:chg_001",
+      "document_id": "synthetic_doc_004",
+      "pair_id": "synthetic_responsibility_change_008",
+      "change_id": "chg_001",
+      "text": "За искажение сведений в учетной системе специалист подлежит внутреннему разбирательству. Добавлена ответственность за искажение сведений. Добавлена ответственность за искажение сведений. responsibility_change responsibility_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.594715,
+      "probability_map": {
+        "critical": 0.594715,
+        "editorial": 0.000121,
+        "important": 0.06188,
+        "informational": 0.343284
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_responsibility_change_007:chg_001",
+      "document_id": "synthetic_doc_004",
+      "pair_id": "synthetic_responsibility_change_007",
+      "change_id": "chg_001",
+      "text": "За несоблюдение порядка передачи дела сотрудник несет дисциплинарную ответственность. Добавлена ответственность за передачу дела. Добавлена ответственность за передачу дела. responsibility_change responsibility_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "rule_based_label": "critical",
+      "probability": 0.624832,
+      "probability_map": {
+        "critical": 0.342556,
+        "editorial": 0.000334,
+        "important": 0.032278,
+        "informational": 0.624832
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_mixed_change_008:chg_001",
+      "document_id": "synthetic_doc_012",
+      "pair_id": "synthetic_mixed_change_008",
+      "change_id": "chg_001",
+      "text": "Пояснение по оплате размещается в памятке. Пояснение по оплате размещается в памятке и на странице подразделения. Добавлено дублирующее пояснение по оплате. Добавлено дублирующее пояснение по оплате. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "editorial",
+      "rule_based_label": "informational",
+      "probability": 0.663605,
+      "probability_map": {
+        "critical": 0.163262,
+        "editorial": 0.663605,
+        "important": 0.019181,
+        "informational": 0.153952
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_procedure_change_009:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_009",
+      "change_id": "chg_001",
+      "text": "Дело передается на хранение после подготовки ответа. Дело передается на хранение после подтверждения получения ответа заявителем. Изменен порядок передачи на хранение. Изменен порядок передачи на хранение. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.663797,
+      "probability_map": {
+        "critical": 0.663797,
+        "editorial": 0.159312,
+        "important": 0.160663,
+        "informational": 0.016228
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_procedure_change_010:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_010",
+      "change_id": "chg_001",
+      "text": "Учетная запись создается после приема документов. Учетная запись создается до приема документов для предварительной проверки. Изменена последовательность создания записи. Изменена последовательность создания записи. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.666799,
+      "probability_map": {
+        "critical": 0.666799,
+        "editorial": 0.20932,
+        "important": 0.094111,
+        "informational": 0.029769
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_document_list_change_002:chg_001",
+      "document_id": "synthetic_doc_006",
+      "pair_id": "synthetic_document_list_change_002",
+      "change_id": "chg_001",
+      "text": "К заявлению прилагается копия документа, подтверждающего регистрацию по месту пребывания. Добавлен документ о регистрации. Добавлен документ о регистрации. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "critical",
+      "rule_based_label": "important",
+      "probability": 0.675826,
+      "probability_map": {
+        "critical": 0.675826,
+        "editorial": 8e-05,
+        "important": 0.068678,
+        "informational": 0.255416
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_reference_change_006:chg_001",
+      "document_id": "synthetic_doc_011",
+      "pair_id": "synthetic_reference_change_006",
+      "change_id": "chg_001",
+      "text": "Пояснение содержится в методических материалах. Пояснение содержится в методических материалах, утвержденных приказом № 22. Уточнена ссылка на методические материалы. Уточнена ссылка на методические материалы. reference_change reference_change",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "rule_based_label": "informational",
+      "probability": 0.682951,
+      "probability_map": {
+        "critical": 0.682951,
+        "editorial": 0.192908,
+        "important": 0.084536,
+        "informational": 0.039605
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_obligation_change_001:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_001",
+      "change_id": "chg_001",
+      "text": "Сотрудник обязан уведомить заявителя о результатах проверки в день принятия решения. Добавлена новая обязанность уведомления. Добавлена новая обязанность уведомления. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "rule_based_label": "critical",
+      "probability": 0.704088,
+      "probability_map": {
+        "critical": 0.272326,
+        "editorial": 0.000432,
+        "important": 0.023154,
+        "informational": 0.704088
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_refusal_ground_change_007:chg_001",
+      "document_id": "synthetic_doc_003",
+      "pair_id": "synthetic_refusal_ground_change_007",
+      "change_id": "chg_001",
+      "text": "Основанием для отказа является отсутствие согласия на обработку персональных данных. Добавлено основание отказа по согласию. Добавлено основание отказа по согласию. refusal_ground_change refusal_ground_change",
+      "true_label": "critical",
+      "predicted_label": "informational",
+      "rule_based_label": "critical",
+      "probability": 0.704334,
+      "probability_map": {
+        "critical": 0.271128,
+        "editorial": 0.000437,
+        "important": 0.024101,
+        "informational": 0.704334
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "synthetic_document_list_change_010:chg_001",
+      "document_id": "synthetic_doc_006",
+      "pair_id": "synthetic_document_list_change_010",
+      "change_id": "chg_001",
+      "text": "В комплект документов включается заявление о согласовании электронного канала связи. Добавлено заявление о канале связи. Добавлено заявление о канале связи. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.707401,
+      "probability_map": {
+        "critical": 0.267924,
+        "editorial": 0.000443,
+        "important": 0.024231,
+        "informational": 0.707401
+      },
+      "source": "curated_synthetic"
+    }
+  ]
+}

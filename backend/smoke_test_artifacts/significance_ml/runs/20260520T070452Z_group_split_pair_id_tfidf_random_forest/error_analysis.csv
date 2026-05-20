@@ -1,0 +1,2 @@
+document_id,text,true_label,predicted_label,probability,error_type
+synthetic_doc_006,Заявитель представляет выписку из внутренней учетной системы. Добавлена выписка из учетной системы. Добавлена выписка из учетной системы. document_list_change document_list_change,important,informational,0.353333,false_negative

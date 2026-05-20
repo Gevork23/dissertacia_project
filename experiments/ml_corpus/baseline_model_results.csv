@@ -1,5 +1,5 @@
 model,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,support
-LogisticRegression,0.2258,0.221,0.5,0.2893,0.1092,31
-LinearSVC,0.2581,0.5446,0.75,0.5758,0.1457,31
-ComplementNB,0.0645,0.1336,0.375,0.1417,0.0344,31
-RandomForestClassifier,0.2581,0.4213,0.75,0.4948,0.1364,31
+LogisticRegression,1.0,1.0,1.0,1.0,1.0,32
+LinearSVC,1.0,1.0,1.0,1.0,1.0,32
+ComplementNB,0.4375,0.3052,0.4625,0.3583,0.3531,32
+RandomForestClassifier,0.8438,0.8439,0.8285,0.8227,0.8404,32

@@ -1,0 +1,21 @@
+model,class_label,rank,feature_name,importance
+tfidf_random_forest,global,1,tfidf:без,0.031562
+tfidf_random_forest,global,2,meta:new_length,0.029085
+tfidf_random_forest,global,3,tfidf:изменения,0.027667
+tfidf_random_forest,global,4,tfidf:статуса,0.024608
+tfidf_random_forest,global,5,tfidf:запроса informational,0.024114
+tfidf_random_forest,global,6,tfidf:без изменения,0.023781
+tfidf_random_forest,global,7,tfidf:запроса,0.017596
+tfidf_random_forest,global,8,tfidf:статуса запроса,0.016438
+tfidf_random_forest,global,9,tfidf:подачи,0.015777
+tfidf_random_forest,global,10,meta:semantic_editorial,0.014815
+tfidf_random_forest,global,11,tfidf:подачи через,0.014746
+tfidf_random_forest,global,12,tfidf:editorial editorial,0.014348
+tfidf_random_forest,global,13,tfidf:или через,0.013937
+tfidf_random_forest,global,14,tfidf:бумажном,0.013746
+tfidf_random_forest,global,15,tfidf:запроса добавлено,0.013157
+tfidf_random_forest,global,16,tfidf:доступна локальной,0.012836
+tfidf_random_forest,global,17,tfidf:подано,0.012818
+tfidf_random_forest,global,18,tfidf:носителе,0.012807
+tfidf_random_forest,global,19,tfidf:informational,0.012643
+tfidf_random_forest,global,20,tfidf:сведений,0.012406

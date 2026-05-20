@@ -1,0 +1,48 @@
+{
+  "split_strategy": "group_split_document_id",
+  "metadata": {
+    "group_attr": "document_id",
+    "train_groups": [
+      "pair_02_added_obligation",
+      "pair_03_document_list_change",
+      "pair_04_refusal_ground_change",
+      "pair_05_editorial_change",
+      "pair_06_procedure_change",
+      "pair_07_responsibility_change",
+      "pair_08_reordered_structure",
+      "pair_10_weakly_structured_document",
+      "synthetic_doc_001",
+      "synthetic_doc_003",
+      "synthetic_doc_004",
+      "synthetic_doc_005",
+      "synthetic_doc_006",
+      "synthetic_doc_008",
+      "synthetic_doc_010",
+      "synthetic_doc_011",
+      "synthetic_doc_012",
+      "synthetic_doc_013",
+      "synthetic_doc_014"
+    ],
+    "test_groups": [
+      "pair_01_deadline_change",
+      "pair_09_mixed_significant_and_editorial",
+      "synthetic_doc_002",
+      "synthetic_doc_007",
+      "synthetic_doc_009"
+    ]
+  },
+  "train_size": 104,
+  "test_size": 34,
+  "train_class_distribution": {
+    "critical": 31,
+    "editorial": 20,
+    "important": 27,
+    "informational": 26
+  },
+  "test_class_distribution": {
+    "critical": 13,
+    "editorial": 1,
+    "important": 10,
+    "informational": 10
+  }
+}

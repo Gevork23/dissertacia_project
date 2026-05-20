@@ -1,363 +1,239 @@
-# ДГТУ — интеллектуальная система анализа нормативно-правовых документов
+# Dissertacia Project
 
-## О проекте
+Research and engineering platform for version-aware analysis of regulatory documents. The system extracts document text, normalizes structure, compares revisions, prioritizes important changes, generates summaries and quizzes, and records review or assessment results.
 
-Проект разрабатывается как магистерская работа по направлению 09.04.02 «Информационные системы и технологии» и как прикладной инструмент для локального анализа изменений в нормативных и внутренних регламентных документах.
+## Project overview
 
-Базовая формулировка проекта:
+This repository serves three roles at once:
 
-**Интеллектуальная система анализа нормативно-правовых документов, обеспечивающая выявление значимых изменений, генерацию кратких разъяснений и формирование тестовых материалов для проверки знаний сотрудников.**
+1. Master thesis implementation and artifact base.
+2. Production-oriented Django backend for local or internal deployment.
+3. Reproducible offline research environment for ML and hybrid experiments.
 
-Ключевая идея проекта — не общий чат по законам и не универсальный юридический ассистент, а **прикладной конвейер работы с версиями одного документа**:
+The core product flow is:
 
-**документ → версии → изменения → выжимка → генерация теста → утверждение → прохождение → отчёт**
+`document -> versions -> extraction -> normalization -> chunks -> diff -> significance -> summary -> quiz -> review/reporting`
 
-## Текстовые стадии документа
+## Architecture
 
-Для `DocumentVersion` теперь важно различать несколько представлений текста:
+Main runtime code lives in `backend/`.
 
-- `file` — исходный бинарный артефакт версии документа;
-- `extracted_text` — извлечённый формат-зависимый текст после TXT / DOCX / PDF extraction;
-- `normalized_text` — детерминированное и воспроизводимое представление для chunking, diff и последующей аналитики.
+- `backend/config`: Django settings, URL routing, runtime configuration.
+- `backend/documents/domain`: deterministic domain logic for diff, chunking, enrichment, summary and quiz generation.
+- `backend/documents/services`: orchestration, ingestion, offline experiments, reporting, moderation.
+- `backend/documents/api`: DRF endpoints.
+- `backend/documents/demo`: demo UI and research dashboard views.
+- `experiments/`: offline evaluation outputs and generated figures/tables.
+- `docs/`: thesis notes, experiment reports, architecture notes and defense materials.
 
-В текущем контуре `normalized_text` формируется единым materialization-stage:
+Mermaid diagrams are in [docs/architecture/engineering-diagrams.md](docs/architecture/engineering-diagrams.md).
 
-**file -> extraction -> normalization -> chunks -> diff -> significance -> summary -> quiz**
+## Research methodology
 
-Для PDF текущий MVP делает только безопасную предобработку без OCR:
+The project uses a hybrid methodology:
 
-- сохраняет page boundaries на стадии extraction;
-- убирает повторяющиеся header / footer строки при безопасном совпадении между страницами;
-- убирает standalone page numbers и machine-like stamp markers;
-- склеивает переносы слов и часть line-wrap артефактов;
-- не пытается агрессивно перестраивать юридическую структуру документа.
+- Deterministic document processing for extraction, normalization, chunking and version comparison.
+- Explainable rule-based significance baseline for production-safe decision support.
+- Offline supervised ML experiments to benchmark alternative strategies without replacing the deterministic runtime layer.
+- Gold, curated synthetic and weak real-world sources kept explicitly separated in the corpus build process.
 
-## Structural chunks: что считается единицей анализа
+Target leakage has been removed from the ML contour. Gold labels are stored only as targets and analysis metadata; they are not used as model input features.
 
-После Фазы 7 `normalized_text` materialize-ится не в плоские блоки, а в **структурные фрагменты** (`Chunk`) с сохранением порядка и привязки к `DocumentVersion`.
+## Dataset creation
 
-В MVP поддерживаются:
+The supervised corpus is assembled from:
 
-- `title` — заголовок документа перед основной структурой;
-- `preamble` — вводные блоки до первой статьи / главы / раздела;
-- `section` / `chapter` — контекст верхнего уровня и body-блоки, если текст расположен непосредственно под ними;
-- `article` — тело статьи, если внутри нет более мелкой нумерации;
-- `point` — пункты вида `1.` / `2.` / `Пункт 3`;
-- `subpoint` — подпункты вида `1.1.` / `1)` / `а)` / `подпункт ...`;
-- `paragraph` — явно размеченные абзацы;
-- `fallback_block` — честная деградация для слабо структурированных документов.
+- `experiments/significance/significance_results.csv`
+- `data/evaluation_corpus/*/annotation.json`
+- Annotation Studio exports / DB annotations when available
+- Curated synthetic examples
+- Weak real-world traces kept in a separate inference-only split
 
-Для каждого чанка сохраняются:
+Build the corpus:
 
-- `fragment_type`;
-- `structure_level`;
-- `raw_label`;
-- `canonical_label`;
-- `path_key`;
-- `heading`;
-- `section_path`;
-- `text` и `text_hash`.
+```bash
+python backend/manage.py build_supervised_ml_corpus
+```
 
-`path_key` используется как машинный anchor для дальнейшего сопоставления редакций, а `heading` / `section_path` остаются человекочитаемыми полями для API, demo и отчётности.
+Generated artifacts include:
 
-## Comparison layer: базовый version diff поверх structural chunks
+- `experiments/ml_corpus/full_dataset.csv`
+- `experiments/ml_corpus/train.csv`
+- `experiments/ml_corpus/validation.csv`
+- `experiments/ml_corpus/test.csv`
+- `experiments/ml_corpus/weak_inference_dataset.csv`
+- `experiments/ml_corpus/dataset_profile.json`
+- `experiments/ml_corpus/split_metadata.json`
+- `experiments/ml_corpus/feature_schema.json`
+- `experiments/ml_corpus/dataset_quality_report.md`
 
-После Фазы 8 compare-контур работает по следующим правилам:
+## Training pipeline
 
-- primary comparison unit — `Chunk`;
-- primary matching strategy — `path_key`, затем `canonical_label + fragment_type`, затем точный `section_path`-anchor;
-- exact-text fragments с устойчивым anchor считаются `unchanged`, даже если их `chunk_index` сместился из-за вставки нового пункта в середину документа;
-- `modified` строится сначала по устойчивым anchor, а затем по ограниченному fallback-matching с similarity и близостью позиции;
-- `added` / `removed` materialize-ятся только после исчерпания безопасных match-сценариев;
-- `moved` в текущем MVP не используется как основной diff-результат: exact-text renumbering/reordering трактуется как `unchanged`, чтобы не путать структурный сдвиг с содержательным изменением;
-- если chunk layer отсутствует хотя бы у одной версии, compare честно деградирует в `document_text` fallback вместо ложного `identical`.
+The offline experiment runner evaluates multiple baselines and model families:
 
-Materialized `VersionComparison` теперь хранит не только статус пары версий, но и:
+- `rule_based_baseline`
+- `tfidf_logistic_regression`
+- `tfidf_linear_svm`
+- `tfidf_random_forest`
+- `tfidf_xgboost` when `xgboost` is available
+- `embedding_logistic_regression` when a local SentenceTransformer checkpoint is available
+- `hybrid_rule_ml`
 
-- `comparison_unit`;
-- `matching_strategy`;
-- `identical`;
-- агрегированные счётчики `added / removed / modified / moved / unchanged`.
+Implemented features:
 
-`VersionChangeItem` дополнен снимками `old_text` / `new_text`, поэтому materialized diff остаётся объяснимым даже в fallback-сценарии без chunk-ссылок.
+- Grid search or randomized search depending on model family
+- `class_weight="balanced"` where applicable
+- probability calibration for Linear SVM
+- feature importance export
+- optional SHAP summary export when the environment supports it
 
-## Significance layer: baseline-классификация значимости изменений
+Run the full experiment suite:
 
-После Фазы 9 materialized diff дополняется отдельным explainable significance-слоем.
+```bash
+python backend/manage.py run_significance_ml_experiment
+```
 
-Для каждого `VersionChangeItem` теперь материализуются:
+## Evaluation protocol
 
-- `semantic_type` — содержательный тип изменения (`deadline`, `document`, `procedure`, `editorial`, `unclassified` и др.);
-- `significance_label` — baseline-уровень значимости (`critical`, `important`, `informational`, `editorial`);
-- `significance_score` — rule-based confidence / priority score в диапазоне `0.0..1.0`;
-- `significance_reason` и `significance_rules` — explainability-слой для demo, summary и quiz;
-- `requires_manual_review` — честный флаг для неоднозначных случаев, где baseline-эвристик недостаточно.
+The experiment runner now supports:
 
-Текущий MVP intentionally использует **deterministic rule-based baseline**, а не обязательный LLM/ML decision layer. Это делает классификацию воспроизводимой, проверяемой тестами и удобной для объяснения комиссии.
+1. Random stratified split.
+2. Group split by `document_id`.
+3. Group split by `pair_id`.
+4. Cross-source split.
+5. Strict gold-only evaluation.
+6. Predefined supervised split when `train.csv` / `test.csv` already exist.
 
-Краткая выжимка и генерация квиза теперь работают не по первым diff-элементам подряд. Summary materializes prioritized change items, а quiz generation опирается прежде всего на `Summary.highlights`: сначала используются `critical` / `important`, затем `informational`. Если significance-слой не нашёл содержательных изменений, квиз не строится; ограниченный fallback допускается только для явно содержательных `added` / `removed` / `modified` фрагментов, чтобы компенсировать консервативную baseline-классификацию без возврата к шумовым редакционным тестам.
+Each run stores:
 
-Summary layer в текущем MVP реализован как materialized human-readable слой поверх `VersionComparison`:
+- accuracy
+- macro precision
+- macro recall
+- macro F1
+- weighted F1
+- ROC-AUC macro OVR when probabilities and class coverage permit it
+- classification report
+- confusion matrix
+- class distribution
+- predictions and error analysis
 
-- `Summary.text` хранит общий narrative/overview по наиболее значимым изменениям;
-- `Summary.highlights` хранит структурированные пункты brief, а не просто текстовые строки;
-- каждый пункт brief содержит `type`, `title`, `concise_explanation`, `semantic_type`, `significance_label`, `requires_manual_review`;
-- в materialized summary дополнительно сохраняется `source_change_item_id`, что позволяет прозрачно связать пункт выжимки с `VersionChangeItem` и использовать этот bridge в следующих фазах.
+## Reproducibility
 
-## Workflow теста после Фазы 12
+Every experiment run writes a dedicated directory under `experiments/significance_ml/runs/` with:
 
-`GeneratedQuiz` больше не трактуется как просто сохранённый downstream-артефакт. В MVP у теста теперь есть управляемый lifecycle:
+- `metrics.json`
+- `params.json`
+- `split_info.json`
+- `classification_report.json`
+- `confusion_matrix.csv`
+- `feature_importance.csv`
+- `predictions.csv`
+- `manifest.json`
+- `error_analysis.csv`
+- `plots/*.png`
 
-- `draft` — тест сгенерирован, но ещё не передан на проверку;
-- `pending_review` — тест передан ответственному лицу и ожидает решения;
-- `approved` — тест официально утверждён и доступен для прохождения;
-- `rejected` — тест отклонён и не может использоваться до повторной отправки на проверку;
-- `superseded` — тест заменён более новой генерацией для той же пары версий и больше не считается актуальным.
+`manifest.json` includes timestamp, git commit SHA, random seed, model name, feature set, split strategy, dataset size, class balance and library versions.
 
-Попытка прохождения разрешена только для `approved`. Повторная генерация для той же пары версий создаёт новый `draft` и переводит предыдущий активный тест в `superseded`, чтобы в системе не оставалось двух конкурирующих «актуальных» тестов.
+Smoke test:
 
-## Что реально есть в текущем состоянии репозитория
+```bash
+python backend/manage.py smoke_test_project
+```
 
-В репозитории уже реализованы:
+It validates settings, DB access, demo data, corpus build and one offline ML experiment pass.
 
-- Django backend и DRF API;
-- модели документов, версий, чанков, квизов и попыток;
-- загрузка версий документов;
-- извлечение текста из TXT, DOCX и PDF с текстовым слоем;
-- структурное разбиение текста на фрагменты;
-- сравнение двух версий документа;
-- baseline-классификация и приоритизация значимости изменений;
-- краткая выжимка по изменениям;
-- генерация квиза по materialized summary/highlights;
-- lifecycle/workflow для квиза (`draft -> pending_review -> approved`, а также `rejected` и `superseded`);
-- прохождение квиза сотрудником;
-- отчёт по результату попытки;
-- demo UI на Django templates;
-- demo corpus и команда `load_demo_pairs`;
-- backend-тесты.
+## Limitations
 
-## Важные ограничения текущей версии
+- OCR for scanned PDFs is not implemented in the main runtime contour.
+- Research corpora are still relatively small and partly synthetic.
+- Optional embedding / XGBoost / SHAP integrations depend on local packages and locally available model artifacts.
+- The demo UI is demonstration-oriented, not a full production frontend.
 
-Ниже важно писать и говорить о проекте честно:
+## Ethical considerations
 
-- PDF поддерживается **без OCR**; корректно работают PDF с извлекаемым текстом;
-- demo UI предназначен прежде всего для демонстрационного сценария, а не для полнофункциональной продуктовой эксплуатации;
-- семантический поиск и Qdrant — **опциональный слой**, а не опора MVP;
-- авторизация и развитая ролевая модель пока не являются центральной частью ранней версии проекта.
+- The system is document-analysis software, not a substitute for legal review.
+- Offline ML outputs are benchmark artifacts and do not override deterministic production-safe rules by default.
+- Human review remains necessary for ambiguous or high-risk regulatory changes.
+- Synthetic examples are clearly marked and must not be reported as real-world benchmark evidence.
 
-## Архитектурный фокус
+## Quick start
 
-Главный режим проекта:
+### Local Python
 
-**сравнение новой редакции документа с предыдущей редакцией того же документа**
+1. Create a Python 3.12 environment.
+2. Install runtime and dev dependencies.
+3. Export required environment variables.
+4. Run migrations and start the server.
 
-Это означает, что ядро системы должно обеспечивать:
-
-- хранение документов и нескольких редакций;
-- извлечение и нормализацию текста;
-- структурное разбиение документа;
-- детерминированное сравнение редакций;
-- формирование объяснимой выжимки;
-- генерацию проверочного материала по изменениям;
-- фиксацию результатов прохождения.
-
-## Что входит в текущий demo-ready MVP
-
-В текущий demo-ready контур входят:
-
-- загрузка документа и новой версии через backend;
-- парсинг TXT / DOCX / PDF с текстовым слоем;
-- построение структурных чанков после загрузки;
-- compare / brief / quiz API;
-- persistent significance layer поверх materialized diff;
-- сохранение квиза;
-- перевод квиза в review, утверждение или отклонение ответственным лицом;
-- прохождение квиза сотрудником;
-- просмотр попыток и отчёта;
-- demo-сценарий на подготовленном наборе документов;
-- локальный запуск на одном ПК.
-
-## Что не нужно выдавать за уже завершённую часть MVP
-
-Пока не стоит формулировать проект так, будто уже полностью готовы:
-
-- OCR для сканированных PDF;
-- развитая auth / roles система;
-- универсальный поиск по большому корпусу документов;
-- сложная внешняя интеграция;
-- production-grade развёртывание.
-
-## Структура репозитория
-
-- `backend/` — Django backend и основной runtime-контур
-- `docs/` — материалы для защиты и демонстрации
-- `data/` — датасеты и ручные sample-артефакты
-- `tools/` — offline-утилиты подготовки и оценки данных
-- `infra/` — шаблоны переменных окружения
-- `scripts/` — инженерные сценарии проверки и smoke-прогона
-
-### Карта backend
-
-Главная предметная зона находится в `backend/documents/` и после нормализации Фазы 2 разделена по слоям:
-
-- `models.py`, `admin.py` — ORM и административный слой;
-- `api/` — DRF serializers, HTTP endpoints и viewsets;
-- `demo/` — demo UI на Django templates и deterministic demo corpus, включая маршруты `/demo/research/` для исследовательской панели, `/demo/trace/<comparison_id>/` для explainability-трассировки и `/demo/annotations/` для экспертной annotation studio; экспорт разметки доступен через `/demo/annotations/export.json` и `/demo/annotations/export.csv`;
-- `domain/` — сравнение версий, change enrichment, significance-aware quiz/summary logic;
-- `services/` — ingestion, significance/importance analysis, optional search/Qdrant, evaluation services;
-- `tests/` — тесты app-модуля, сгруппированные по сценариям.
-
-Такое разложение позволяет отдельно объяснять комиссии:
-
-- где находится доменная логика сравнения редакций;
-- где находятся интеграционные и служебные сервисы;
-- где API-слой;
-- где demo-представление;
-- где лежат тесты и вспомогательные sample-материалы.
-
-## Документы проекта
-
-- `PROJECT_SCOPE.md` — реальные границы MVP и текущего scope
-- `docs/scope/mvp-freeze.md` — документ Фазы 5 с замороженными границами MVP
-- `ARCHITECTURE.md` — архитектурные решения и ограничения
-- `ROADMAP.md` — функциональные фазы проекта и текущий этап стабилизации
-- `TASKS.md` — фактический статус фаз и задач
-- `ERD.md` — модель данных
-- `docs/notes.md` — журнал решений
-- `docs/demo-script.md` — сценарий показа
-
-## Быстрый старт: локально без Docker
-
-1. Установите зависимости:
+Example:
 
 ```bash
 cd backend
-python -m pip install -r requirements.txt
-python -m pip install -r requirements-dev.txt
-```
-
-2. Выполните миграции:
-
-```bash
+pip install -r requirements.txt -r requirements-dev.txt
+set DJANGO_SECRET_KEY=local-dev-secret
+set DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
 python manage.py migrate
-```
-
-3. Запустите backend:
-
-```bash
 python manage.py runserver
 ```
 
-4. Базовые проверки:
+### Docker
 
-```bash
-python manage.py check
-cd ..
-bash ./scripts/test.sh
-bash ./scripts/lint.sh
-```
-
-## Быстрый старт: Docker Compose
-
-1. Подготовьте переменные окружения:
-
-```bash
-cp infra/.env.example infra/.env
-```
-
-2. Поднимите backend и Postgres:
+`infra/.env.example` contains the expected variables.
 
 ```bash
 docker compose up --build
 ```
 
-3. Загрузите демонстрационный набор:
+The image is now self-contained; `docker-compose.yml` still mounts the source tree for local development convenience.
+
+## Running experiments
 
 ```bash
-docker compose exec backend python manage.py load_demo_pairs
-```
-
-4. Откройте приложение:
-
-```text
-http://localhost:8000/
-```
-
-## Опциональный поиск с Qdrant
-
-Qdrant не обязателен для базового demo-сценария. Если нужен поиск, запускайте профиль `search`:
-
-```bash
-docker compose --profile search up --build
-```
-
-И включайте в `infra/.env`:
-
-```env
-QDRANT_ENABLED=1
-DB_ENGINE=postgres
-```
-
-## Принцип развития проекта
-
-Если новая функция:
-
-- не усиливает сценарий сравнения редакций;
-- не повышает устойчивость demo;
-- не улучшает объяснимость результата;
-- не помогает защите магистерской работы,
-
-то она не должна становиться приоритетом текущего контура.
-
-
-## Phase 13: quiz execution / attempts
-
-- Approved quiz now starts a real attempt lifecycle: `start -> in_progress -> submit -> completed`.
-- Attempt stores `started_at`, `submitted_at`, `answered_questions`, `correct_answers`, `score_percent`.
-- Only approved quiz can start a new attempt. Already started attempt can be submitted even if the quiz was later superseded.
-- For the same `quiz + participant_name` only one active `in_progress` attempt is allowed.
-- Completed attempt is immutable in critical fields and serves as a stable reporting snapshot.
-- Demo UI and API now support explicit attempt start and final submission.
-- Canonical attempt submission payload now uses `question_id` and `selected_choice_id`; legacy `question_index` / `selected_choice_index` payload remains supported for backward compatibility.
-- Attempt execution logic is extracted into `documents/services/quiz_attempts.py`; `workflows.py` remains focused on quiz approval lifecycle.
-
-## Real-world regression suite
-
-- Offline regression artifacts are stored in `experiments/real_world/`.
-- Main outputs: `real_world_summary.json`, `real_world_pair_results.csv`, `real_world_trace.csv`, `real_world_stage_summary.csv`.
-- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
-
-Run locally:
-
-```bash
-python experiments/real_world/evaluate_real_world.py
-python backend/manage.py run_real_world_regression
-```
-
-## ML / Hybrid significance experiment
-
-- Offline ML artifacts are stored in `experiments/significance_ml/`.
-- Main outputs: `significance_ml_summary.json`, `significance_ml_predictions.csv`, `significance_ml_confusion_matrix.csv`, `significance_ml_feature_report.csv`, `significance_ml_error_examples.csv`.
-- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
-
-Run locally:
-
-```bash
-python experiments/significance_ml/evaluate_significance_ml.py
-python backend/manage.py run_significance_ml_experiment
-```
-
-## Supervised ML corpus
-
-- Offline supervised corpus artifacts are stored in `experiments/ml_corpus/`.
-- Main outputs: `full_dataset.csv`, `train.csv`, `validation.csv`, `test.csv`, `weak_inference_dataset.csv`, `dataset_profile.json`, `split_metadata.json`, `dataset_quality_report.md`, `figures/*.png`.
-- Research Dashboard reads these artifacts in read-only mode and shows them in the `/demo/research/` page.
-
-Run locally:
-
-```bash
-python experiments/ml_corpus/build_supervised_corpus.py
-python experiments/ml_corpus/train_baseline_models.py
 python backend/manage.py build_supervised_ml_corpus
-python backend/manage.py train_baseline_ml_models
+python backend/manage.py run_significance_ml_experiment
+python backend/manage.py smoke_test_project
 ```
+
+Useful outputs:
+
+- `experiments/ml_corpus/`
+- `experiments/significance_ml/`
+- `/demo/research/` research dashboard
+
+## Docker deployment
+
+Production-facing defaults are stricter now:
+
+- `DJANGO_SECRET_KEY` is required outside tests.
+- `DJANGO_DEBUG=False` by default.
+- `DJANGO_ALLOWED_HOSTS` must be configured when debug is disabled.
+- secure cookie and security header settings are enabled for non-test production profiles.
+
+## CI status
+
+GitHub Actions workflow: `.github/workflows/ci.yml`
+
+The CI pipeline runs:
+
+- `python manage.py check`
+- targeted Django tests
+- formatting and lint hooks when dependencies are available locally
+
+## Security notes
+
+Key configuration changes:
+
+- `SECRET_KEY` only from environment outside test mode
+- `DEBUG=False` by default
+- `CSRF_COOKIE_HTTPONLY=True`
+- `SESSION_COOKIE_SECURE=True` in non-debug non-test profiles
+- `SECURE_CONTENT_TYPE_NOSNIFF=True`
+- `SECURE_REFERRER_POLICY="same-origin"`
+- `X_FRAME_OPTIONS="DENY"`
+
+## Additional documentation
+
+- [docs/architecture/engineering-diagrams.md](docs/architecture/engineering-diagrams.md)
+- [docs/experiments/significance-ml-experiment.md](docs/experiments/significance-ml-experiment.md)
+- [docs/experiments/supervised-ml-corpus.md](docs/experiments/supervised-ml-corpus.md)
+- [docs/research-dashboard.md](docs/research-dashboard.md)

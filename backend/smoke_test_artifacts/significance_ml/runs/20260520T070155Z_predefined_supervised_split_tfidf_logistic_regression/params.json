@@ -1,0 +1,19 @@
+{
+  "model_name": "tfidf_logistic_regression",
+  "model_family": "tfidf",
+  "split_strategy": "predefined_supervised_split",
+  "random_seed": 42,
+  "search_type": "grid",
+  "search_space": {
+    "C": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "solver": [
+      "lbfgs"
+    ]
+  },
+  "embedding_model": null
+}

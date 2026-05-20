@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = BASE_DIR.parent
@@ -28,15 +30,29 @@ def env_int(name: str, default: int) -> int:
     return int(raw)
 
 
+def require_env(name: str) -> str:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        raise ImproperlyConfigured(
+            f"Environment variable {name} is required for this Django profile."
+        )
+    return value.strip()
+
+
 def split_csv(raw: str) -> list[str]:
     cleaned = raw.replace(";", ",").replace(" ", ",")
     return [item.strip() for item in cleaned.split(",") if item.strip()]
 
 
-SECRET_KEY = env_str("DJANGO_SECRET_KEY", "change-me")
-DEBUG = env_bool("DJANGO_DEBUG", True)
+TESTING = "test" in sys.argv
+DEBUG = env_bool("DJANGO_DEBUG", False)
 
-CSRF_COOKIE_HTTPONLY = False          # чтобы JavaScript мог читать cookie
+if TESTING:
+    SECRET_KEY = env_str("DJANGO_SECRET_KEY", "test-secret-key")
+else:
+    SECRET_KEY = require_env("DJANGO_SECRET_KEY")
+
+CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 
 env_hosts = split_csv(env_str("DJANGO_ALLOWED_HOSTS"))
@@ -44,7 +60,14 @@ dev_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]
 if DEBUG:
     ALLOWED_HOSTS = sorted(set(env_hosts + dev_hosts))
 else:
-    ALLOWED_HOSTS = env_hosts or ["localhost"]
+    if TESTING:
+        ALLOWED_HOSTS = sorted(set(env_hosts + dev_hosts))
+    elif not env_hosts:
+        raise ImproperlyConfigured(
+            "DJANGO_ALLOWED_HOSTS must be configured when DJANGO_DEBUG is disabled."
+        )
+    else:
+        ALLOWED_HOSTS = env_hosts
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -126,6 +149,14 @@ LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG and not TESTING
+CSRF_COOKIE_SECURE = not DEBUG and not TESTING
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

@@ -1,0 +1,304 @@
+{
+  "false_positives": [
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.479525,
+      "error_type": "false_positive"
+    }
+  ],
+  "false_negatives": [],
+  "most_confident_errors": [
+    {
+      "document_id": "pair_10_weakly_structured_document",
+      "text": "Обращение рассматривается ответственным подразделением в течение 5 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий. Обращение рассматривается ответственным подразделением в течение 3 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий. В слабо структурированном документе срок рассмотрения обращения и...",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "probability": 0.975076,
+      "error_type": "multiclass_misclassification"
+    },
+    {
+      "document_id": "pair_01_deadline_change",
+      "text": "Срок рассмотрения заявления составляет 10 рабочих дней со дня его регистрации. Срок рассмотрения заявления составляет 7 рабочих дней со дня его регистрации. Срок рассмотрения заявления сокращен с 10 до 7 рабочих дней. Срок рассмотрения заявления сокращен с 10 до 7 рабочих дней. deadline deadline",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "probability": 0.637498,
+      "error_type": "multiclass_misclassification"
+    },
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Срок подготовки справки составляет 5 рабочих дней со дня регистрации запроса. Срок подготовки справки составляет 4 рабочих дня со дня регистрации запроса. Срок подготовки справки сокращен с 5 до 4 рабочих дней. Срок подготовки справки сокращен с 5 до 4 рабочих дней. deadline deadline",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "probability": 0.608937,
+      "error_type": "multiclass_misclassification"
+    },
+    {
+      "document_id": "pair_03_document_list_change",
+      "text": "г) копию документа, подтверждающего полномочия представителя, если заявление подает представитель. В перечень обязательных документов добавлена копия документа, подтверждающего полномочия представителя. В перечень обязательных документов добавлена копия документа, подтверждающего полномочия представителя. document document",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "probability": 0.482959,
+      "error_type": "multiclass_misclassification"
+    },
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.479525,
+      "error_type": "false_positive"
+    }
+  ],
+  "least_confident_predictions": [
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_004",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_004",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "rule_based_label": "informational",
+      "probability": 0.479525,
+      "probability_map": {
+        "critical": 0.479525,
+        "editorial": 0.0,
+        "important": 0.153904,
+        "informational": 0.366571
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_03_document_list_change:chg_001",
+      "document_id": "pair_03_document_list_change",
+      "pair_id": "pair_03_document_list_change",
+      "change_id": "chg_001",
+      "text": "г) копию документа, подтверждающего полномочия представителя, если заявление подает представитель. В перечень обязательных документов добавлена копия документа, подтверждающего полномочия представителя. В перечень обязательных документов добавлена копия документа, подтверждающего полномочия представителя. document document",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "rule_based_label": "critical",
+      "probability": 0.482959,
+      "probability_map": {
+        "critical": 0.469504,
+        "editorial": 0.0,
+        "important": 0.482959,
+        "informational": 0.047537
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_001",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_001",
+      "text": "Срок подготовки справки составляет 5 рабочих дней со дня регистрации запроса. Срок подготовки справки составляет 4 рабочих дня со дня регистрации запроса. Срок подготовки справки сокращен с 5 до 4 рабочих дней. Срок подготовки справки сокращен с 5 до 4 рабочих дней. deadline deadline",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "rule_based_label": "critical",
+      "probability": 0.608937,
+      "probability_map": {
+        "critical": 0.354533,
+        "editorial": 0.015724,
+        "important": 0.608937,
+        "informational": 0.020806
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_01_deadline_change:chg_001",
+      "document_id": "pair_01_deadline_change",
+      "pair_id": "pair_01_deadline_change",
+      "change_id": "chg_001",
+      "text": "Срок рассмотрения заявления составляет 10 рабочих дней со дня его регистрации. Срок рассмотрения заявления составляет 7 рабочих дней со дня его регистрации. Срок рассмотрения заявления сокращен с 10 до 7 рабочих дней. Срок рассмотрения заявления сокращен с 10 до 7 рабочих дней. deadline deadline",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "rule_based_label": "critical",
+      "probability": 0.637498,
+      "probability_map": {
+        "critical": 0.331672,
+        "editorial": 0.013094,
+        "important": 0.637498,
+        "informational": 0.017737
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_05_editorial_change:chg_001",
+      "document_id": "pair_05_editorial_change",
+      "pair_id": "pair_05_editorial_change",
+      "change_id": "chg_001",
+      "text": "Сотрудник осуществляет проверку документов на предмет комплектности. Сотрудник выполняет проверку документов на предмет комплектности. Редакционная замена глагола без изменения обязанности, срока, перечня документов или процедуры. Редакционная замена глагола без изменения обязанности, срока, перечня документов или процедуры. editorial editorial",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "editorial",
+      "probability": 0.728498,
+      "probability_map": {
+        "critical": 0.005072,
+        "editorial": 0.728498,
+        "important": 0.264681,
+        "informational": 0.001749
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_002",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_002",
+      "text": "Сотрудник осуществляет проверку сведений по внутренним источникам. Сотрудник выполняет проверку сведений по внутренним источникам. Редакционная замена глагола без изменения процедуры проверки. Редакционная замена глагола без изменения процедуры проверки. editorial editorial",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "editorial",
+      "probability": 0.736549,
+      "probability_map": {
+        "critical": 0.016713,
+        "editorial": 0.736549,
+        "important": 0.237765,
+        "informational": 0.008972
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_06_procedure_change:chg_001",
+      "document_id": "pair_06_procedure_change",
+      "pair_id": "pair_06_procedure_change",
+      "change_id": "chg_001",
+      "text": "Заявление подается заявителем на бумажном носителе через ответственное подразделение. Заявление может быть подано на бумажном носителе через ответственное подразделение или через электронную форму во внутреннем портале. Изменен порядок подачи заявления: добавлена возможность подачи через электронную форму во внутреннем портале. Изменен порядок подачи заявления: добавлена возможность подачи чере...",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.939297,
+      "probability_map": {
+        "critical": 0.04694,
+        "editorial": 0.0,
+        "important": 0.939297,
+        "informational": 0.013763
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_07_responsibility_change:chg_001",
+      "document_id": "pair_07_responsibility_change",
+      "pair_id": "pair_07_responsibility_change",
+      "change_id": "chg_001",
+      "text": "За нарушение срока обработки заявления сотрудник несет ответственность в соответствии с внутренним регламентом подразделения. Добавлено правило об ответственности сотрудника за нарушение срока обработки заявления. Добавлено правило об ответственности сотрудника за нарушение срока обработки заявления. responsibility responsibility",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.945128,
+      "probability_map": {
+        "critical": 0.945128,
+        "editorial": 0.0,
+        "important": 0.03248,
+        "informational": 0.022392
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_08_reordered_structure:chg_001",
+      "document_id": "pair_08_reordered_structure",
+      "pair_id": "pair_08_reordered_structure",
+      "change_id": "chg_001",
+      "text": "Контроль полноты сведений проводится до регистрации обращения. Контроль полноты сведений проводится до регистрации обращения. Фрагмент перенесен в другой структурный раздел без изменения содержания. Фрагмент перенесен в другой структурный раздел без изменения содержания. structure structure",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "editorial",
+      "probability": 0.957537,
+      "probability_map": {
+        "critical": 0.003327,
+        "editorial": 0.957537,
+        "important": 0.024031,
+        "informational": 0.015105
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_04_refusal_ground_change:chg_001",
+      "document_id": "pair_04_refusal_ground_change",
+      "pair_id": "pair_04_refusal_ground_change",
+      "change_id": "chg_001",
+      "text": "Основанием для отказа является непредставление обязательных документов в установленный срок. Добавлено новое основание отказа: непредставление обязательных документов в установленный срок. Добавлено новое основание отказа: непредставление обязательных документов в установленный срок. refusal refusal",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.974335,
+      "probability_map": {
+        "critical": 0.974335,
+        "editorial": 0.0,
+        "important": 0.023444,
+        "informational": 0.002222
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_10_weakly_structured_document:chg_001",
+      "document_id": "pair_10_weakly_structured_document",
+      "pair_id": "pair_10_weakly_structured_document",
+      "change_id": "chg_001",
+      "text": "Обращение рассматривается ответственным подразделением в течение 5 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий. Обращение рассматривается ответственным подразделением в течение 3 рабочих дней. По итогам рассмотрения готовится ответ с описанием результата и дальнейших действий. В слабо структурированном документе срок рассмотрения обращения и...",
+      "true_label": "critical",
+      "predicted_label": "important",
+      "rule_based_label": "critical",
+      "probability": 0.975076,
+      "probability_map": {
+        "critical": 0.024811,
+        "editorial": 0.0,
+        "important": 0.975076,
+        "informational": 0.000113
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_02_added_obligation:chg_001",
+      "document_id": "pair_02_added_obligation",
+      "pair_id": "pair_02_added_obligation",
+      "change_id": "chg_001",
+      "text": "Сотрудник обязан уведомить заявителя о результате рассмотрения обращения через локальную систему уведомлений. Добавлена новая обязанность сотрудника уведомлять заявителя о результате рассмотрения обращения. Добавлена новая обязанность сотрудника уведомлять заявителя о результате рассмотрения обращения. obligation obligation",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.978172,
+      "probability_map": {
+        "critical": 0.978172,
+        "editorial": 0.0,
+        "important": 0.010684,
+        "informational": 0.011144
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_logistic_regression",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_003",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_003",
+      "text": "Сотрудник обязан уведомить заявителя о невозможности подготовки справки при отсутствии обязательных сведений. Добавлена обязанность уведомить заявителя о невозможности подготовки справки. Добавлена обязанность уведомить заявителя о невозможности подготовки справки. obligation obligation",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.981311,
+      "probability_map": {
+        "critical": 0.981311,
+        "editorial": 0.0,
+        "important": 0.00913,
+        "informational": 0.009559
+      },
+      "source": "significance_gold_results"
+    }
+  ]
+}

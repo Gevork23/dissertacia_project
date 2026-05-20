@@ -1,0 +1,19 @@
+{
+  "model_name": "tfidf_random_forest",
+  "model_family": "tfidf",
+  "split_strategy": "group_split_document_id",
+  "random_seed": 42,
+  "search_type": "grid",
+  "search_space": {
+    "n_estimators": [
+      150,
+      250
+    ],
+    "max_depth": [
+      null,
+      12,
+      24
+    ]
+  },
+  "embedding_model": null
+}

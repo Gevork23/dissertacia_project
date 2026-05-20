@@ -1,0 +1,20 @@
+{
+  "split_strategy": "cross_source_split__significance_gold_results",
+  "metadata": {
+    "test_source": "significance_gold_results"
+  },
+  "train_size": 125,
+  "test_size": 13,
+  "train_class_distribution": {
+    "critical": 36,
+    "editorial": 18,
+    "important": 36,
+    "informational": 35
+  },
+  "test_class_distribution": {
+    "critical": 8,
+    "editorial": 3,
+    "important": 1,
+    "informational": 1
+  }
+}

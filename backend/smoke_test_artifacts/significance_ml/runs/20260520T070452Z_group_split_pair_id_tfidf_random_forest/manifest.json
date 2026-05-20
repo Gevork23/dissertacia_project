@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-05-20T07:04:57+00:00",
+  "git_commit_sha": "595d012716800dcbe8e661e94aba8b449fa576e2",
+  "random_seed": 42,
+  "model_name": "tfidf_random_forest",
+  "feature_set": {
+    "text": "tfidf_1_2gram",
+    "meta_features": [
+      "absolute_length_delta",
+      "change_type_deadline",
+      "change_type_obligation",
+      "change_type_refusal",
+      "has_date_like_pattern",
+      "has_deadline_words",
+      "has_document_words",
+      "has_editorial_words",
+      "has_legal_reference",
+      "has_modal_obligation_words",
+      "has_number",
+      "has_procedure_words",
+      "has_refusal_words",
+      "has_responsibility_words",
+      "new_length",
+      "old_length",
+      "op_added",
+      "op_modified",
+      "op_moved",
+      "op_removed",
+      "relative_length_delta",
+      "requires_manual_review_flag",
+      "semantic_deadline",
+      "semantic_document",
+      "semantic_editorial",
+      "semantic_obligation",
+      "semantic_procedure",
+      "semantic_refusal",
+      "semantic_responsibility"
+    ]
+  },
+  "split_strategy": "group_split_pair_id",
+  "dataset_size": 138,
+  "class_balance": {
+    "train": {
+      "critical": 38,
+      "editorial": 18,
+      "important": 29,
+      "informational": 26
+    },
+    "test": {
+      "critical": 6,
+      "editorial": 3,
+      "important": 8,
+      "informational": 10
+    }
+  },
+  "library_versions": {
+    "numpy": "2.4.4",
+    "pandas": "2.3.0",
+    "scikit-learn": "1.8.0",
+    "sentence-transformers": "5.5.0"
+  }
+}

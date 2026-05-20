@@ -1,0 +1,662 @@
+{
+  "false_positives": [
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Для консультаций используется дополнительный электронный адрес support@mfc.local. Добавлен консультационный адрес. Добавлен консультационный адрес. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.476,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Справочный чат доступен в локальной системе учета обращений. Добавлен чатовый справочный канал. Добавлен чатовый справочный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.464,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Уведомления о технических работах размещаются в разделе новостей портала. Добавлен информационный канал о технических работах. Добавлен информационный канал о технических работах. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.46,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "О справочном номере регистрации можно узнать через голосовое меню. Добавлен справочный канал через голосовое меню. Добавлен справочный канал через голосовое меню. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.452,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.444,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Информация о статусе обращения доступна в личном кабинете портала. Добавлен справочный электронный канал. Добавлен справочный электронный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.44,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.436,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Информация о режиме работы публикуется на официальной странице подразделения. Добавлен канал информирования о режиме работы. Добавлен канал информирования о режиме работы. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.436,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Адрес кабинета для личного приема публикуется на стенде подразделения. Добавлен адрес кабинета приема. Добавлен адрес кабинета приема. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.432,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Контактное лицо для консультаций указывается в приложении к регламенту. Добавлено контактное лицо. Добавлено контактное лицо. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.428,
+      "error_type": "false_positive"
+    }
+  ],
+  "false_negatives": [
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Запрос принимается только от самого заявителя. Запрос принимается от заявителя или его уполномоченного представителя. Расширены условия представительства. Расширены условия представительства. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.54,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Участие в согласовании допускается после внутреннего обучения. Участие в согласовании допускается после внутреннего обучения и подтверждения квалификации. Уточнены условия допуска к согласованию. Уточнены условия допуска к согласованию. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.52,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Электронная подача доступна только после личной идентификации. Электронная подача доступна после личной или усиленной электронной идентификации. Изменены условия электронной идентификации. Изменены условия электронной идентификации. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.5,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Прием документов допускается только в будние дни. Прием документов допускается в будние дни и в первую субботу месяца. Расширены временные условия допуска. Расширены временные условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.492,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "К процедуре допускаются только сотрудники основного подразделения. К процедуре допускаются сотрудники основного и профильного подразделений. Расширены условия допуска. Расширены условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.472,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "К проверке допускаются только заявления в бумажной форме. К проверке допускаются заявления в бумажной и электронной форме. Расширены форматы допуска. Расширены форматы допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.468,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Повторная подача допустима после письменного уведомления. Повторная подача допустима после письменного или электронного уведомления. Изменены условия повторной подачи. Изменены условия повторной подачи. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.464,
+      "error_type": "false_negative"
+    }
+  ],
+  "most_confident_errors": [
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Запрос принимается только от самого заявителя. Запрос принимается от заявителя или его уполномоченного представителя. Расширены условия представительства. Расширены условия представительства. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.54,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Участие в согласовании допускается после внутреннего обучения. Участие в согласовании допускается после внутреннего обучения и подтверждения квалификации. Уточнены условия допуска к согласованию. Уточнены условия допуска к согласованию. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.52,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Электронная подача доступна только после личной идентификации. Электронная подача доступна после личной или усиленной электронной идентификации. Изменены условия электронной идентификации. Изменены условия электронной идентификации. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.5,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Прием документов допускается только в будние дни. Прием документов допускается в будние дни и в первую субботу месяца. Расширены временные условия допуска. Расширены временные условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.492,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Для консультаций используется дополнительный электронный адрес support@mfc.local. Добавлен консультационный адрес. Добавлен консультационный адрес. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.476,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "К процедуре допускаются только сотрудники основного подразделения. К процедуре допускаются сотрудники основного и профильного подразделений. Расширены условия допуска. Расширены условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.472,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "К проверке допускаются только заявления в бумажной форме. К проверке допускаются заявления в бумажной и электронной форме. Расширены форматы допуска. Расширены форматы допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.468,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_007",
+      "text": "Повторная подача допустима после письменного уведомления. Повторная подача допустима после письменного или электронного уведомления. Изменены условия повторной подачи. Изменены условия повторной подачи. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.464,
+      "error_type": "false_negative"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Справочный чат доступен в локальной системе учета обращений. Добавлен чатовый справочный канал. Добавлен чатовый справочный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.464,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Уведомления о технических работах размещаются в разделе новостей портала. Добавлен информационный канал о технических работах. Добавлен информационный канал о технических работах. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.46,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "О справочном номере регистрации можно узнать через голосовое меню. Добавлен справочный канал через голосовое меню. Добавлен справочный канал через голосовое меню. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.452,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.444,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Информация о статусе обращения доступна в личном кабинете портала. Добавлен справочный электронный канал. Добавлен справочный электронный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.44,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.436,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Информация о режиме работы публикуется на официальной странице подразделения. Добавлен канал информирования о режиме работы. Добавлен канал информирования о режиме работы. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.436,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Адрес кабинета для личного приема публикуется на стенде подразделения. Добавлен адрес кабинета приема. Добавлен адрес кабинета приема. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.432,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_009",
+      "text": "Контактное лицо для консультаций указывается в приложении к регламенту. Добавлено контактное лицо. Добавлено контактное лицо. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "probability": 0.428,
+      "error_type": "false_positive"
+    }
+  ],
+  "least_confident_predictions": [
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_002:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_002",
+      "change_id": "chg_001",
+      "text": "Заявление принимается при наличии одного документа, подтверждающего полномочия. Заявление принимается при наличии двух документов, подтверждающих полномочия. Изменены условия допуска по документам. Изменены условия допуска по документам. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.316,
+      "probability_map": {
+        "critical": 0.132,
+        "editorial": 0.26,
+        "important": 0.316,
+        "informational": 0.292
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_009:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_009",
+      "change_id": "chg_001",
+      "text": "Контактное лицо для консультаций указывается в приложении к регламенту. Добавлено контактное лицо. Добавлено контактное лицо. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.428,
+      "probability_map": {
+        "critical": 0.288,
+        "editorial": 0.056,
+        "important": 0.428,
+        "informational": 0.228
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_obligation_change_004:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_004",
+      "change_id": "chg_001",
+      "text": "Специалист обязан приложить копию доверенности к электронному досье. Добавлена обязанность приложить документ. Добавлена обязанность приложить документ. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.432,
+      "probability_map": {
+        "critical": 0.432,
+        "editorial": 0.068,
+        "important": 0.408,
+        "informational": 0.092
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_010:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_010",
+      "change_id": "chg_001",
+      "text": "Адрес кабинета для личного приема публикуется на стенде подразделения. Добавлен адрес кабинета приема. Добавлен адрес кабинета приема. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.432,
+      "probability_map": {
+        "critical": 0.244,
+        "editorial": 0.084,
+        "important": 0.432,
+        "informational": 0.24
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_003:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_003",
+      "change_id": "chg_001",
+      "text": "Повторное заявление может быть подано через 30 дней. Повторное заявление может быть подано через 15 дней. Изменен срок повторного допуска. Изменен срок повторного допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.436,
+      "probability_map": {
+        "critical": 0.368,
+        "editorial": 0.104,
+        "important": 0.436,
+        "informational": 0.092
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_004",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_004",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "informational",
+      "probability": 0.436,
+      "probability_map": {
+        "critical": 0.36,
+        "editorial": 0.08,
+        "important": 0.436,
+        "informational": 0.124
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_005:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_005",
+      "change_id": "chg_001",
+      "text": "Информация о режиме работы публикуется на официальной странице подразделения. Добавлен канал информирования о режиме работы. Добавлен канал информирования о режиме работы. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.436,
+      "probability_map": {
+        "critical": 0.24,
+        "editorial": 0.06,
+        "important": 0.436,
+        "informational": 0.264
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_002:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_002",
+      "change_id": "chg_001",
+      "text": "Информация о статусе обращения доступна в личном кабинете портала. Добавлен справочный электронный канал. Добавлен справочный электронный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.44,
+      "probability_map": {
+        "critical": 0.296,
+        "editorial": 0.076,
+        "important": 0.44,
+        "informational": 0.188
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_001:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_001",
+      "change_id": "chg_001",
+      "text": "Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "informational",
+      "probability": 0.444,
+      "probability_map": {
+        "critical": 0.332,
+        "editorial": 0.056,
+        "important": 0.444,
+        "informational": 0.168
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_006:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_006",
+      "change_id": "chg_001",
+      "text": "О справочном номере регистрации можно узнать через голосовое меню. Добавлен справочный канал через голосовое меню. Добавлен справочный канал через голосовое меню. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "informational",
+      "probability": 0.452,
+      "probability_map": {
+        "critical": 0.32,
+        "editorial": 0.068,
+        "important": 0.452,
+        "informational": 0.16
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_007:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_007",
+      "change_id": "chg_001",
+      "text": "Уведомления о технических работах размещаются в разделе новостей портала. Добавлен информационный канал о технических работах. Добавлен информационный канал о технических работах. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.46,
+      "probability_map": {
+        "critical": 0.304,
+        "editorial": 0.068,
+        "important": 0.46,
+        "informational": 0.168
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_008:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_008",
+      "change_id": "chg_001",
+      "text": "Повторная подача допустима после письменного уведомления. Повторная подача допустима после письменного или электронного уведомления. Изменены условия повторной подачи. Изменены условия повторной подачи. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.464,
+      "probability_map": {
+        "critical": 0.06,
+        "editorial": 0.096,
+        "important": 0.38,
+        "informational": 0.464
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_008:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_008",
+      "change_id": "chg_001",
+      "text": "Справочный чат доступен в локальной системе учета обращений. Добавлен чатовый справочный канал. Добавлен чатовый справочный канал. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.464,
+      "probability_map": {
+        "critical": 0.24,
+        "editorial": 0.108,
+        "important": 0.464,
+        "informational": 0.188
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_010:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_010",
+      "change_id": "chg_001",
+      "text": "К проверке допускаются только заявления в бумажной форме. К проверке допускаются заявления в бумажной и электронной форме. Расширены форматы допуска. Расширены форматы допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.468,
+      "probability_map": {
+        "critical": 0.036,
+        "editorial": 0.14,
+        "important": 0.356,
+        "informational": 0.468
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_obligation_change_010:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_010",
+      "change_id": "chg_001",
+      "text": "Специалист обязан внести отметку о проведении консультации в учетную систему. Добавлена обязанность регистрации консультации. Добавлена обязанность регистрации консультации. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.472,
+      "probability_map": {
+        "critical": 0.472,
+        "editorial": 0.052,
+        "important": 0.368,
+        "informational": 0.108
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_001:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_001",
+      "change_id": "chg_001",
+      "text": "К процедуре допускаются только сотрудники основного подразделения. К процедуре допускаются сотрудники основного и профильного подразделений. Расширены условия допуска. Расширены условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.472,
+      "probability_map": {
+        "critical": 0.032,
+        "editorial": 0.156,
+        "important": 0.34,
+        "informational": 0.472
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_contact_or_channel_change_004:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_004",
+      "change_id": "chg_001",
+      "text": "Для консультаций используется дополнительный электронный адрес support@mfc.local. Добавлен консультационный адрес. Добавлен консультационный адрес. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.476,
+      "probability_map": {
+        "critical": 0.292,
+        "editorial": 0.06,
+        "important": 0.476,
+        "informational": 0.172
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_obligation_change_008:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_008",
+      "change_id": "chg_001",
+      "text": "Исполнитель обязан проверить наличие обязательных приложений перед передачей дела. Добавлена обязанность проверки приложений. Добавлена обязанность проверки приложений. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.488,
+      "probability_map": {
+        "critical": 0.488,
+        "editorial": 0.056,
+        "important": 0.364,
+        "informational": 0.092
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_eligibility_change_007:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_007",
+      "change_id": "chg_001",
+      "text": "Прием документов допускается только в будние дни. Прием документов допускается в будние дни и в первую субботу месяца. Расширены временные условия допуска. Расширены временные условия допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.492,
+      "probability_map": {
+        "critical": 0.048,
+        "editorial": 0.096,
+        "important": 0.364,
+        "informational": 0.492
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_random_forest",
+      "example_id": "synthetic_obligation_change_009:chg_001",
+      "document_id": "synthetic_doc_002",
+      "pair_id": "synthetic_obligation_change_009",
+      "change_id": "chg_001",
+      "text": "Сотрудник обязан уведомить заявителя о приостановлении процедуры через портал. Добавлена обязанность уведомления о приостановлении. Добавлена обязанность уведомления о приостановлении. obligation_change obligation_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.496,
+      "probability_map": {
+        "critical": 0.496,
+        "editorial": 0.044,
+        "important": 0.36,
+        "informational": 0.1
+      },
+      "source": "curated_synthetic"
+    }
+  ]
+}

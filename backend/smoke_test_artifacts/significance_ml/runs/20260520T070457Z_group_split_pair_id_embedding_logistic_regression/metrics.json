@@ -1,0 +1,17 @@
+{
+  "accuracy": 0.9259,
+  "precision_macro": 0.9583,
+  "recall_macro": 0.9375,
+  "f1_macro": 0.9416,
+  "f1_weighted": 0.924,
+  "roc_auc_macro_ovr": null,
+  "binary": {
+    "high_priority_precision": 1.0,
+    "high_priority_recall": 0.8571,
+    "high_priority_f1": 0.9231,
+    "tp": 12,
+    "fp": 0,
+    "fn": 2,
+    "tn": 13
+  }
+}

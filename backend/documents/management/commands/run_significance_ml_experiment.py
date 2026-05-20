@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from documents.services.significance_ml_experiment import (
     DEFAULT_DATASET_CSV,
     DEFAULT_OUTPUT_DIR,
+    DEFAULT_RANDOM_SEED,
     run_significance_ml_experiment,
 )
 
@@ -25,11 +26,18 @@ class Command(BaseCommand):
             default=str(DEFAULT_OUTPUT_DIR),
             help="Directory where experiment artifacts will be written.",
         )
+        parser.add_argument(
+            "--random-seed",
+            type=int,
+            default=DEFAULT_RANDOM_SEED,
+            help="Random seed for split generation and model training.",
+        )
 
     def handle(self, *args, **options):
         summary = run_significance_ml_experiment(
             dataset_csv_path=Path(options["dataset_csv"]).resolve(),
             output_dir=Path(options["output_dir"]).resolve(),
+            random_seed=int(options["random_seed"]),
         )
         self.stdout.write(self.style.SUCCESS("ML / Hybrid significance experiment completed"))
         self.stdout.write(f"Dataset source: {summary['dataset_source']}")

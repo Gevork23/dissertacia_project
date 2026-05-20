@@ -1,192 +1,103 @@
-# ML / Hybrid significance experiment
+# Significance ML Experiment
 
-## Назначение
+## Goal
 
-Фаза 6 добавляет в проект отдельный offline-эксперимент по классификации значимости изменений. Его задача — не заменить production-safe rule-based слой, а исследовательски сравнить три стратегии:
+Benchmark ML and hybrid alternatives to the deterministic significance layer without replacing the production-safe rule-based runtime.
 
-1. `rule_based_baseline` — действующий детерминированный слой значимости;
-2. `ml_text_model` — лёгкий классификатор на TF-IDF и структурно-лексических признаках;
-3. `hybrid_model` — консервативная стратегия объединения rule-based и ML сигналов.
+## Leakage status
 
-Эксперимент усиливает научную часть проекта и позволяет обсуждать не только качество baseline-эвристик, но и потенциал гибридного подхода без изменения основного backend-контура.
+Target leakage has been removed.
 
-## Почему production layer не меняется
+- `high_priority_label` is no longer used as an input feature.
+- Gold labels remain only in target columns.
+- Feature audits are generated automatically and persisted in experiment artifacts.
+- Safe features are derived only from document text, structural metadata and rule outputs available before inference.
 
-Production significance layer остаётся неизменным по следующим причинам:
+Why this matters:
 
-- он детерминирован и воспроизводим;
-- он уже встроен в explainable pipeline сравнения версий;
-- он безопасен для demo и защиты;
-- экспериментальный ML-контур работает только offline и не становится обязательной runtime-зависимостью backend.
+- leaked features produce artificially inflated metrics;
+- thesis conclusions become invalid if train-time features encode the answer;
+- production expectations diverge from offline results if leakage is present.
 
-Таким образом, ML-слой рассматривается как исследовательский comparator, а не как production replacement.
+## Supported split strategies
 
-## Источник данных
+- Random stratified split
+- Group split by `document_id`
+- Group split by `pair_id`
+- Cross-source split
+- Strict gold-only evaluation
+- Predefined supervised split from `train.csv` / `test.csv`
 
-В текущей фазе используется уже существующий размеченный significance corpus:
+## Supported models
 
-- `experiments/significance/significance_results.csv`
+- Rule-based baseline
+- TF-IDF + Logistic Regression
+- TF-IDF + Linear SVM with calibration
+- TF-IDF + Random Forest
+- TF-IDF + XGBoost when available
+- Embedding + Logistic Regression when a local embedding checkpoint is available
+- Hybrid rule + ML
 
-Этот файл отражает результаты предыдущей строгой significance evaluation на малом gold/synthetic corpus и содержит:
+## Stored artifacts per run
 
-- `expected_importance` — целевую метку;
-- `predicted_importance` — rule-based baseline prediction;
-- тексты старой и новой редакции;
-- тип операции;
-- semantic type;
-- дополнительные поясняющие поля.
+- `metrics.json`
+- `params.json`
+- `split_info.json`
+- `classification_report.json`
+- `confusion_matrix.csv`
+- `feature_importance.csv`
+- `predictions.csv`
+- `manifest.json`
+- `error_analysis.csv`
+- `shap_summary.csv` when available
+- `plots/*.png`
 
-Real-world regression artifacts из Phase 5 в данном эксперименте не используются как строгие train labels. Они сохраняют статус weak / inference-ready слоя для будущих фаз.
+## Metrics
 
-## Используемые labels
+- accuracy
+- precision macro
+- recall macro
+- F1 macro
+- F1 weighted
+- ROC-AUC macro OVR when probabilities are available
+- confusion matrix
+- classification report
+- class distribution
 
-Эксперимент работает с теми же метками, что и production significance layer:
+## Error analysis
 
-- `critical`
-- `important`
-- `informational`
-- `editorial`
+Each run stores:
 
-Дополнительно вводится бинарная проекция:
+- false positives
+- false negatives
+- most confident errors
+- least confident predictions
 
-- `high_priority` = `critical` или `important`
-- `low_priority` = `informational` или `editorial`
+Primary CSV columns:
 
-Именно recall по high-priority изменениям рассматривается как ключевая прикладная метрика, так как проект ориентирован на минимизацию пропуска действительно важных изменений.
+- `document_id`
+- `text`
+- `true_label`
+- `predicted_label`
+- `probability`
+- `error_type`
 
-## Признаки ML-модели
+## Reproducibility
 
-Для `ml_text_model` используются только лёгкие локальные признаки, не требующие внешних моделей и сетевого доступа:
+`manifest.json` includes:
 
-1. Текстовые признаки:
-   - `old_text`
-   - `new_text`
-   - `description`
-   - `notes`
-   - TF-IDF по униграммам и биграммам
+- timestamp
+- git commit SHA
+- random seed
+- model name
+- feature set
+- split strategy
+- dataset size
+- class balance
+- library versions
 
-2. Структурные признаки:
-   - `operation`
-   - `change_type`
-   - `predicted_semantic_type`
-   - длины старого и нового текста
-   - абсолютная и относительная разница длины
-
-3. Лексические индикаторы:
-   - маркеры сроков;
-   - модальные слова обязанности;
-   - маркеры отказа;
-   - маркеры документов;
-   - маркеры ответственности/санкций;
-   - маркеры процедуры/канала;
-   - editorial/noise признаки;
-   - числовые и date-like паттерны;
-   - признаки legal-reference.
-
-## Сравниваемые модели
-
-### 1. rule_based_baseline
-
-Использует существующий production слой значимости без каких-либо изменений.
-
-### 2. ml_text_model
-
-Текущая реализация:
-
-- `TfidfVectorizer`
-- `DictVectorizer`
-- `LogisticRegression(class_weight="balanced")`
-
-При малом корпусе применяется `leave-one-out`, чтобы не терять примеры в train/eval split.
-
-### 3. hybrid_model
-
-Hybrid strategy реализована консервативно:
-
-- если rule-based дал `critical`, это решение сохраняется;
-- если rule-based и ML оба указывают на high-priority, baseline сохраняется;
-- если rule-based low-priority, а ML high-priority с высокой уверенностью, изменение может быть повышено до `important`;
-- если rule-based high-priority, а ML low-priority, hybrid сохраняет rule-based label и фиксирует disagreement.
-
-Такой режим соответствует исследовательской задаче сравнения, но не подменяет production policy.
-
-## Метрики
-
-### Multiclass significance
-
-Для каждой стратегии считаются:
-
-- accuracy;
-- macro precision / recall / F1;
-- per-label precision / recall / F1;
-- confusion matrix.
-
-### Binary high-priority detection
-
-Дополнительно считаются:
-
-- `high_priority_precision`;
-- `high_priority_recall`;
-- `high_priority_f1`;
-- `editorial_high_priority_false_positive_count`;
-- `important_critical_miss_count`.
-
-## Как запустить
-
-Из корня репозитория:
+## Command
 
 ```bash
-python experiments/significance_ml/evaluate_significance_ml.py
 python backend/manage.py run_significance_ml_experiment
 ```
-
-## Какие outputs создаются
-
-В директории `experiments/significance_ml/` сохраняются:
-
-- `significance_ml_summary.json`
-- `significance_ml_predictions.csv`
-- `significance_ml_confusion_matrix.csv`
-- `significance_ml_feature_report.csv`
-- `significance_ml_error_examples.csv`
-
-## Интеграция с Research Dashboard
-
-Research Dashboard в `/demo/research/` читает ML artifacts в read-only режиме и показывает отдельный блок:
-
-- статус эксперимента;
-- число примеров;
-- распределение меток;
-- список сравниваемых моделей;
-- high-priority recall/F1 для rule-based baseline;
-- macro F1 для ML и hybrid;
-- disagreement count;
-- preview predictions, confusion matrix, feature report и error examples.
-
-Важно: Dashboard не запускает ML-эксперимент во время HTTP request.
-
-## Ограничения и threats to validity
-
-Текущая фаза имеет существенные ограничения:
-
-- labeled corpus мал и несбалансирован;
-- для `important` и `informational` в текущем корпусе доступно по одному примеру;
-- поэтому используется `leave-one-out`, а устойчивость multiclass-оценки ограничена;
-- полученные результаты нельзя интерпретировать как окончательное доказательство превосходства ML над baseline;
-- real-world weak corpus пока не используется как строгая обучающая разметка.
-
-Это корректная исследовательская постановка, но она требует честной интерпретации.
-
-## Связь с Annotation Studio и будущими фазами
-
-Phase 4 (`Annotation Studio`) создаёт основу для накопления новых gold labels. По мере роста экспертной разметки возможны следующие шаги:
-
-- расширение training corpus за счёт `GoldChangeAnnotation`;
-- переоценка hybrid policy на richer corpus;
-- использование real-world regression suite как weak inference layer;
-- ML significance experiment на более сильной выборке;
-- последующие Audit Log и Export Reports слои.
-
-## Phase 6.1 corpus note
-
-Начиная с Phase 6.1, если в `experiments/ml_corpus/` доступны `train.csv` и `test.csv`, ML / Hybrid significance experiment использует их как основной supervised corpus. Старый dataset `experiments/significance/significance_results.csv` сохраняется как fallback-режим.

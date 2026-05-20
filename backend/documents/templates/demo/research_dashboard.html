@@ -390,6 +390,8 @@
                 <h3>Corpus profile</h3>
                 <div class="metric-list">
                     <div class="metric-row"><strong>Status</strong><div>{{ supervised_ml_corpus.status }}</div></div>
+                    <div class="metric-row"><strong>Balanced split</strong><div>{{ supervised_ml_corpus.balanced_split_passed }}</div></div>
+                    <div class="metric-row"><strong>Split method</strong><div>{{ supervised_ml_corpus.split_method|default:"-" }}</div></div>
                     <div class="metric-row"><strong>Total examples</strong><div>{{ supervised_ml_corpus.total_examples|default:0 }}</div></div>
                     <div class="metric-row"><strong>Strict examples</strong><div>{{ supervised_ml_corpus.strict_examples|default:0 }}</div></div>
                     <div class="metric-row"><strong>Weak examples</strong><div>{{ supervised_ml_corpus.weak_examples|default:0 }}</div></div>
@@ -397,6 +399,9 @@
                     <div class="metric-row"><strong>Validation size</strong><div>{{ supervised_ml_corpus.validation_size|default:0 }}</div></div>
                     <div class="metric-row"><strong>Test size</strong><div>{{ supervised_ml_corpus.test_size|default:0 }}</div></div>
                 </div>
+                {% if not supervised_ml_corpus.balanced_split_passed or supervised_ml_corpus.class_coverage_errors %}
+                    <p class="muted" style="margin-top: 10px;">Split warning: {{ supervised_ml_corpus.class_coverage_errors|join:", " }}</p>
+                {% endif %}
                 <div class="artifact-path" style="margin-top: 10px;">
                     <a href="{% url 'demo-research-artifact' supervised_ml_corpus.profile.path %}">{{ supervised_ml_corpus.profile.path }}</a>
                 </div>
@@ -411,6 +416,15 @@
                                 <div>{{ value }}</div>
                             </div>
                         {% endfor %}
+                    </div>
+                {% endif %}
+                {% if supervised_ml_corpus.train_label_distribution %}
+                    <div class="metric-list" style="margin-top: 12px;">
+                        <div class="metric-row"><strong>Train labels</strong><div>{{ supervised_ml_corpus.train_label_distribution }}</div></div>
+                        <div class="metric-row"><strong>Validation labels</strong><div>{{ supervised_ml_corpus.validation_label_distribution }}</div></div>
+                        <div class="metric-row"><strong>Test labels</strong><div>{{ supervised_ml_corpus.test_label_distribution }}</div></div>
+                        <div class="metric-row"><strong>Class coverage</strong><div>{{ supervised_ml_corpus.class_coverage_passed }}</div></div>
+                        <div class="metric-row"><strong>Train/test overlap</strong><div>{{ supervised_ml_corpus.leakage_pair_overlap_train_test }}</div></div>
                     </div>
                 {% endif %}
                 {% if supervised_ml_corpus.source_proportions %}

@@ -1,0 +1,85 @@
+{
+  "text_columns": [
+    "old_text",
+    "new_text",
+    "combined_text"
+  ],
+  "categorical_columns": [
+    "document_id",
+    "source",
+    "operation_type",
+    "semantic_type",
+    "text_complexity_bucket"
+  ],
+  "binary_feature_columns": [
+    "has_number",
+    "has_date",
+    "has_deadline_terms",
+    "has_obligation_terms",
+    "has_refusal_terms",
+    "has_document_terms",
+    "has_responsibility_terms",
+    "has_procedure_terms",
+    "has_payment_terms",
+    "has_editorial_terms",
+    "has_legal_reference",
+    "has_modal_verbs",
+    "rule_based_requires_manual_review"
+  ],
+  "numeric_feature_columns": [
+    "old_length",
+    "new_length",
+    "length_delta",
+    "relative_length_delta",
+    "rule_based_confidence"
+  ],
+  "target_columns": {
+    "y_significance": [
+      "critical",
+      "important",
+      "informational",
+      "editorial"
+    ],
+    "y_high_priority": [
+      0,
+      1
+    ],
+    "y_semantic_type": [
+      "clarification_change",
+      "contact_or_channel_change",
+      "deadline",
+      "deadline_change",
+      "document",
+      "document_list_change",
+      "editorial",
+      "eligibility_change",
+      "formatting_or_editorial_change",
+      "informational",
+      "mixed_change",
+      "obligation",
+      "obligation_change",
+      "payment_or_fee_change",
+      "procedure",
+      "procedure_change",
+      "reference_change",
+      "refusal",
+      "refusal_ground_change",
+      "responsibility",
+      "responsibility_change",
+      "structure",
+      "terminology_change"
+    ]
+  },
+  "leakage_audit": {
+    "blocked_feature_names": [
+      "high_priority_label",
+      "significance_label",
+      "y_high_priority",
+      "y_semantic_type",
+      "y_significance"
+    ],
+    "violations": [],
+    "passed": true,
+    "note": "Target-derived fields are kept only as labels or analysis metadata and are excluded from model input features."
+  }
+}

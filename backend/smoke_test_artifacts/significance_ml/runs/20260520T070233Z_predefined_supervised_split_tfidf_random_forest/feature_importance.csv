@@ -1,0 +1,21 @@
+model,class_label,rank,feature_name,importance
+tfidf_random_forest,global,1,meta:relative_length_delta,0.033521
+tfidf_random_forest,global,2,meta:absolute_length_delta,0.032198
+tfidf_random_forest,global,3,meta:old_length,0.027307
+tfidf_random_forest,global,4,meta:new_length,0.025441
+tfidf_random_forest,global,5,tfidf:добавлена,0.02147
+tfidf_random_forest,global,6,tfidf:изменен,0.019134
+tfidf_random_forest,global,7,meta:op_moved,0.019101
+tfidf_random_forest,global,8,tfidf:formatting_or_editorial_change formatting_or_editorial_change,0.017708
+tfidf_random_forest,global,9,tfidf:без,0.017136
+tfidf_random_forest,global,10,tfidf:eligibility_change,0.016733
+tfidf_random_forest,global,11,meta:requires_manual_review_flag,0.015715
+tfidf_random_forest,global,12,tfidf:clarification_change,0.013954
+tfidf_random_forest,global,13,tfidf:formatting_or_editorial_change,0.013819
+tfidf_random_forest,global,14,meta:op_added,0.011718
+tfidf_random_forest,global,15,tfidf:изменения,0.011407
+tfidf_random_forest,global,16,tfidf:срок,0.010709
+tfidf_random_forest,global,17,tfidf:clarification_change clarification_change,0.010619
+tfidf_random_forest,global,18,tfidf:terminology_change,0.01058
+tfidf_random_forest,global,19,tfidf:reference_change,0.010514
+tfidf_random_forest,global,20,tfidf:дней,0.010397

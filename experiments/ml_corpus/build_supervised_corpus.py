@@ -33,9 +33,15 @@ def main() -> int:
     print(f"Total examples: {profile['total_examples']}")
     print(f"Strict examples: {profile['strict_examples']}")
     print(f"Weak examples: {profile['weak_examples']}")
+    print(f"Balanced split passed: {profile['balanced_split_passed']}")
     print(f"Train size: {profile['split']['train_size']}")
     print(f"Test size: {profile['split']['test_size']}")
     print(f"Validation size: {profile['split']['validation_size']}")
+    print(f"Train labels: {profile['split']['train_label_distribution']}")
+    print(f"Validation labels: {profile['split']['validation_label_distribution']}")
+    print(f"Test labels: {profile['split']['test_label_distribution']}")
+    if profile['split'].get('warnings'):
+        print(f"Split warnings: {profile['split']['warnings']}")
     print(f"Output dir: {DEFAULT_OUTPUT_DIR}")
     return 0
 

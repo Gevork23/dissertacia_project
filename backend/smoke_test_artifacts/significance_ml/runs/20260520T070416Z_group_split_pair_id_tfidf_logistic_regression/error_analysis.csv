@@ -1,0 +1,5 @@
+document_id,text,true_label,predicted_label,probability,error_type
+synthetic_doc_006,К заявлению прилагается подтверждение направления электронного уведомления. Добавлено подтверждение уведомления. Добавлено подтверждение уведомления. document_list_change document_list_change,important,critical,0.368307,multiclass_misclassification
+synthetic_doc_010,Информация предоставляется в устной форме. Информация предоставляется в устной форме при необходимости дополнительного разъяснения. Уточнены условия разъяснения. Уточнены условия разъяснения. clarification_change clarification_change,informational,important,0.474319,false_positive
+synthetic_doc_009,Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change,informational,critical,0.493239,false_positive
+synthetic_doc_006,Заявитель представляет выписку из внутренней учетной системы. Добавлена выписка из учетной системы. Добавлена выписка из учетной системы. document_list_change document_list_change,important,informational,0.6625,false_negative

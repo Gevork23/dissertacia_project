@@ -1,0 +1,2 @@
+document_id,text,true_label,predicted_label,probability,error_type
+pair_09_mixed_significant_and_editorial,Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational,informational,critical,0.504488,false_positive

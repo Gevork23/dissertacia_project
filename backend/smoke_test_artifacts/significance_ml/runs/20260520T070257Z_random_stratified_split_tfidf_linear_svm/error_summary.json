@@ -1,0 +1,422 @@
+{
+  "false_positives": [
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.542146,
+      "error_type": "false_positive"
+    }
+  ],
+  "false_negatives": [
+    {
+      "document_id": "synthetic_doc_006",
+      "text": "При подаче заявления прилагается копия согласия на обработку персональных данных. Добавлено согласие на обработку данных. Добавлено согласие на обработку данных. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.44214,
+      "error_type": "false_negative"
+    }
+  ],
+  "most_confident_errors": [
+    {
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "probability": 0.542146,
+      "error_type": "false_positive"
+    },
+    {
+      "document_id": "synthetic_doc_006",
+      "text": "При подаче заявления прилагается копия согласия на обработку персональных данных. Добавлено согласие на обработку данных. Добавлено согласие на обработку данных. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "probability": 0.44214,
+      "error_type": "false_negative"
+    }
+  ],
+  "least_confident_predictions": [
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_eligibility_change_003:chg_001",
+      "document_id": "synthetic_doc_007",
+      "pair_id": "synthetic_eligibility_change_003",
+      "change_id": "chg_001",
+      "text": "Повторное заявление может быть подано через 30 дней. Повторное заявление может быть подано через 15 дней. Изменен срок повторного допуска. Изменен срок повторного допуска. eligibility_change eligibility_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.377174,
+      "probability_map": {
+        "critical": 0.276947,
+        "editorial": 0.231978,
+        "important": 0.377174,
+        "informational": 0.113901
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_document_list_change_005:chg_001",
+      "document_id": "synthetic_doc_006",
+      "pair_id": "synthetic_document_list_change_005",
+      "change_id": "chg_001",
+      "text": "При подаче заявления прилагается копия согласия на обработку персональных данных. Добавлено согласие на обработку данных. Добавлено согласие на обработку данных. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.44214,
+      "probability_map": {
+        "critical": 0.157358,
+        "editorial": 0.002227,
+        "important": 0.398275,
+        "informational": 0.44214
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "pair_09_mixed_significant_and_editorial:chg_004",
+      "document_id": "pair_09_mixed_significant_and_editorial",
+      "pair_id": "pair_09_mixed_significant_and_editorial",
+      "change_id": "chg_004",
+      "text": "Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational",
+      "true_label": "informational",
+      "predicted_label": "critical",
+      "rule_based_label": "informational",
+      "probability": 0.542146,
+      "probability_map": {
+        "critical": 0.542146,
+        "editorial": 0.0044,
+        "important": 0.111063,
+        "informational": 0.342391
+      },
+      "source": "significance_gold_results"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_contact_or_channel_change_001:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_001",
+      "change_id": "chg_001",
+      "text": "Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "informational",
+      "probability": 0.547267,
+      "probability_map": {
+        "critical": 0.414324,
+        "editorial": 0.002164,
+        "important": 0.036245,
+        "informational": 0.547267
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_payment_or_fee_change_001:chg_001",
+      "document_id": "synthetic_doc_008",
+      "pair_id": "synthetic_payment_or_fee_change_001",
+      "change_id": "chg_001",
+      "text": "Размер внутреннего сбора составляет 300 рублей. Размер внутреннего сбора составляет 500 рублей. Изменен размер внутреннего сбора. Изменен размер внутреннего сбора. payment_or_fee_change payment_or_fee_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.564108,
+      "probability_map": {
+        "critical": 0.024242,
+        "editorial": 0.211575,
+        "important": 0.564108,
+        "informational": 0.200074
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_clarification_change_006:chg_001",
+      "document_id": "synthetic_doc_010",
+      "pair_id": "synthetic_clarification_change_006",
+      "change_id": "chg_001",
+      "text": "Контрольный номер указывается в уведомлении. Контрольный номер указывается в уведомлении для последующей справки. Уточнено назначение номера. Уточнено назначение номера. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.569587,
+      "probability_map": {
+        "critical": 0.098908,
+        "editorial": 0.107134,
+        "important": 0.224372,
+        "informational": 0.569587
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_procedure_change_006:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_006",
+      "change_id": "chg_001",
+      "text": "Повторная проверка выполняется тем же специалистом. Повторная проверка выполняется профильным подразделением. Изменен исполнитель повторной проверки. Изменен исполнитель повторной проверки. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.579267,
+      "probability_map": {
+        "critical": 0.012189,
+        "editorial": 0.18231,
+        "important": 0.579267,
+        "informational": 0.226234
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_clarification_change_009:chg_001",
+      "document_id": "synthetic_doc_010",
+      "pair_id": "synthetic_clarification_change_009",
+      "change_id": "chg_001",
+      "text": "Сообщение публикуется после обновления данных. Сообщение публикуется после обновления данных в информационных целях. Уточнено назначение сообщения. Уточнено назначение сообщения. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.642466,
+      "probability_map": {
+        "critical": 0.021588,
+        "editorial": 0.081431,
+        "important": 0.254515,
+        "informational": 0.642466
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_deadline_change_007:chg_001",
+      "document_id": "synthetic_doc_001",
+      "pair_id": "synthetic_deadline_change_007",
+      "change_id": "chg_001",
+      "text": "Уточнение документов допускается в течение 9 рабочих дней. Уточнение документов допускается в течение 4 рабочих дней. Сокращен срок уточнения документов. Сокращен срок уточнения документов. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.675397,
+      "probability_map": {
+        "critical": 0.675397,
+        "editorial": 0.227805,
+        "important": 0.093614,
+        "informational": 0.003185
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_formatting_or_editorial_change_002:chg_001",
+      "document_id": "synthetic_doc_014",
+      "pair_id": "synthetic_formatting_or_editorial_change_002",
+      "change_id": "chg_001",
+      "text": "Порядок уведомления заявителя определяется регламентом. Порядок уведомления заявителя определяется регламентом. Структурный перенос без изменения текста. Структурный перенос без изменения текста. formatting_or_editorial_change formatting_or_editorial_change",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.689064,
+      "probability_map": {
+        "critical": 0.051008,
+        "editorial": 0.689064,
+        "important": 0.250894,
+        "informational": 0.009034
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_procedure_change_007:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_007",
+      "change_id": "chg_001",
+      "text": "Результат проверки согласуется только руководителем сектора. Результат проверки согласуется руководителем сектора и начальником отдела. Изменен маршрут согласования. Изменен маршрут согласования. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.704267,
+      "probability_map": {
+        "critical": 0.017751,
+        "editorial": 0.13011,
+        "important": 0.704267,
+        "informational": 0.147872
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_mixed_change_003:chg_001",
+      "document_id": "synthetic_doc_012",
+      "pair_id": "synthetic_mixed_change_003",
+      "change_id": "chg_001",
+      "text": "Информация о порядке записи предоставляется устно. Информация о порядке записи предоставляется устно и в виде памятки. Добавлена памятка без изменения процедуры. Добавлена памятка без изменения процедуры. mixed_change mixed_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "important",
+      "probability": 0.71166,
+      "probability_map": {
+        "critical": 0.023335,
+        "editorial": 0.153938,
+        "important": 0.111066,
+        "informational": 0.71166
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_deadline_change_003:chg_001",
+      "document_id": "synthetic_doc_001",
+      "pair_id": "synthetic_deadline_change_003",
+      "change_id": "chg_001",
+      "text": "Справка выдается не позднее 7 рабочих дней. Справка выдается не позднее 3 рабочих дней. Срок выдачи справки сокращен. Срок выдачи справки сокращен. deadline_change deadline_change",
+      "true_label": "critical",
+      "predicted_label": "critical",
+      "rule_based_label": "critical",
+      "probability": 0.719355,
+      "probability_map": {
+        "critical": 0.719355,
+        "editorial": 0.209453,
+        "important": 0.018092,
+        "informational": 0.0531
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_terminology_change_003:chg_001",
+      "document_id": "synthetic_doc_013",
+      "pair_id": "synthetic_terminology_change_003",
+      "change_id": "chg_001",
+      "text": "Заявитель направляет письменное уведомление. Заявитель направляет письменное сообщение. Терминологическая замена. Терминологическая замена. terminology_change terminology_change",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "important",
+      "probability": 0.748143,
+      "probability_map": {
+        "critical": 0.102938,
+        "editorial": 0.748143,
+        "important": 0.13272,
+        "informational": 0.016198
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_formatting_or_editorial_change_007:chg_001",
+      "document_id": "synthetic_doc_014",
+      "pair_id": "synthetic_formatting_or_editorial_change_007",
+      "change_id": "chg_001",
+      "text": "Документы проверяются после регистрации обращения. Документы проверяются после регистрации обращения. Изменена позиция фрагмента без изменения смысла. Изменена позиция фрагмента без изменения смысла. formatting_or_editorial_change formatting_or_editorial_change",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "editorial",
+      "probability": 0.756097,
+      "probability_map": {
+        "critical": 0.073386,
+        "editorial": 0.756097,
+        "important": 0.133174,
+        "informational": 0.037343
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_contact_or_channel_change_006:chg_001",
+      "document_id": "synthetic_doc_009",
+      "pair_id": "synthetic_contact_or_channel_change_006",
+      "change_id": "chg_001",
+      "text": "О справочном номере регистрации можно узнать через голосовое меню. Добавлен справочный канал через голосовое меню. Добавлен справочный канал через голосовое меню. contact_or_channel_change contact_or_channel_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "informational",
+      "probability": 0.765122,
+      "probability_map": {
+        "critical": 0.169404,
+        "editorial": 0.005726,
+        "important": 0.059748,
+        "informational": 0.765122
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_document_list_change_004:chg_001",
+      "document_id": "synthetic_doc_006",
+      "pair_id": "synthetic_document_list_change_004",
+      "change_id": "chg_001",
+      "text": "Заявитель представляет копию платежного документа об оплате внутреннего сбора. Добавлен платежный документ. Добавлен платежный документ. document_list_change document_list_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.767913,
+      "probability_map": {
+        "critical": 0.030695,
+        "editorial": 0.0025,
+        "important": 0.767913,
+        "informational": 0.198892
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_clarification_change_010:chg_001",
+      "document_id": "synthetic_doc_010",
+      "pair_id": "synthetic_clarification_change_010",
+      "change_id": "chg_001",
+      "text": "Пояснение предоставляется сотрудником подразделения. Пояснение предоставляется сотрудником подразделения в рамках консультации. Уточнен контекст пояснения. Уточнен контекст пояснения. clarification_change clarification_change",
+      "true_label": "informational",
+      "predicted_label": "informational",
+      "rule_based_label": "informational",
+      "probability": 0.770461,
+      "probability_map": {
+        "critical": 0.079529,
+        "editorial": 0.107906,
+        "important": 0.042105,
+        "informational": 0.770461
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_formatting_or_editorial_change_008:chg_001",
+      "document_id": "synthetic_doc_014",
+      "pair_id": "synthetic_formatting_or_editorial_change_008",
+      "change_id": "chg_001",
+      "text": "Информация о графике приема публикуется ежемесячно. Информация о графике приема публикуется ежемесячно. Технический перенос справочного пункта. Технический перенос справочного пункта. formatting_or_editorial_change formatting_or_editorial_change",
+      "true_label": "editorial",
+      "predicted_label": "editorial",
+      "rule_based_label": "editorial",
+      "probability": 0.800542,
+      "probability_map": {
+        "critical": 0.073476,
+        "editorial": 0.800542,
+        "important": 0.086307,
+        "informational": 0.039675
+      },
+      "source": "curated_synthetic"
+    },
+    {
+      "model": "tfidf_linear_svm",
+      "example_id": "synthetic_procedure_change_010:chg_001",
+      "document_id": "synthetic_doc_005",
+      "pair_id": "synthetic_procedure_change_010",
+      "change_id": "chg_001",
+      "text": "Учетная запись создается после приема документов. Учетная запись создается до приема документов для предварительной проверки. Изменена последовательность создания записи. Изменена последовательность создания записи. procedure_change procedure_change",
+      "true_label": "important",
+      "predicted_label": "important",
+      "rule_based_label": "important",
+      "probability": 0.808671,
+      "probability_map": {
+        "critical": 0.006586,
+        "editorial": 0.059934,
+        "important": 0.808671,
+        "informational": 0.124809
+      },
+      "source": "curated_synthetic"
+    }
+  ]
+}

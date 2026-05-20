@@ -1,0 +1,3 @@
+document_id,text,true_label,predicted_label,probability,error_type
+synthetic_doc_006,При подаче заявления прилагается копия согласия на обработку персональных данных. Добавлено согласие на обработку данных. Добавлено согласие на обработку данных. document_list_change document_list_change,important,informational,0.44214,false_negative
+pair_09_mixed_significant_and_editorial,Справочная информация о статусе запроса доступна в локальной системе учета. Добавлено справочное указание о доступности статуса запроса. Добавлено справочное указание о доступности статуса запроса. informational informational,informational,critical,0.542146,false_positive

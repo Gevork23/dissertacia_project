@@ -1,76 +1,45 @@
-# Supervised ML corpus
+# Supervised ML Corpus
 
-## Назначение
+## Purpose
 
-Фаза 6.1 добавляет в проект отдельный supervised ML corpus для офлайн-экспериментов по классификации значимости изменений. Этот слой нужен потому, что исходный labeled corpus Фазы 6 слишком мал для устойчивого train/test режима.
+Build a reproducible offline corpus for significance-classification experiments while keeping weak and synthetic evidence explicitly separated from strict gold evaluation.
 
-Корпус не заменяет production rule-based significance layer и не влияет на runtime backend.
+## Data sources
 
-## Источники данных
+- `experiments/significance/significance_results.csv`
+- `data/evaluation_corpus/*/annotation.json`
+- Annotation Studio DB / export data when available
+- Curated synthetic examples
+- Weak real-world traces stored separately
 
-Используются несколько слоев:
+## Leakage controls
 
-1. `experiments/significance/significance_results.csv`
-2. `data/evaluation_corpus/*/annotation.json`
-3. `GoldChangeAnnotation` или export artifacts Annotation Studio, если они доступны
-4. curated synthetic supervised examples
-5. `experiments/real_world/real_world_trace.csv` только как weak inference layer
+- Target-derived fields are not used as model input features.
+- `feature_schema.json` includes a leakage audit section.
+- Weak examples are excluded from strict train/validation/test splits.
+- Group-aware split checks detect pair overlap.
 
-## Артефакты
+## Outputs
 
-После сборки создаются:
+- `full_dataset.csv`
+- `train.csv`
+- `validation.csv`
+- `test.csv`
+- `weak_inference_dataset.csv`
+- `dataset_profile.json`
+- `split_metadata.json`
+- `feature_schema.json`
+- `dataset_quality_report.md`
+- `figures/*.png`
 
-- `experiments/ml_corpus/full_dataset.csv`
-- `experiments/ml_corpus/train.csv`
-- `experiments/ml_corpus/validation.csv`
-- `experiments/ml_corpus/test.csv`
-- `experiments/ml_corpus/weak_inference_dataset.csv`
-- `experiments/ml_corpus/dataset_profile.json`
-- `experiments/ml_corpus/split_metadata.json`
-- `experiments/ml_corpus/feature_schema.json`
-- `experiments/ml_corpus/label_distribution.csv`
-- `experiments/ml_corpus/dataset_quality_report.md`
-- `experiments/ml_corpus/figures/*.png`
+## Notes
 
-## Labels и split
+- `document_id` is now carried through the dataset to support document-level group splits.
+- `high_priority_label` remains a derived target for analysis only and is not part of the feature set.
+- The corpus builder keeps `rule_based_confidence` and `rule_based_requires_manual_review` because they are available before ML inference and do not use gold labels.
 
-Основной target:
-
-- `y_significance = critical | important | informational | editorial`
-
-Дополнительные targets:
-
-- `y_high_priority`
-- `y_semantic_type`
-
-Split выполняется с `random_state = 42` и целевым `test_size = 0.2`. Если есть `pair_id`, используется group-aware split для снижения leakage.
-
-Weak examples не включаются в strict train/test.
-
-## Как запустить
+## Command
 
 ```bash
-python experiments/ml_corpus/build_supervised_corpus.py
-python experiments/ml_corpus/train_baseline_models.py
 python backend/manage.py build_supervised_ml_corpus
-python backend/manage.py train_baseline_ml_models
 ```
-
-## Использование через pandas
-
-```python
-import pandas as pd
-
-train_df = pd.read_csv("experiments/ml_corpus/train.csv")
-test_df = pd.read_csv("experiments/ml_corpus/test.csv")
-```
-
-## Ограничения
-
-- curated synthetic examples являются controlled synthetic corpus и не равны real-world legal benchmark;
-- weak real-world слой хранится отдельно и не рассматривается как strict training labels;
-- annotation-derived gold examples зависят от наличия локальной базы или export artifacts.
-
-## Связь с Фазой 6
-
-Этот корпус усиливает ML / Hybrid significance experiment и дает ему воспроизводимую train/test основу для дальнейших scikit-learn baseline experiments.

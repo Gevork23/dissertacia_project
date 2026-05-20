@@ -1,0 +1,17 @@
+true_label,predicted_label,count
+critical,critical,11
+critical,important,2
+critical,informational,0
+critical,editorial,0
+important,critical,0
+important,important,4
+important,informational,6
+important,editorial,0
+informational,critical,5
+informational,important,5
+informational,informational,0
+informational,editorial,0
+editorial,critical,0
+editorial,important,0
+editorial,informational,0
+editorial,editorial,1

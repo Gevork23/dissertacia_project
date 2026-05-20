@@ -527,6 +527,21 @@ def collect_supervised_ml_corpus() -> dict[str, Any]:
         "train_size": split_data.get("train_size", 0) if isinstance(split_data, dict) else 0,
         "test_size": split_data.get("test_size", 0) if isinstance(split_data, dict) else 0,
         "validation_size": split_data.get("validation_size", 0) if isinstance(split_data, dict) else 0,
+        "split_method": split_data.get("split_method", "") if isinstance(split_data, dict) else "",
+        "balanced_split_passed": split_data.get("balanced_split_passed", profile_data.get("balanced_split_passed", False))
+        if isinstance(split_data, dict)
+        else profile_data.get("balanced_split_passed", False),
+        "train_label_distribution": split_data.get("train_label_distribution", {}) if isinstance(split_data, dict) else {},
+        "validation_label_distribution": split_data.get("validation_label_distribution", {})
+        if isinstance(split_data, dict)
+        else {},
+        "test_label_distribution": split_data.get("test_label_distribution", {}) if isinstance(split_data, dict) else {},
+        "class_coverage_passed": split_data.get("class_coverage_passed", False) if isinstance(split_data, dict) else False,
+        "class_coverage_errors": split_data.get("class_coverage_errors", []) if isinstance(split_data, dict) else [],
+        "leakage_warnings": split_data.get("warnings", []) if isinstance(split_data, dict) else [],
+        "leakage_pair_overlap_train_test": split_data.get("leakage_pair_overlap_train_test", [])
+        if isinstance(split_data, dict)
+        else [],
         "warnings": profile_data.get("warnings", []) if isinstance(profile_data, dict) else [],
     }
 

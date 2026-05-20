@@ -126,7 +126,9 @@ class SupervisedMlCorpusTests(SimpleTestCase):
 
             full_df = supervised_ml_corpus.pd.read_csv(output_dir / "full_dataset.csv")
             train_df = supervised_ml_corpus.pd.read_csv(output_dir / "train.csv")
+            validation_df = supervised_ml_corpus.pd.read_csv(output_dir / "validation.csv")
             test_df = supervised_ml_corpus.pd.read_csv(output_dir / "test.csv")
+            split_metadata = json.loads((output_dir / "split_metadata.json").read_text(encoding="utf-8"))
             profile_exists = (output_dir / "dataset_profile.json").exists()
             split_exists = (output_dir / "split_metadata.json").exists()
             figure_exists = (output_dir / "figures" / "label_distribution.png").exists()
@@ -137,10 +139,100 @@ class SupervisedMlCorpusTests(SimpleTestCase):
         self.assertFalse(full_df["y_significance"].isna().any())
         self.assertTrue(set(["critical", "important", "informational", "editorial"]).issubset(set(full_df["y_significance"].unique())))
         self.assertFalse(train_df["is_weak"].any())
+        self.assertFalse(validation_df["is_weak"].any())
         self.assertFalse(test_df["is_weak"].any())
+        self.assertTrue(set(["critical", "important", "informational", "editorial"]).issubset(set(train_df["y_significance"].unique())))
+        self.assertTrue(set(["critical", "important", "informational", "editorial"]).issubset(set(test_df["y_significance"].unique())))
+        self.assertIn("editorial", set(train_df["y_significance"].unique()))
+        self.assertIn("editorial", set(test_df["y_significance"].unique()))
+        self.assertTrue(split_metadata["balanced_split_passed"])
+        self.assertEqual(split_metadata["leakage_pair_overlap_train_test"], [])
         self.assertTrue(profile_exists)
         self.assertTrue(split_exists)
         self.assertTrue(figure_exists)
+        self.assertTrue(profile["leakage_audit"]["passed"])
+        self.assertNotIn("significance_label", profile["leakage_audit"]["violations"])
+
+    def test_validate_split_quality_returns_passed(self):
+        train_df = supervised_ml_corpus.pd.DataFrame(
+            [
+                {"pair_id": "p1", "y_significance": "critical", "is_weak": 0, "is_synthetic": 0},
+                {"pair_id": "p2", "y_significance": "important", "is_weak": 0, "is_synthetic": 0},
+                {"pair_id": "p3", "y_significance": "informational", "is_weak": 0, "is_synthetic": 1},
+                {"pair_id": "p4", "y_significance": "editorial", "is_weak": 0, "is_synthetic": 1},
+            ]
+        )
+        validation_df = supervised_ml_corpus.pd.DataFrame(
+            [
+                {"pair_id": "v1", "y_significance": "critical", "is_weak": 0, "is_synthetic": 1},
+                {"pair_id": "v2", "y_significance": "important", "is_weak": 0, "is_synthetic": 1},
+                {"pair_id": "v3", "y_significance": "informational", "is_weak": 0, "is_synthetic": 1},
+                {"pair_id": "v4", "y_significance": "editorial", "is_weak": 0, "is_synthetic": 1},
+            ]
+        )
+        test_df = supervised_ml_corpus.pd.DataFrame(
+            [
+                {"pair_id": "t1", "y_significance": "critical", "is_weak": 0, "is_synthetic": 0},
+                {"pair_id": "t2", "y_significance": "important", "is_weak": 0, "is_synthetic": 0},
+                {"pair_id": "t3", "y_significance": "informational", "is_weak": 0, "is_synthetic": 1},
+                {"pair_id": "t4", "y_significance": "editorial", "is_weak": 0, "is_synthetic": 1},
+            ]
+        )
+        weak_df = supervised_ml_corpus.pd.DataFrame(
+            [{"pair_id": "w1", "y_significance": "critical", "is_weak": 1, "is_synthetic": 0}]
+        )
+
+        result = supervised_ml_corpus.validate_split_quality(train_df, validation_df, test_df, weak_df)
+
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["errors"], [])
+
+    def test_feature_schema_blocks_target_leakage(self):
+        feature_columns = supervised_ml_corpus.get_safe_training_feature_columns()
+        violations = supervised_ml_corpus.audit_feature_leakage(feature_columns)
+
+        self.assertEqual(violations, [])
+        all_columns = {
+            column_name
+            for columns in feature_columns.values()
+            for column_name in columns
+        }
+        self.assertNotIn("significance_label", all_columns)
+        self.assertNotIn("high_priority_label", all_columns)
+        self.assertNotIn("y_significance", all_columns)
+
+    def test_numeric_matrix_excludes_target_derived_columns(self):
+        dataframe = supervised_ml_corpus.pd.DataFrame(
+            [
+                {
+                    "old_length": 10,
+                    "new_length": 12,
+                    "length_delta": 2,
+                    "relative_length_delta": 0.2,
+                    "has_number": 1,
+                    "has_date": 0,
+                    "has_deadline_terms": 1,
+                    "has_obligation_terms": 0,
+                    "has_refusal_terms": 0,
+                    "has_document_terms": 0,
+                    "has_responsibility_terms": 0,
+                    "has_procedure_terms": 1,
+                    "has_payment_terms": 0,
+                    "has_editorial_terms": 0,
+                    "has_legal_reference": 1,
+                    "has_modal_verbs": 1,
+                    "rule_based_confidence": 0.8,
+                    "rule_based_requires_manual_review": 0,
+                    "high_priority_label": 1,
+                    "y_significance": "critical",
+                }
+            ]
+        )
+
+        _, numeric_columns = supervised_ml_corpus._build_numeric_matrix(dataframe)
+
+        self.assertNotIn("high_priority_label", numeric_columns)
+        self.assertNotIn("y_significance", numeric_columns)
 
     def test_baseline_training_creates_outputs(self):
         temp_dir = Path(tempfile.mkdtemp())
@@ -227,6 +319,7 @@ class SupervisedMlCorpusDashboardTests(TestCase):
                         "total_examples": 160,
                         "strict_examples": 120,
                         "weak_examples": 40,
+                        "balanced_split_passed": True,
                         "label_distribution": {"critical": 40},
                         "semantic_type_distribution": {"deadline_change": 20},
                         "source_proportions": {"gold": 0.2, "synthetic": 0.7, "weak": 0.1},
@@ -237,7 +330,7 @@ class SupervisedMlCorpusDashboardTests(TestCase):
                 encoding="utf-8",
             )
             (temp_dir / "split_metadata.json").write_text(
-                json.dumps({"train_size": 96, "test_size": 24, "validation_size": 12}, ensure_ascii=False),
+                json.dumps({"train_size": 96, "test_size": 24, "validation_size": 12, "split_method": "balanced_group_aware_stratified_split", "balanced_split_passed": True, "train_label_distribution": {"critical": 24, "important": 24, "informational": 24, "editorial": 24}, "validation_label_distribution": {"critical": 3, "important": 3, "informational": 3, "editorial": 3}, "test_label_distribution": {"critical": 6, "important": 6, "informational": 6, "editorial": 6}, "class_coverage_passed": True, "warnings": [], "leakage_pair_overlap_train_test": []}, ensure_ascii=False),
                 encoding="utf-8",
             )
             (temp_dir / "feature_schema.json").write_text(
@@ -256,6 +349,7 @@ class SupervisedMlCorpusDashboardTests(TestCase):
 
         self.assertEqual(result["status"], "available")
         self.assertEqual(result["total_examples"], 160)
+        self.assertTrue(result["balanced_split_passed"])
         self.assertEqual(len(result["figures"]["items"]), 1)
 
     def test_research_dashboard_shows_supervised_ml_block(self):
@@ -277,6 +371,7 @@ class SupervisedMlCorpusDashboardTests(TestCase):
                         "total_examples": 160,
                         "strict_examples": 120,
                         "weak_examples": 40,
+                        "balanced_split_passed": True,
                         "label_distribution": {"critical": 40},
                         "semantic_type_distribution": {"deadline_change": 20},
                         "source_proportions": {"gold": 0.2, "synthetic": 0.7, "weak": 0.1},
@@ -286,7 +381,7 @@ class SupervisedMlCorpusDashboardTests(TestCase):
                 encoding="utf-8",
             )
             (ml_dir / "split_metadata.json").write_text(
-                json.dumps({"train_size": 96, "test_size": 24, "validation_size": 12}, ensure_ascii=False),
+                json.dumps({"train_size": 96, "test_size": 24, "validation_size": 12, "split_method": "balanced_group_aware_stratified_split", "balanced_split_passed": True, "train_label_distribution": {"critical": 24, "important": 24, "informational": 24, "editorial": 24}, "validation_label_distribution": {"critical": 3, "important": 3, "informational": 3, "editorial": 3}, "test_label_distribution": {"critical": 6, "important": 6, "informational": 6, "editorial": 6}, "class_coverage_passed": True, "warnings": [], "leakage_pair_overlap_train_test": []}, ensure_ascii=False),
                 encoding="utf-8",
             )
             (ml_dir / "feature_schema.json").write_text("{}", encoding="utf-8")
@@ -315,3 +410,4 @@ class SupervisedMlCorpusDashboardTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Supervised ML corpus")
+        self.assertContains(response, "Balanced split")

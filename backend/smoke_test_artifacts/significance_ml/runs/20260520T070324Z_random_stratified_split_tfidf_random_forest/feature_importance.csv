@@ -1,0 +1,21 @@
+model,class_label,rank,feature_name,importance
+tfidf_random_forest,global,1,meta:absolute_length_delta,0.036592
+tfidf_random_forest,global,2,meta:relative_length_delta,0.03489
+tfidf_random_forest,global,3,meta:old_length,0.022846
+tfidf_random_forest,global,4,meta:new_length,0.0205
+tfidf_random_forest,global,5,tfidf:terminology_change terminology_change,0.017516
+tfidf_random_forest,global,6,tfidf:без,0.016994
+tfidf_random_forest,global,7,tfidf:изменен,0.016936
+tfidf_random_forest,global,8,tfidf:добавлена,0.015557
+tfidf_random_forest,global,9,tfidf:terminology_change,0.014553
+tfidf_random_forest,global,10,meta:op_moved,0.013428
+tfidf_random_forest,global,11,tfidf:formatting_or_editorial_change formatting_or_editorial_change,0.012115
+tfidf_random_forest,global,12,tfidf:замена,0.011478
+tfidf_random_forest,global,13,meta:op_added,0.011017
+tfidf_random_forest,global,14,tfidf:reference_change reference_change,0.010703
+tfidf_random_forest,global,15,tfidf:mixed_change,0.010565
+tfidf_random_forest,global,16,meta:has_deadline_words,0.010341
+tfidf_random_forest,global,17,tfidf:eligibility_change,0.010017
+tfidf_random_forest,global,18,tfidf:срок,0.009835
+tfidf_random_forest,global,19,tfidf:formatting_or_editorial_change,0.00976
+tfidf_random_forest,global,20,tfidf:payment_or_fee_change,0.009743

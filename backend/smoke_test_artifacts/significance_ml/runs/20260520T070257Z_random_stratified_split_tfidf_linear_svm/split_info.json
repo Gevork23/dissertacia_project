@@ -1,0 +1,20 @@
+{
+  "split_strategy": "random_stratified_split",
+  "metadata": {
+    "seed": 42
+  },
+  "train_size": 110,
+  "test_size": 28,
+  "train_class_distribution": {
+    "critical": 35,
+    "editorial": 17,
+    "important": 29,
+    "informational": 29
+  },
+  "test_class_distribution": {
+    "critical": 9,
+    "editorial": 4,
+    "important": 8,
+    "informational": 7
+  }
+}

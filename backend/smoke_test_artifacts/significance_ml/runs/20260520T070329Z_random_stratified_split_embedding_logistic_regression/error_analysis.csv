@@ -1,0 +1,4 @@
+document_id,text,true_label,predicted_label,probability,error_type
+synthetic_doc_008,Размер внутреннего сбора составляет 300 рублей. Размер внутреннего сбора составляет 500 рублей. Изменен размер внутреннего сбора. Изменен размер внутреннего сбора. payment_or_fee_change payment_or_fee_change,important,editorial,0.44275,false_negative
+synthetic_doc_009,Справочная информация о ходе процедуры доступна по телефону 8-800-100-10-10. Добавлен справочный телефон. Добавлен справочный телефон. contact_or_channel_change contact_or_channel_change,informational,critical,0.509436,false_positive
+synthetic_doc_010,Контрольный номер указывается в уведомлении. Контрольный номер указывается в уведомлении для последующей справки. Уточнено назначение номера. Уточнено назначение номера. clarification_change clarification_change,informational,important,0.480236,false_positive

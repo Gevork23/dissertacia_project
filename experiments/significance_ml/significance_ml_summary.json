@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-19T12:54:31+00:00",
+  "generated_at": "2026-05-19T14:02:52+00:00",
   "dataset_source": "experiments/ml_corpus/train.csv + experiments/ml_corpus/test.csv",
-  "total_examples": 141,
+  "total_examples": 138,
   "label_distribution": {
     "critical": 44,
-    "editorial": 23,
+    "editorial": 21,
     "important": 37,
-    "informational": 37
+    "informational": 36
   },
-  "train_size": 110,
-  "test_size": 31,
+  "train_size": 106,
+  "test_size": 32,
   "cv_folds": 0,
   "models_evaluated": [
     "rule_based_baseline",
@@ -17,34 +17,34 @@
     "hybrid_model"
   ],
   "rule_based_metrics": {
-    "accuracy": 0.5161,
-    "macro_precision": 0.7656,
-    "macro_recall": 0.7196,
-    "macro_f1": 0.584,
+    "accuracy": 0.6875,
+    "macro_precision": 0.8611,
+    "macro_recall": 0.6556,
+    "macro_f1": 0.6376,
     "per_label": {
       "critical": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "support": 2
+        "support": 10
       },
       "important": {
-        "precision": 0.0625,
+        "precision": 0.4444,
         "recall": 1.0,
-        "f1": 0.1176,
-        "support": 1
+        "f1": 0.6154,
+        "support": 8
       },
       "informational": {
+        "precision": 1.0,
+        "recall": 0.2222,
+        "f1": 0.3636,
+        "support": 9
+      },
+      "editorial": {
         "precision": 1.0,
         "recall": 0.4,
         "f1": 0.5714,
         "support": 5
-      },
-      "editorial": {
-        "precision": 1.0,
-        "recall": 0.4783,
-        "f1": 0.6471,
-        "support": 23
       }
     },
     "confusion_matrix_labels": [
@@ -55,71 +55,71 @@
     ],
     "confusion_matrix": [
       [
-        2,
+        10,
         0,
         0,
         0
       ],
       [
         0,
-        1,
+        8,
         0,
+        0
+      ],
+      [
+        0,
+        7,
+        2,
         0
       ],
       [
         0,
         3,
-        2,
-        0
-      ],
-      [
         0,
-        12,
-        0,
-        11
+        2
       ]
     ],
     "binary": {
-      "high_priority_precision": 0.1667,
+      "high_priority_precision": 0.6429,
       "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2858,
-      "tp": 3,
-      "fp": 15,
+      "high_priority_f1": 0.7826,
+      "tp": 18,
+      "fp": 10,
       "fn": 0,
-      "tn": 13,
-      "editorial_high_priority_false_positive_count": 12,
+      "tn": 4,
+      "editorial_high_priority_false_positive_count": 3,
       "important_critical_miss_count": 0
     }
   },
   "ml_metrics": {
-    "accuracy": 0.2258,
-    "macro_precision": 0.3042,
-    "macro_recall": 0.7,
-    "macro_f1": 0.3777,
+    "accuracy": 0.9062,
+    "macro_precision": 0.9078,
+    "macro_recall": 0.9097,
+    "macro_f1": 0.9019,
     "per_label": {
       "critical": {
-        "precision": 0.6667,
+        "precision": 0.9091,
         "recall": 1.0,
-        "f1": 0.8,
-        "support": 2
+        "f1": 0.9524,
+        "support": 10
       },
       "important": {
-        "precision": 0.05,
-        "recall": 1.0,
-        "f1": 0.0952,
-        "support": 1
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571,
+        "support": 8
       },
       "informational": {
-        "precision": 0.5,
-        "recall": 0.8,
-        "f1": 0.6154,
-        "support": 5
+        "precision": 0.8889,
+        "recall": 0.8889,
+        "f1": 0.8889,
+        "support": 9
       },
       "editorial": {
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
-        "support": 23
+        "precision": 0.8333,
+        "recall": 1.0,
+        "f1": 0.9091,
+        "support": 5
       }
     },
     "confusion_matrix_labels": [
@@ -130,75 +130,75 @@
     ],
     "confusion_matrix": [
       [
-        2,
+        10,
         0,
         0,
         0
       ],
       [
         0,
+        6,
+        1,
+        1
+      ],
+      [
         1,
         0,
-        0
-      ],
-      [
-        1,
-        0,
-        4,
+        8,
         0
       ],
       [
         0,
-        19,
-        4,
-        0
+        0,
+        0,
+        5
       ]
     ],
     "binary": {
-      "high_priority_precision": 0.1304,
-      "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2307,
-      "tp": 3,
-      "fp": 20,
-      "fn": 0,
-      "tn": 8,
-      "editorial_high_priority_false_positive_count": 19,
-      "important_critical_miss_count": 0
+      "high_priority_precision": 0.9412,
+      "high_priority_recall": 0.8889,
+      "high_priority_f1": 0.9143,
+      "tp": 16,
+      "fp": 1,
+      "fn": 2,
+      "tn": 13,
+      "editorial_high_priority_false_positive_count": 0,
+      "important_critical_miss_count": 2
     },
     "status": "available",
     "evaluation_plan": "fixed_train_test_split",
-    "train_size": 110,
-    "test_size": 31
+    "train_size": 106,
+    "test_size": 32
   },
   "hybrid_metrics": {
-    "accuracy": 0.4194,
-    "macro_precision": 0.6806,
-    "macro_recall": 0.687,
-    "macro_f1": 0.5303,
+    "accuracy": 0.6875,
+    "macro_precision": 0.8611,
+    "macro_recall": 0.6556,
+    "macro_f1": 0.6376,
     "per_label": {
       "critical": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "support": 2
+        "support": 10
       },
       "important": {
-        "precision": 0.0556,
+        "precision": 0.4444,
         "recall": 1.0,
-        "f1": 0.1053,
-        "support": 1
+        "f1": 0.6154,
+        "support": 8
       },
       "informational": {
-        "precision": 0.6667,
-        "recall": 0.4,
-        "f1": 0.5,
-        "support": 5
+        "precision": 1.0,
+        "recall": 0.2222,
+        "f1": 0.3636,
+        "support": 9
       },
       "editorial": {
         "precision": 1.0,
-        "recall": 0.3478,
-        "f1": 0.5161,
-        "support": 23
+        "recall": 0.4,
+        "f1": 0.5714,
+        "support": 5
       }
     },
     "confusion_matrix_labels": [
@@ -209,79 +209,79 @@
     ],
     "confusion_matrix": [
       [
-        2,
+        10,
         0,
         0,
         0
       ],
       [
         0,
-        1,
+        8,
         0,
+        0
+      ],
+      [
+        0,
+        7,
+        2,
         0
       ],
       [
         0,
         3,
-        2,
-        0
-      ],
-      [
         0,
-        14,
-        1,
-        8
+        2
       ]
     ],
     "binary": {
-      "high_priority_precision": 0.15,
+      "high_priority_precision": 0.6429,
       "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2609,
-      "tp": 3,
-      "fp": 17,
+      "high_priority_f1": 0.7826,
+      "tp": 18,
+      "fp": 10,
       "fn": 0,
-      "tn": 11,
-      "editorial_high_priority_false_positive_count": 14,
+      "tn": 4,
+      "editorial_high_priority_false_positive_count": 3,
       "important_critical_miss_count": 0
     },
     "status": "available"
   },
   "binary_high_priority_metrics": {
     "rule_based_baseline": {
-      "high_priority_precision": 0.1667,
+      "high_priority_precision": 0.6429,
       "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2858,
-      "tp": 3,
-      "fp": 15,
+      "high_priority_f1": 0.7826,
+      "tp": 18,
+      "fp": 10,
       "fn": 0,
-      "tn": 13,
-      "editorial_high_priority_false_positive_count": 12,
+      "tn": 4,
+      "editorial_high_priority_false_positive_count": 3,
       "important_critical_miss_count": 0
     },
     "ml_text_model": {
-      "high_priority_precision": 0.1304,
-      "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2307,
-      "tp": 3,
-      "fp": 20,
-      "fn": 0,
-      "tn": 8,
-      "editorial_high_priority_false_positive_count": 19,
-      "important_critical_miss_count": 0
+      "high_priority_precision": 0.9412,
+      "high_priority_recall": 0.8889,
+      "high_priority_f1": 0.9143,
+      "tp": 16,
+      "fp": 1,
+      "fn": 2,
+      "tn": 13,
+      "editorial_high_priority_false_positive_count": 0,
+      "important_critical_miss_count": 2
     },
     "hybrid_model": {
-      "high_priority_precision": 0.15,
+      "high_priority_precision": 0.6429,
       "high_priority_recall": 1.0,
-      "high_priority_f1": 0.2609,
-      "tp": 3,
-      "fp": 17,
+      "high_priority_f1": 0.7826,
+      "tp": 18,
+      "fp": 10,
       "fn": 0,
-      "tn": 11,
-      "editorial_high_priority_false_positive_count": 14,
+      "tn": 4,
+      "editorial_high_priority_false_positive_count": 3,
       "important_critical_miss_count": 0
     }
   },
-  "disagreement_count": 17,
+  "disagreement_count": 13,
   "limitations": [
     "This is an offline research experiment and not a production replacement for the rule-based significance layer.",
     "The labeled corpus is small and class-imbalanced; metric stability is limited, especially for singleton labels.",

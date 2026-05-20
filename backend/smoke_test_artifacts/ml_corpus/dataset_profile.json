@@ -1,0 +1,198 @@
+{
+  "generated_at": "2026-05-20T07:06:42+00:00",
+  "total_examples": 202,
+  "strict_examples": 153,
+  "weak_examples": 49,
+  "sources": {
+    "significance_results": 13,
+    "evaluation_corpus": 13,
+    "annotation_examples": 0,
+    "curated_synthetic": 160,
+    "real_world_weak": 49
+  },
+  "label_distribution": {
+    "critical": 72,
+    "editorial": 36,
+    "important": 53,
+    "informational": 41
+  },
+  "strict_label_distribution": {
+    "critical": 48,
+    "editorial": 23,
+    "important": 41,
+    "informational": 41
+  },
+  "weak_label_distribution": {
+    "critical": 24,
+    "editorial": 13,
+    "important": 12
+  },
+  "semantic_type_distribution": {
+    "editorial": 15,
+    "obligation": 14,
+    "procedure": 13,
+    "refusal_ground_change": 10,
+    "responsibility_change": 10,
+    "deadline_change": 10,
+    "obligation_change": 10,
+    "reference_change": 10,
+    "mixed_change": 10,
+    "contact_or_channel_change": 10,
+    "clarification_change": 10,
+    "procedure_change": 10,
+    "document_list_change": 10,
+    "payment_or_fee_change": 10,
+    "eligibility_change": 10,
+    "terminology_change": 10,
+    "formatting_or_editorial_change": 10,
+    "deadline": 9,
+    "document": 7,
+    "responsibility": 1,
+    "refusal": 1,
+    "informational": 1,
+    "structure": 1
+  },
+  "operation_type_distribution": {
+    "modified": 135,
+    "added": 56,
+    "moved": 11
+  },
+  "text_lengths": {
+    "old_mean": 64.14,
+    "new_mean": 91.84,
+    "combined_mean": 156.71
+  },
+  "source_proportions": {
+    "gold": 0.0644,
+    "synthetic": 0.6931,
+    "weak": 0.2426
+  },
+  "split_quality": {
+    "balanced_split_passed": true,
+    "errors": [],
+    "warnings": [],
+    "recommendations": [
+      "Fixed multiclass train/test split is suitable for reproducible scikit-learn experiments."
+    ]
+  },
+  "balanced_split_passed": true,
+  "min_class_count_train": 16,
+  "min_class_count_test": 5,
+  "split_warnings": [],
+  "recommended_evaluation_protocol": "Fixed train/test split is available; use macro F1 for multiclass significance, use high-priority recall/F1 for binary projection, report weak inference separately, and do not interpret curated synthetic corpus as a real-world benchmark.",
+  "split": {
+    "split_method": "balanced_group_aware_stratified_split",
+    "random_state": 42,
+    "strict_examples_count": 153,
+    "weak_examples_count": 49,
+    "train_size": 106,
+    "validation_size": 15,
+    "test_size": 32,
+    "train_label_distribution": {
+      "critical": 34,
+      "editorial": 16,
+      "important": 29,
+      "informational": 27
+    },
+    "validation_label_distribution": {
+      "critical": 4,
+      "editorial": 2,
+      "important": 4,
+      "informational": 5
+    },
+    "test_label_distribution": {
+      "critical": 10,
+      "editorial": 5,
+      "important": 8,
+      "informational": 9
+    },
+    "train_semantic_type_distribution": {
+      "clarification_change": 8,
+      "contact_or_channel_change": 6,
+      "deadline": 2,
+      "deadline_change": 7,
+      "document": 1,
+      "document_list_change": 6,
+      "editorial": 1,
+      "eligibility_change": 10,
+      "formatting_or_editorial_change": 9,
+      "mixed_change": 5,
+      "obligation": 1,
+      "obligation_change": 7,
+      "payment_or_fee_change": 6,
+      "procedure": 1,
+      "procedure_change": 6,
+      "reference_change": 8,
+      "refusal": 1,
+      "refusal_ground_change": 6,
+      "responsibility": 1,
+      "responsibility_change": 8,
+      "structure": 1,
+      "terminology_change": 5
+    },
+    "validation_semantic_type_distribution": {
+      "clarification_change": 1,
+      "contact_or_channel_change": 1,
+      "deadline_change": 2,
+      "document_list_change": 2,
+      "mixed_change": 2,
+      "payment_or_fee_change": 1,
+      "procedure_change": 1,
+      "reference_change": 1,
+      "refusal_ground_change": 1,
+      "responsibility_change": 1,
+      "terminology_change": 2
+    },
+    "test_semantic_type_distribution": {
+      "clarification_change": 1,
+      "contact_or_channel_change": 3,
+      "deadline": 1,
+      "deadline_change": 1,
+      "document_list_change": 2,
+      "editorial": 1,
+      "formatting_or_editorial_change": 1,
+      "informational": 1,
+      "mixed_change": 3,
+      "obligation": 1,
+      "obligation_change": 3,
+      "payment_or_fee_change": 3,
+      "procedure_change": 3,
+      "reference_change": 1,
+      "refusal_ground_change": 3,
+      "responsibility_change": 1,
+      "terminology_change": 3
+    },
+    "leakage_pair_overlap_train_test": [],
+    "leakage_pair_overlap_train_validation": [],
+    "leakage_pair_overlap_validation_test": [],
+    "leakage_relaxation_applied": true,
+    "leakage_relaxation_reason": "Curated synthetic examples were split row-level with stratification to guarantee label coverage across train/test and, when feasible, validation.",
+    "warnings": [],
+    "class_coverage_passed": true,
+    "class_coverage_errors": [],
+    "balanced_split_passed": true
+  },
+  "warnings": [],
+  "leakage_audit": {
+    "blocked_feature_names": [
+      "high_priority_label",
+      "significance_label",
+      "y_high_priority",
+      "y_semantic_type",
+      "y_significance"
+    ],
+    "violations": [],
+    "passed": true,
+    "note": "Target-derived fields are kept only as labels or analysis metadata and are excluded from model input features."
+  },
+  "artifacts": {
+    "full_dataset": "backend/smoke_test_artifacts/ml_corpus/full_dataset.csv",
+    "train": "backend/smoke_test_artifacts/ml_corpus/train.csv",
+    "validation": "backend/smoke_test_artifacts/ml_corpus/validation.csv",
+    "test": "backend/smoke_test_artifacts/ml_corpus/test.csv",
+    "weak_inference_dataset": "backend/smoke_test_artifacts/ml_corpus/weak_inference_dataset.csv",
+    "split_metadata": "backend/smoke_test_artifacts/ml_corpus/split_metadata.json",
+    "dataset_quality_report": "backend/smoke_test_artifacts/ml_corpus/dataset_quality_report.md",
+    "figures_dir": "backend/smoke_test_artifacts/ml_corpus/figures"
+  }
+}

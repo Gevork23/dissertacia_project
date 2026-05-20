@@ -12,3 +12,18 @@ profile = "black"
 line_length = 88
 py_version = 312
 skip = ["migrations"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["backend/**/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_configs = true
+exclude = ["backend/.*/migrations/"]

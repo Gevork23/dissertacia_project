@@ -1,0 +1,15 @@
+{
+  "model_name": "embedding_logistic_regression",
+  "model_family": "embedding",
+  "split_strategy": "group_split_document_id",
+  "random_seed": 42,
+  "search_type": "grid",
+  "search_space": {
+    "C": [
+      0.5,
+      1.0,
+      2.0
+    ]
+  },
+  "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+}

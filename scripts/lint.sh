@@ -44,7 +44,7 @@ python_has_lint_tools() {
 import importlib.util
 import sys
 
-mods = ("isort", "black", "flake8")
+mods = ("isort", "black", "ruff", "flake8", "mypy")
 ok = all(importlib.util.find_spec(name) is not None for name in mods)
 sys.exit(0 if ok else 1)
 PY
@@ -59,7 +59,7 @@ python - <<'"'"'PY'"'"'
 import importlib.util
 import sys
 
-mods = ("isort", "black", "flake8")
+mods = ("isort", "black", "ruff", "flake8", "mypy")
 ok = all(importlib.util.find_spec(name) is not None for name in mods)
 sys.exit(0 if ok else 1)
 PY
@@ -71,7 +71,12 @@ run_local_lint() {
   cd "$ROOT_DIR"
   "$py" -m isort --check-only "${LINT_TARGETS[@]}"
   "$py" -m black --check "${LINT_TARGETS[@]}"
+  "$py" -m ruff check "${LINT_TARGETS[@]}"
   "$py" -m flake8 "${LINT_TARGETS[@]}"
+  "$py" -m mypy \
+    backend/documents/services/significance_ml_experiment.py \
+    backend/documents/services/supervised_ml_corpus.py \
+    backend/config/settings.py
 }
 
 run_docker_lint() {
@@ -79,7 +84,12 @@ run_docker_lint() {
 cd /app &&
 python -m isort --check-only backend/config backend/core backend/documents backend/manage.py tools &&
 python -m black --check backend/config backend/core backend/documents backend/manage.py tools &&
-python -m flake8 backend/config backend/core backend/documents backend/manage.py tools
+python -m ruff check backend/config backend/core backend/documents backend/manage.py tools &&
+python -m flake8 backend/config backend/core backend/documents backend/manage.py tools &&
+python -m mypy \
+  backend/documents/services/significance_ml_experiment.py \
+  backend/documents/services/supervised_ml_corpus.py \
+  backend/config/settings.py
 '
 }
 
@@ -89,6 +99,6 @@ elif docker_backend_has_lint_tools; then
   run_docker_lint
 else
   echo "lint.sh: не найдено рабочее окружение для lint." >&2
-  echo "Нужно либо локальное Python-окружение с isort/black/flake8, либо backend-контейнер с этими пакетами." >&2
+  echo "Нужно либо локальное Python-окружение с isort/black/ruff/flake8/mypy, либо backend-контейнер с этими пакетами." >&2
   exit 1
 fi

@@ -30,3 +30,10 @@ Main outputs:
 - `baseline_model_results.csv`
 - `baseline_confusion_matrix.csv`
 - `baseline_feature_importance.csv`
+
+Balanced split protocol:
+- strict supervised splits exclude weak examples;
+- train/test must both contain all significance classes;
+- non-synthetic examples prioritize group-aware no-leakage behavior;
+- curated synthetic examples may relax pair grouping to preserve class coverage.
+

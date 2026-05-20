@@ -52,6 +52,13 @@ DEFAULT_ANNOTATION_EXPORT_CSV = PROJECT_ROOT / "exports" / "annotations_export.c
 
 SIGNIFICANCE_LABELS = ("critical", "important", "informational", "editorial")
 HIGH_PRIORITY_LABELS = {"critical", "important"}
+LEAKAGE_BLOCKED_FEATURES = {
+    "significance_label",
+    "high_priority_label",
+    "y_significance",
+    "y_high_priority",
+    "y_semantic_type",
+}
 
 NUMBER_RE = re.compile(r"\d")
 DATE_RE = re.compile(
@@ -87,6 +94,7 @@ class CorpusExample:
     example_id: str
     source: str
     source_file: str
+    document_id: str
     pair_id: str
     change_id: str
     old_text: str
@@ -95,7 +103,6 @@ class CorpusExample:
     operation_type: str
     semantic_type: str
     significance_label: str
-    high_priority_label: int
     is_gold: int
     is_synthetic: int
     is_weak: int
@@ -174,6 +181,7 @@ def _make_example(
     example_id: str,
     source: str,
     source_file: str,
+    document_id: str,
     pair_id: str,
     change_id: str,
     old_text: str,
@@ -207,6 +215,7 @@ def _make_example(
         example_id=example_id,
         source=source,
         source_file=source_file,
+        document_id=document_id,
         pair_id=pair_id,
         change_id=change_id,
         old_text=old_text,
@@ -215,7 +224,6 @@ def _make_example(
         operation_type=operation_type,
         semantic_type=semantic_type,
         significance_label=significance_label,
-        high_priority_label=_high_priority(significance_label),
         is_gold=int(is_gold),
         is_synthetic=int(is_synthetic),
         is_weak=int(is_weak),
@@ -275,6 +283,7 @@ def collect_gold_examples_from_significance_results(
                     example_id=f"{pair_id}:{change_id}",
                     source="significance_gold_results",
                     source_file=rel_repo_path(path),
+                    document_id=str(row.get("document_id") or pair_id),
                     pair_id=pair_id,
                     change_id=change_id,
                     old_text=str(row.get("old_text") or ""),
@@ -312,6 +321,7 @@ def collect_gold_examples_from_evaluation_corpus(
                     example_id=f"{pair_id}:{change_id}",
                     source="evaluation_corpus_annotation",
                     source_file=rel_repo_path(annotation_path),
+                    document_id=str(payload.get("document_id") or pair_id),
                     pair_id=pair_id,
                     change_id=change_id,
                     old_text=str(raw_change.get("old_text") or ""),
@@ -364,6 +374,7 @@ def collect_annotation_examples_from_db() -> tuple[list[CorpusExample], list[str
                     example_id=f"db:{annotation.id}",
                     source="annotation_studio_db",
                     source_file="database:GoldChangeAnnotation",
+                    document_id=str(change_item.comparison.document_id),
                     pair_id=pair_id,
                     change_id=change_id,
                     old_text=str(getattr(change_item, "old_text", "") or ""),
@@ -406,6 +417,7 @@ def collect_annotation_examples_from_exports(
                         example_id=f"export_json:{change_id}:{index}",
                         source="annotation_export_json",
                         source_file=rel_repo_path(json_path),
+                        document_id=str(row.get("document_id") or pair_id),
                         pair_id=pair_id,
                         change_id=change_id,
                         old_text=str(row.get("old_text") or ""),
@@ -718,6 +730,7 @@ def generate_curated_synthetic_examples() -> list[CorpusExample]:
                     example_id=f"{pair_id}:chg_001",
                     source="curated_synthetic",
                     source_file="generated:curated_synthetic",
+                    document_id=f"synthetic_doc_{family_index:03d}",
                     pair_id=pair_id,
                     change_id="chg_001",
                     old_text=variant["old"],
@@ -755,6 +768,7 @@ def collect_weak_examples(
                     example_id=f"weak:{pair_id}:{change_id}",
                     source="real_world_weak_trace",
                     source_file=rel_repo_path(trace_path),
+                    document_id=str(row.get("document_id") or pair_id),
                     pair_id=pair_id,
                     change_id=f"chg_{change_id}",
                     old_text=str(row.get("old_preview") or ""),
@@ -850,6 +864,371 @@ def _group_stratified_split(
     return train_df, test_df, metadata
 
 
+def _safe_stratified_split(
+    df: pd.DataFrame,
+    *,
+    test_size: float | int,
+    random_state: int,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if df.empty:
+        return df.copy(), df.copy()
+    if len(df) == 1:
+        return df.copy(), df.iloc[0:0].copy()
+
+    labels = df["y_significance"].astype(str)
+    min_count = labels.value_counts().min() if not labels.empty else 0
+    stratify = labels if labels.nunique() > 1 and min_count >= 2 else None
+    try:
+        left_idx, right_idx = train_test_split(
+            df.index.tolist(),
+            test_size=test_size,
+            random_state=random_state,
+            stratify=stratify,
+        )
+    except ValueError:
+        left_idx, right_idx = train_test_split(
+            df.index.tolist(),
+            test_size=test_size,
+            random_state=random_state,
+            stratify=None,
+        )
+    return df.loc[left_idx].copy(), df.loc[right_idx].copy()
+
+
+def _ensure_label_minimums(
+    *,
+    source_df: pd.DataFrame,
+    target_df: pd.DataFrame,
+    donor_df: pd.DataFrame,
+    min_counts: dict[str, int],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if source_df.empty:
+        return target_df, donor_df
+
+    for label, required in min_counts.items():
+        if required <= 0:
+            continue
+        current = int((target_df["y_significance"] == label).sum()) if not target_df.empty else 0
+        needed = required - current
+        if needed <= 0:
+            continue
+        candidates = donor_df[donor_df["y_significance"] == label]
+        if candidates.empty:
+            continue
+        move = candidates.head(needed)
+        donor_df = donor_df.drop(index=move.index)
+        target_df = pd.concat([target_df, move], ignore_index=False)
+    return target_df, donor_df
+
+
+def _distribution_dict(df: pd.DataFrame, column: str) -> dict[str, int]:
+    if df.empty or column not in df.columns:
+        return {}
+    return df[column].astype(str).value_counts().sort_index().to_dict()
+
+
+def get_safe_training_feature_columns() -> dict[str, list[str]]:
+    return {
+        "text_columns": ["old_text", "new_text", "combined_text"],
+        "categorical_columns": [
+            "document_id",
+            "source",
+            "operation_type",
+            "semantic_type",
+            "text_complexity_bucket",
+        ],
+        "binary_feature_columns": [
+            "has_number",
+            "has_date",
+            "has_deadline_terms",
+            "has_obligation_terms",
+            "has_refusal_terms",
+            "has_document_terms",
+            "has_responsibility_terms",
+            "has_procedure_terms",
+            "has_payment_terms",
+            "has_editorial_terms",
+            "has_legal_reference",
+            "has_modal_verbs",
+            "rule_based_requires_manual_review",
+        ],
+        "numeric_feature_columns": [
+            "old_length",
+            "new_length",
+            "length_delta",
+            "relative_length_delta",
+            "rule_based_confidence",
+        ],
+    }
+
+
+def audit_feature_leakage(feature_columns: dict[str, list[str]]) -> list[str]:
+    violations: list[str] = []
+    for group_name, columns in feature_columns.items():
+        for column_name in columns:
+            if column_name in LEAKAGE_BLOCKED_FEATURES:
+                violations.append(
+                    f"{group_name} contains blocked target-derived feature: {column_name}"
+                )
+    return violations
+
+
+def _concat_frames(*frames: pd.DataFrame) -> pd.DataFrame:
+    non_empty = [frame for frame in frames if frame is not None and not frame.empty]
+    if not non_empty:
+        for frame in frames:
+            if frame is not None:
+                return frame.iloc[0:0].copy()
+        return pd.DataFrame()
+    return pd.concat(non_empty, ignore_index=True)
+
+
+def _pair_overlap(a: pd.DataFrame, b: pd.DataFrame) -> list[str]:
+    if a.empty or b.empty or "pair_id" not in a.columns or "pair_id" not in b.columns:
+        return []
+    return sorted(set(a["pair_id"].dropna().astype(str)).intersection(set(b["pair_id"].dropna().astype(str))))
+
+
+def validate_split_quality(
+    train_df: pd.DataFrame,
+    validation_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    weak_df: pd.DataFrame,
+) -> dict[str, Any]:
+    errors: list[str] = []
+    warnings_list: list[str] = []
+
+    train_labels = set(train_df["y_significance"].astype(str).unique()) if not train_df.empty else set()
+    val_labels = set(validation_df["y_significance"].astype(str).unique()) if not validation_df.empty else set()
+    test_labels = set(test_df["y_significance"].astype(str).unique()) if not test_df.empty else set()
+    expected = set(SIGNIFICANCE_LABELS)
+
+    missing_train = sorted(expected - train_labels)
+    missing_test = sorted(expected - test_labels)
+    if missing_train:
+        errors.append(f"Train split is missing labels: {', '.join(missing_train)}")
+    if missing_test:
+        errors.append(f"Test split is missing labels: {', '.join(missing_test)}")
+
+    if not validation_df.empty:
+        missing_validation = sorted(expected - val_labels)
+        if missing_validation:
+            warnings_list.append(
+                f"Validation split is missing labels: {', '.join(missing_validation)}"
+            )
+    else:
+        warnings_list.append("Validation split is empty.")
+
+    weak_leakage = {
+        "train": bool(not train_df.empty and train_df["is_weak"].astype(int).any()),
+        "validation": bool(not validation_df.empty and validation_df["is_weak"].astype(int).any()),
+        "test": bool(not test_df.empty and test_df["is_weak"].astype(int).any()),
+    }
+    if any(weak_leakage.values()):
+        errors.append("Weak examples leaked into strict train/validation/test splits.")
+
+    overlap_train_test = _pair_overlap(train_df, test_df)
+    overlap_train_val = _pair_overlap(train_df, validation_df)
+    overlap_val_test = _pair_overlap(validation_df, test_df)
+
+    def _nonsynthetic_overlap(left: pd.DataFrame, right: pd.DataFrame, overlaps: list[str]) -> list[str]:
+        if not overlaps:
+            return []
+        left_pairs = left[left["is_synthetic"] == 0]["pair_id"].astype(str).unique().tolist() if not left.empty else []
+        right_pairs = right[right["is_synthetic"] == 0]["pair_id"].astype(str).unique().tolist() if not right.empty else []
+        return sorted(set(overlaps).intersection(left_pairs).intersection(right_pairs))
+
+    nonsynthetic_train_test = _nonsynthetic_overlap(train_df, test_df, overlap_train_test)
+    nonsynthetic_train_val = _nonsynthetic_overlap(train_df, validation_df, overlap_train_val)
+    nonsynthetic_val_test = _nonsynthetic_overlap(validation_df, test_df, overlap_val_test)
+    if nonsynthetic_train_test:
+        errors.append(
+            "Non-synthetic pair leakage between train and test: " + ", ".join(nonsynthetic_train_test)
+        )
+    if nonsynthetic_train_val:
+        warnings_list.append(
+            "Non-synthetic pair leakage between train and validation: " + ", ".join(nonsynthetic_train_val)
+        )
+    if nonsynthetic_val_test:
+        warnings_list.append(
+            "Non-synthetic pair leakage between validation and test: " + ", ".join(nonsynthetic_val_test)
+        )
+
+    recommendations = []
+    if missing_train or missing_test:
+        recommendations.append("Increase per-class synthetic coverage or relax pair grouping for synthetic examples.")
+    if not validation_df.empty and sorted(expected - val_labels):
+        recommendations.append("Reduce validation size or redistribute synthetic examples to cover all labels.")
+    if not recommendations:
+        recommendations.append("Fixed multiclass train/test split is suitable for reproducible scikit-learn experiments.")
+
+    return {
+        "passed": not errors,
+        "errors": errors,
+        "warnings": warnings_list,
+        "label_coverage": {
+            "train": sorted(train_labels),
+            "validation": sorted(val_labels),
+            "test": sorted(test_labels),
+        },
+        "weak_leakage": weak_leakage,
+        "pair_leakage": {
+            "train_test": overlap_train_test,
+            "train_validation": overlap_train_val,
+            "validation_test": overlap_val_test,
+            "nonsynthetic_train_test": nonsynthetic_train_test,
+            "nonsynthetic_train_validation": nonsynthetic_train_val,
+            "nonsynthetic_validation_test": nonsynthetic_val_test,
+        },
+        "source_leakage": {
+            "train_test_synthetic_overlap_only": bool(overlap_train_test and not nonsynthetic_train_test),
+        },
+        "recommendations": recommendations,
+    }
+
+
+def _balanced_group_aware_stratified_split(
+    strict_df: pd.DataFrame,
+    *,
+    random_state: int = 42,
+    train_ratio: float = 0.7,
+    validation_ratio: float = 0.1,
+    test_ratio: float = 0.2,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    strict_df = strict_df.copy()
+    synthetic_df = strict_df[strict_df["is_synthetic"] == 1].copy()
+    locked_df = strict_df[strict_df["is_synthetic"] == 0].copy()
+
+    locked_train = locked_df.iloc[0:0].copy()
+    locked_val = locked_df.iloc[0:0].copy()
+    locked_test = locked_df.iloc[0:0].copy()
+    if not locked_df.empty:
+        locked_train, locked_test, _ = _group_stratified_split(
+            locked_df,
+            test_size=test_ratio,
+            random_state=random_state,
+        )
+        if not locked_train.empty:
+            locked_train, locked_val = _create_validation_split(
+                locked_train,
+                validation_fraction_of_total=validation_ratio,
+                random_state=random_state,
+            )
+
+    synth_train = synthetic_df.iloc[0:0].copy()
+    synth_val = synthetic_df.iloc[0:0].copy()
+    synth_test = synthetic_df.iloc[0:0].copy()
+    leakage_relaxation_applied = False
+    leakage_relaxation_reason = ""
+    if not synthetic_df.empty:
+        synth_train_pool, synth_test = _safe_stratified_split(
+            synthetic_df,
+            test_size=test_ratio,
+            random_state=random_state,
+        )
+        if not synth_train_pool.empty:
+            validation_fraction_of_train_pool = validation_ratio / max(train_ratio + validation_ratio, 1e-9)
+            validation_fraction_of_train_pool = min(max(validation_fraction_of_train_pool, 0.05), 0.5)
+            synth_train, synth_val = _safe_stratified_split(
+                synth_train_pool,
+                test_size=validation_fraction_of_train_pool,
+                random_state=random_state,
+            )
+
+        label_counts = synthetic_df["y_significance"].value_counts().to_dict()
+        min_train_counts = {
+            label: (5 if label_counts.get(label, 0) >= 10 else 1 if label_counts.get(label, 0) > 0 else 0)
+            for label in SIGNIFICANCE_LABELS
+        }
+        min_test_counts = {
+            label: (3 if label_counts.get(label, 0) >= 10 else 1 if label_counts.get(label, 0) > 0 else 0)
+            for label in SIGNIFICANCE_LABELS
+        }
+        min_val_counts = {
+            label: (1 if label_counts.get(label, 0) >= 12 else 0)
+            for label in SIGNIFICANCE_LABELS
+        }
+
+        synth_train, synth_val = _ensure_label_minimums(
+            source_df=synthetic_df,
+            target_df=synth_train,
+            donor_df=synth_val,
+            min_counts=min_train_counts,
+        )
+        synth_test, synth_train = _ensure_label_minimums(
+            source_df=synthetic_df,
+            target_df=synth_test,
+            donor_df=synth_train,
+            min_counts=min_test_counts,
+        )
+        synth_val, synth_train = _ensure_label_minimums(
+            source_df=synthetic_df,
+            target_df=synth_val,
+            donor_df=synth_train,
+            min_counts=min_val_counts,
+        )
+
+        leakage_relaxation_applied = True
+        leakage_relaxation_reason = (
+            "Curated synthetic examples were split row-level with stratification to guarantee label coverage "
+            "across train/test and, when feasible, validation."
+        )
+
+    train_df = _concat_frames(locked_train, synth_train)
+    validation_df = _concat_frames(locked_val, synth_val)
+    test_df = _concat_frames(locked_test, synth_test)
+
+    for frame in (train_df, validation_df, test_df):
+        if not frame.empty:
+            frame.sort_values(["y_significance", "pair_id", "change_id"], inplace=True, kind="stable")
+            frame.reset_index(drop=True, inplace=True)
+
+    validation_possible = True
+    for label in SIGNIFICANCE_LABELS:
+        strict_count = int((strict_df["y_significance"] == label).sum())
+        if strict_count < 3:
+            validation_possible = False
+            break
+
+    validation_labels = set(validation_df["y_significance"].astype(str).unique()) if not validation_df.empty else set()
+    if validation_possible and not set(SIGNIFICANCE_LABELS).issubset(validation_labels):
+        leakage_relaxation_applied = True
+        leakage_relaxation_reason = (
+            leakage_relaxation_reason + " Validation split was reduced where necessary to preserve train/test class coverage."
+        ).strip()
+
+    split_metadata = {
+        "split_method": "balanced_group_aware_stratified_split",
+        "random_state": random_state,
+        "strict_examples_count": int(len(strict_df)),
+        "weak_examples_count": 0,
+        "train_size": int(len(train_df)),
+        "validation_size": int(len(validation_df)),
+        "test_size": int(len(test_df)),
+        "train_label_distribution": _distribution_dict(train_df, "y_significance"),
+        "validation_label_distribution": _distribution_dict(validation_df, "y_significance"),
+        "test_label_distribution": _distribution_dict(test_df, "y_significance"),
+        "train_semantic_type_distribution": _distribution_dict(train_df, "y_semantic_type"),
+        "validation_semantic_type_distribution": _distribution_dict(validation_df, "y_semantic_type"),
+        "test_semantic_type_distribution": _distribution_dict(test_df, "y_semantic_type"),
+        "leakage_pair_overlap_train_test": _pair_overlap(train_df, test_df),
+        "leakage_pair_overlap_train_validation": _pair_overlap(train_df, validation_df),
+        "leakage_pair_overlap_validation_test": _pair_overlap(validation_df, test_df),
+        "leakage_relaxation_applied": leakage_relaxation_applied,
+        "leakage_relaxation_reason": leakage_relaxation_reason,
+        "warnings": [],
+    }
+    quality = validate_split_quality(train_df, validation_df, test_df, strict_df.iloc[0:0].copy())
+    split_metadata["class_coverage_passed"] = not (
+        sorted(set(SIGNIFICANCE_LABELS) - set(split_metadata["train_label_distribution"].keys()))
+        or sorted(set(SIGNIFICANCE_LABELS) - set(split_metadata["test_label_distribution"].keys()))
+    )
+    split_metadata["class_coverage_errors"] = quality["errors"]
+    split_metadata["balanced_split_passed"] = quality["passed"]
+    split_metadata["warnings"] = quality["warnings"]
+    return train_df, validation_df, test_df, split_metadata
+
+
 def _create_validation_split(
     train_df: pd.DataFrame,
     *,
@@ -938,11 +1317,11 @@ def _build_dataset_quality_report(
     lines = [
         "# Dataset quality report",
         "",
-        "## Назначение",
+        "## ??????????",
         "",
-        "Корпус предназначен для supervised ML-экспериментов по классификации значимости изменений и не заменяет production rule-based significance layer.",
+        "?????? ???????????? ??? supervised ML-????????????? ?? ????????????? ?????????? ????????? ? ?? ???????? production rule-based significance layer.",
         "",
-        "## Источники данных",
+        "## ????????? ??????",
         "",
     ]
     for key, value in profile["sources"].items():
@@ -950,16 +1329,16 @@ def _build_dataset_quality_report(
     lines.extend(
         [
             "",
-            "## Размер корпуса",
+            "## ?????? ???????",
             "",
-            f"- Всего examples: {profile['total_examples']}",
+            f"- ????? examples: {profile['total_examples']}",
             f"- Strict supervised examples: {profile['strict_examples']}",
             f"- Weak examples: {profile['weak_examples']}",
             f"- Train size: {profile['split']['train_size']}",
             f"- Test size: {profile['split']['test_size']}",
             f"- Validation size: {profile['split']['validation_size']}",
             "",
-            "## Распределение labels",
+            "## ????????????? labels",
             "",
         ]
     )
@@ -968,7 +1347,7 @@ def _build_dataset_quality_report(
     lines.extend(
         [
             "",
-            "## Распределение semantic types",
+            "## ????????????? semantic types",
             "",
         ]
     )
@@ -977,7 +1356,7 @@ def _build_dataset_quality_report(
     lines.extend(
         [
             "",
-            "## Распределение operation types",
+            "## ????????????? operation types",
             "",
         ]
     )
@@ -986,13 +1365,29 @@ def _build_dataset_quality_report(
     lines.extend(
         [
             "",
-            "## Средние длины текстов",
+            "## Split quality",
             "",
-            f"- Средняя длина old_text: {profile['text_lengths']['old_mean']}",
-            f"- Средняя длина new_text: {profile['text_lengths']['new_mean']}",
-            f"- Средняя длина combined_text: {profile['text_lengths']['combined_mean']}",
+            "?????????? ?????? split ????? ???????? ????? `editorial` ????? ??????? ? test, ??? ?????? multiclass ML-?????? ????????????.",
+            "??????? ???????? ?????????? balanced group-aware split: ??? real/gold/evaluation examples ??????????? ??????????? group-aware leakage control, ? ??? curated synthetic examples ??????????? controlled relaxation ???? ???????? ??????? ? train ? test.",
             "",
-            "## Доли источников",
+            f"- Split method: {profile['split']['split_method']}",
+            f"- Balanced split passed: {profile['split_quality']['balanced_split_passed']}",
+            f"- Train labels: {profile['split']['train_label_distribution']}",
+            f"- Validation labels: {profile['split']['validation_label_distribution']}",
+            f"- Test labels: {profile['split']['test_label_distribution']}",
+            f"- Train/test pair overlap: {profile['split']['leakage_pair_overlap_train_test']}",
+            f"- Train/validation pair overlap: {profile['split']['leakage_pair_overlap_train_validation']}",
+            f"- Validation/test pair overlap: {profile['split']['leakage_pair_overlap_validation_test']}",
+            f"- Leakage relaxation applied: {profile['split'].get('leakage_relaxation_applied', False)}",
+            f"- Leakage relaxation reason: {profile['split'].get('leakage_relaxation_reason', '')}",
+            "",
+            "## ??????? ????? ???????",
+            "",
+            f"- ??????? ????? old_text: {profile['text_lengths']['old_mean']}",
+            f"- ??????? ????? new_text: {profile['text_lengths']['new_mean']}",
+            f"- ??????? ????? combined_text: {profile['text_lengths']['combined_mean']}",
+            "",
+            "## ???? ??????????",
             "",
             f"- Gold: {profile['source_proportions']['gold']}",
             f"- Synthetic: {profile['source_proportions']['synthetic']}",
@@ -1000,17 +1395,18 @@ def _build_dataset_quality_report(
             "",
             "## Leakage checks",
             "",
-            f"- Pair overlap train/test: {profile['split']['leakage_pair_overlap']}",
+            f"- Pair overlap train/test: {profile['split']['leakage_pair_overlap_train_test']}",
             "",
-            "## Ограничения",
+            "## ???????????",
             "",
-            "- Curated synthetic examples являются controlled supervised corpus и не являются real-world legal benchmark.",
-            "- Weak real-world examples вынесены в отдельный inference layer и не используются в strict train/test split.",
-            "- Annotation Studio examples подключаются как optional high-priority gold source и зависят от наличия локальной базы или export artifacts.",
+            "- Curated synthetic examples ???????? controlled supervised corpus ? ?? ???????? real-world legal benchmark.",
+            "- Weak real-world examples ???????? ? ????????? inference layer ? ?? ???????????? ? strict train/test split.",
+            "- Annotation Studio examples ???????????? ??? optional high-priority gold source ? ??????? ?? ??????? ????????? ???? ??? export artifacts.",
             "",
-            "## Пригодность для scikit-learn",
+            "## ??????????? ??? scikit-learn",
             "",
-            "Корпус содержит текстовые поля, бинарные lexical features, numeric length features и устойчивые target columns (`y_significance`, `y_high_priority`, `y_semantic_type`), что делает его пригодным для классических supervised ML baseline-экспериментов.",
+            "?????? ???????? ????????? ????, ???????? lexical features, numeric length features ? ?????????? target columns (`y_significance`, `y_high_priority`, `y_semantic_type`), ??? ?????? ??? ????????? ??? ???????????? supervised ML baseline-?????????????.",
+            f"Recommended protocol: {profile['recommended_evaluation_protocol']}",
         ]
     )
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1052,27 +1448,22 @@ def build_supervised_ml_corpus(
     strict_df = full_df[full_df["is_weak"] == 0].copy()
     weak_df = full_df[full_df["is_weak"] == 1].copy()
 
-    train_df, test_df, split_info = _group_stratified_split(
+    train_df, validation_df, test_df, split_info = _balanced_group_aware_stratified_split(
         strict_df,
-        test_size=0.2,
         random_state=random_state,
+        train_ratio=0.7,
+        validation_ratio=0.1,
+        test_ratio=0.2,
     )
-    train_df, validation_df = _create_validation_split(
-        train_df,
-        validation_fraction_of_total=0.1,
-        random_state=random_state,
+    split_quality = validate_split_quality(train_df, validation_df, test_df, weak_df)
+    split_info["weak_examples_count"] = int(len(weak_df))
+    split_info["balanced_split_passed"] = split_quality["passed"]
+    split_info["class_coverage_passed"] = not bool(
+        sorted(set(SIGNIFICANCE_LABELS) - set(split_info["train_label_distribution"].keys()))
+        or sorted(set(SIGNIFICANCE_LABELS) - set(split_info["test_label_distribution"].keys()))
     )
-
-    split_info.update(
-        {
-            "train_size": int(len(train_df)),
-            "test_size": int(len(test_df)),
-            "validation_size": int(len(validation_df)),
-            "train_label_distribution": train_df["y_significance"].value_counts().sort_index().to_dict(),
-            "test_label_distribution": test_df["y_significance"].value_counts().sort_index().to_dict(),
-            "validation_label_distribution": validation_df["y_significance"].value_counts().sort_index().to_dict(),
-        }
-    )
+    split_info["class_coverage_errors"] = split_quality["errors"]
+    split_info["warnings"] = split_quality["warnings"]
 
     full_dataset_path = output_dir / "full_dataset.csv"
     train_path = output_dir / "train.csv"
@@ -1102,34 +1493,33 @@ def build_supervised_ml_corpus(
     )
 
     feature_schema = {
-        "text_columns": ["old_text", "new_text", "combined_text"],
-        "categorical_columns": ["operation_type", "semantic_type", "significance_label", "text_complexity_bucket"],
-        "binary_feature_columns": [
-            "has_number",
-            "has_date",
-            "has_deadline_terms",
-            "has_obligation_terms",
-            "has_refusal_terms",
-            "has_document_terms",
-            "has_responsibility_terms",
-            "has_procedure_terms",
-            "has_payment_terms",
-            "has_editorial_terms",
-            "has_legal_reference",
-            "has_modal_verbs",
-        ],
-        "numeric_feature_columns": [
-            "old_length",
-            "new_length",
-            "length_delta",
-            "relative_length_delta",
-            "rule_based_confidence",
-        ],
+        **get_safe_training_feature_columns(),
         "target_columns": {
             "y_significance": list(SIGNIFICANCE_LABELS),
             "y_high_priority": [0, 1],
             "y_semantic_type": sorted(full_df["y_semantic_type"].dropna().unique().tolist()),
         },
+    }
+    leakage_violations = audit_feature_leakage(
+        {
+            key: value
+            for key, value in feature_schema.items()
+            if key in {
+                "text_columns",
+                "categorical_columns",
+                "binary_feature_columns",
+                "numeric_feature_columns",
+            }
+        }
+    )
+    feature_schema["leakage_audit"] = {
+        "blocked_feature_names": sorted(LEAKAGE_BLOCKED_FEATURES),
+        "violations": leakage_violations,
+        "passed": not leakage_violations,
+        "note": (
+            "Target-derived fields are kept only as labels or analysis metadata and are "
+            "excluded from model input features."
+        ),
     }
     _write_json(feature_schema_path, feature_schema)
 
@@ -1161,17 +1551,61 @@ def build_supervised_ml_corpus(
         xlabel="Characters in new_text",
     )
     if MATPLOTLIB_AVAILABLE:
-        split_counts = pd.Series(
+        split_counts = pd.DataFrame(
             {
-                "train": len(train_df),
-                "validation": len(validation_df),
-                "test": len(test_df),
+                "train": pd.Series(split_info["train_label_distribution"]),
+                "validation": pd.Series(split_info["validation_label_distribution"]),
+                "test": pd.Series(split_info["test_label_distribution"]),
             }
         )
+        split_counts = split_counts.fillna(0).astype(int).reindex(list(SIGNIFICANCE_LABELS)).fillna(0).astype(int)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        x = np.arange(len(split_counts.index))
+        width = 0.25
+        ax.bar(x - width, split_counts["train"].values, width=width, label="train", color="#2563eb")
+        ax.bar(x, split_counts["validation"].values, width=width, label="validation", color="#0f766e")
+        ax.bar(x + width, split_counts["test"].values, width=width, label="test", color="#b45309")
+        ax.set_xticks(x)
+        ax.set_xticklabels(split_counts.index, rotation=20, ha="right")
+        ax.set_title("Train / validation / test label distribution")
+        ax.set_xlabel("Significance label")
+        ax.set_ylabel("Count")
+        ax.legend()
+        fig.tight_layout()
+        fig.savefig(figures_dir / "train_test_distribution.png", dpi=160)
+        plt.close(fig)
+
+        source_split = pd.DataFrame(
+            {
+                "train": train_df["source"].value_counts(),
+                "validation": validation_df["source"].value_counts(),
+                "test": test_df["source"].value_counts(),
+            }
+        ).fillna(0)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        bottom = np.zeros(len(source_split.columns))
+        colors = ["#2563eb", "#0f766e", "#7c3aed", "#b45309", "#dc2626", "#4b5563"]
+        for idx, source_name in enumerate(source_split.index):
+            values = source_split.loc[source_name].values
+            ax.bar(source_split.columns, values, bottom=bottom, label=source_name, color=colors[idx % len(colors)])
+            bottom = bottom + values
+        ax.set_title("Split source distribution")
+        ax.set_ylabel("Count")
+        ax.legend(fontsize=8)
+        fig.tight_layout()
+        fig.savefig(figures_dir / "split_source_distribution.png", dpi=160)
+        plt.close(fig)
+
         _save_distribution_plot(
-            split_counts,
-            title="Train / validation / test distribution",
-            output_path=figures_dir / "train_test_distribution.png",
+            pd.Series(
+                {
+                    "train": len(train_df),
+                    "validation": len(validation_df),
+                    "test": len(test_df),
+                }
+            ),
+            title="Split size distribution",
+            output_path=figures_dir / "split_label_distribution.png",
             xlabel="Split",
         )
 
@@ -1188,6 +1622,8 @@ def build_supervised_ml_corpus(
             "real_world_weak": int(len(weak_examples)),
         },
         "label_distribution": full_df["y_significance"].value_counts().sort_index().to_dict(),
+        "strict_label_distribution": strict_df["y_significance"].value_counts().sort_index().to_dict(),
+        "weak_label_distribution": weak_df["y_significance"].value_counts().sort_index().to_dict(),
         "semantic_type_distribution": full_df["y_semantic_type"].value_counts().sort_values(ascending=False).to_dict(),
         "operation_type_distribution": full_df["operation_type"].value_counts().sort_values(ascending=False).to_dict(),
         "text_lengths": {
@@ -1200,8 +1636,23 @@ def build_supervised_ml_corpus(
             "synthetic": round(float(full_df["is_synthetic"].mean()), 4),
             "weak": round(float(full_df["is_weak"].mean()), 4),
         },
+        "split_quality": {
+            "balanced_split_passed": split_quality["passed"],
+            "errors": split_quality["errors"],
+            "warnings": split_quality["warnings"],
+            "recommendations": split_quality["recommendations"],
+        },
+        "balanced_split_passed": split_quality["passed"],
+        "min_class_count_train": min(split_info["train_label_distribution"].values()) if split_info["train_label_distribution"] else 0,
+        "min_class_count_test": min(split_info["test_label_distribution"].values()) if split_info["test_label_distribution"] else 0,
+        "split_warnings": split_quality["warnings"],
+        "recommended_evaluation_protocol": (
+            "Fixed train/test split is available; use macro F1 for multiclass significance, use high-priority recall/F1 "
+            "for binary projection, report weak inference separately, and do not interpret curated synthetic corpus as a real-world benchmark."
+        ),
         "split": split_info,
         "warnings": warnings,
+        "leakage_audit": feature_schema["leakage_audit"],
         "artifacts": {
             "full_dataset": rel_repo_path(full_dataset_path),
             "train": rel_repo_path(train_path),
@@ -1236,7 +1687,6 @@ def _build_numeric_matrix(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
         "has_editorial_terms",
         "has_legal_reference",
         "has_modal_verbs",
-        "high_priority_label",
         "rule_based_confidence",
         "rule_based_requires_manual_review",
     ]

@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-05-20T07:06:41+00:00",
+  "settings": {
+    "passed": true,
+    "checks": {
+      "debug_disabled": true,
+      "csrf_cookie_httponly": true,
+      "secure_content_type_nosniff": true,
+      "secret_key_present": true
+    }
+  },
+  "database": {
+    "passed": true,
+    "echo": [
+      1
+    ]
+  },
+  "demo_dataset": {
+    "passed": true,
+    "documents_before": 9,
+    "documents_after": 9
+  },
+  "training": {
+    "total_examples": 202,
+    "balanced_split_passed": true,
+    "leakage_audit": {
+      "blocked_feature_names": [
+        "high_priority_label",
+        "significance_label",
+        "y_high_priority",
+        "y_semantic_type",
+        "y_significance"
+      ],
+      "violations": [],
+      "passed": true,
+      "note": "Target-derived fields are kept only as labels or analysis metadata and are excluded from model input features."
+    },
+    "baseline_results": [
+      {
+        "model": "LogisticRegression",
+        "accuracy": 0.7812,
+        "macro_precision": 0.8258,
+        "macro_recall": 0.7882,
+        "macro_f1": 0.7659,
+        "weighted_f1": 0.7594,
+        "support": 32
+      },
+      {
+        "model": "LinearSVC",
+        "accuracy": 0.8125,
+        "macro_precision": 0.8091,
+        "macro_recall": 0.7972,
+        "macro_f1": 0.7919,
+        "weighted_f1": 0.8015,
+        "support": 32
+      },
+      {
+        "model": "ComplementNB",
+        "accuracy": 0.4375,
+        "macro_precision": 0.3052,
+        "macro_recall": 0.4625,
+        "macro_f1": 0.3583,
+        "weighted_f1": 0.3531,
+        "support": 32
+      },
+      {
+        "model": "RandomForestClassifier",
+        "accuracy": 0.7812,
+        "macro_precision": 0.817,
+        "macro_recall": 0.7625,
+        "macro_f1": 0.7245,
+        "weighted_f1": 0.7414,
+        "support": 32
+      }
+    ]
+  },
+  "prediction": {
+    "passed": true,
+    "document_id": "pair_09_mixed_significant_and_editorial",
+    "true_label": "critical",
+    "predicted_label": "critical",
+    "confidence": 1.0,
+    "output_files": {
+      "results": "backend/smoke_test_artifacts/ml_corpus/baseline_model_results.csv",
+      "confusion_matrix": "backend/smoke_test_artifacts/ml_corpus/baseline_confusion_matrix.csv",
+      "feature_importance": "backend/smoke_test_artifacts/ml_corpus/baseline_feature_importance.csv"
+    }
+  },
+  "status": "passed"
+}

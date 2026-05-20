@@ -1,0 +1,81 @@
+model,class_label,rank,feature_name,importance
+tfidf_logistic_regression,critical,1,meta:has_deadline_words,1.574754
+tfidf_logistic_regression,critical,2,meta:change_type_deadline,1.334612
+tfidf_logistic_regression,critical,3,meta:has_number,0.812048
+tfidf_logistic_regression,critical,4,meta:has_modal_obligation_words,0.784011
+tfidf_logistic_regression,critical,5,meta:has_refusal_words,0.612922
+tfidf_logistic_regression,critical,6,meta:change_type_refusal,0.459819
+tfidf_logistic_regression,critical,7,tfidf:добавлена,0.350853
+tfidf_logistic_regression,critical,8,tfidf:ответственность,0.324043
+tfidf_logistic_regression,critical,9,meta:semantic_deadline,0.306478
+tfidf_logistic_regression,critical,10,meta:op_added,0.300064
+tfidf_logistic_regression,critical,11,tfidf:responsibility_change,0.283468
+tfidf_logistic_regression,critical,12,tfidf:за,0.275315
+tfidf_logistic_regression,critical,13,tfidf:срок,0.26353
+tfidf_logistic_regression,critical,14,tfidf:сокращен,0.259531
+tfidf_logistic_regression,critical,15,tfidf:дней,0.253108
+tfidf_logistic_regression,critical,16,tfidf:deadline_change,0.242615
+tfidf_logistic_regression,critical,17,meta:semantic_document,0.201898
+tfidf_logistic_regression,critical,18,meta:absolute_length_delta,0.201629
+tfidf_logistic_regression,critical,19,tfidf:ответственность за,0.187159
+tfidf_logistic_regression,critical,20,tfidf:добавлена ответственность,0.187159
+tfidf_logistic_regression,editorial,1,meta:op_moved,0.594664
+tfidf_logistic_regression,editorial,2,tfidf:terminology_change,0.318152
+tfidf_logistic_regression,editorial,3,meta:has_document_words,0.313296
+tfidf_logistic_regression,editorial,4,meta:old_length,0.266034
+tfidf_logistic_regression,editorial,5,tfidf:замена,0.248593
+tfidf_logistic_regression,editorial,6,meta:semantic_editorial,0.238556
+tfidf_logistic_regression,editorial,7,tfidf:без,0.192196
+tfidf_logistic_regression,editorial,8,tfidf:terminology_change terminology_change,0.187905
+tfidf_logistic_regression,editorial,9,meta:has_legal_reference,0.181575
+tfidf_logistic_regression,editorial,10,tfidf:изменения,0.134889
+tfidf_logistic_regression,editorial,11,tfidf:без изменения,0.134889
+tfidf_logistic_regression,editorial,12,tfidf:системе учета,0.133849
+tfidf_logistic_regression,editorial,13,tfidf:сведения размещаются,0.133849
+tfidf_logistic_regression,editorial,14,tfidf:терминологическое,0.133849
+tfidf_logistic_regression,editorial,15,tfidf:терминологическое уточнение,0.133849
+tfidf_logistic_regression,editorial,16,tfidf:размещаются,0.133849
+tfidf_logistic_regression,editorial,17,tfidf:учета,0.130855
+tfidf_logistic_regression,editorial,18,tfidf:сотрудник,0.118199
+tfidf_logistic_regression,editorial,19,tfidf:комплектности,0.11804
+tfidf_logistic_regression,editorial,20,tfidf:замена глагола,0.11804
+tfidf_logistic_regression,important,1,meta:has_document_words,0.703405
+tfidf_logistic_regression,important,2,tfidf:изменен,0.564211
+tfidf_logistic_regression,important,3,tfidf:document_list_change,0.528351
+tfidf_logistic_regression,important,4,tfidf:payment_or_fee_change,0.467973
+tfidf_logistic_regression,important,5,meta:requires_manual_review_flag,0.432186
+tfidf_logistic_regression,important,6,tfidf:eligibility_change,0.388435
+tfidf_logistic_regression,important,7,meta:has_procedure_words,0.382192
+tfidf_logistic_regression,important,8,tfidf:document_list_change document_list_change,0.312053
+tfidf_logistic_regression,important,9,tfidf:уведомления,0.282805
+tfidf_logistic_regression,important,10,tfidf:payment_or_fee_change payment_or_fee_change,0.276392
+tfidf_logistic_regression,important,11,tfidf:подтверждение,0.266495
+tfidf_logistic_regression,important,12,tfidf:оплаты,0.260168
+tfidf_logistic_regression,important,13,tfidf:procedure_change,0.243895
+tfidf_logistic_regression,important,14,tfidf:допуска,0.240222
+tfidf_logistic_regression,important,15,tfidf:комиссии,0.235583
+tfidf_logistic_regression,important,16,tfidf:момент,0.230157
+tfidf_logistic_regression,important,17,tfidf:изменен момент,0.230157
+tfidf_logistic_regression,important,18,tfidf:eligibility_change eligibility_change,0.229416
+tfidf_logistic_regression,important,19,tfidf:добавлен документ,0.219096
+tfidf_logistic_regression,important,20,tfidf:внутреннего,0.214707
+tfidf_logistic_regression,informational,1,meta:has_editorial_words,0.688841
+tfidf_logistic_regression,informational,2,meta:requires_manual_review_flag,0.65304
+tfidf_logistic_regression,informational,3,meta:op_modified,0.650613
+tfidf_logistic_regression,informational,4,tfidf:добавлен,0.442625
+tfidf_logistic_regression,informational,5,meta:has_date_like_pattern,0.430138
+tfidf_logistic_regression,informational,6,tfidf:contact_or_channel_change,0.407762
+tfidf_logistic_regression,informational,7,tfidf:clarification_change,0.374755
+tfidf_logistic_regression,informational,8,meta:relative_length_delta,0.34659
+tfidf_logistic_regression,informational,9,meta:new_length,0.322132
+tfidf_logistic_regression,informational,10,meta:has_legal_reference,0.318593
+tfidf_logistic_regression,informational,11,tfidf:добавлен справочный,0.311652
+tfidf_logistic_regression,informational,12,tfidf:справочный,0.293008
+tfidf_logistic_regression,informational,13,tfidf:reference_change,0.291602
+tfidf_logistic_regression,informational,14,tfidf:канал,0.290285
+tfidf_logistic_regression,informational,15,tfidf:mixed_change,0.288946
+tfidf_logistic_regression,informational,16,tfidf:ссылка на,0.264464
+tfidf_logistic_regression,informational,17,tfidf:ссылка,0.264464
+tfidf_logistic_regression,informational,18,tfidf:приложении,0.260702
+tfidf_logistic_regression,informational,19,meta:has_number,0.253159
+tfidf_logistic_regression,informational,20,tfidf:уточнено,0.246762

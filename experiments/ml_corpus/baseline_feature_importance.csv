@@ -1,81 +1,101 @@
 model,class_label,rank,feature_name,importance
-LogisticRegression,critical,1,meta:has_deadline_terms,1.456606
-LogisticRegression,critical,2,meta:high_priority_label,1.058587
-LogisticRegression,critical,3,meta:has_number,0.813382
-LogisticRegression,critical,4,meta:has_obligation_terms,0.750103
-LogisticRegression,critical,5,meta:rule_based_confidence,0.427203
-LogisticRegression,critical,6,meta:has_modal_verbs,0.351674
-LogisticRegression,critical,7,tfidf:дней,0.287627
-LogisticRegression,critical,8,tfidf:отказа,0.235993
-LogisticRegression,critical,9,tfidf:рабочих дней,0.229704
-LogisticRegression,critical,10,tfidf:рабочих,0.229704
-LogisticRegression,important,1,meta:high_priority_label,1.869702
-LogisticRegression,important,2,meta:has_document_terms,0.777396
-LogisticRegression,important,3,meta:rule_based_requires_manual_review,0.633112
-LogisticRegression,important,4,tfidf:копия,0.395289
-LogisticRegression,important,5,tfidf:документов включается,0.258726
-LogisticRegression,important,6,tfidf:включается,0.258726
-LogisticRegression,important,7,tfidf:копия документа,0.257512
-LogisticRegression,important,8,tfidf:включается копия,0.229447
-LogisticRegression,important,9,tfidf:прилагается,0.22051
-LogisticRegression,important,10,tfidf:прилагается копия,0.22051
-LogisticRegression,informational,1,meta:rule_based_requires_manual_review,0.371427
-LogisticRegression,informational,2,meta:has_date,0.232987
-LogisticRegression,informational,3,meta:has_legal_reference,0.148158
-LogisticRegression,informational,4,meta:new_length,0.127607
-LogisticRegression,informational,5,meta:relative_length_delta,0.125922
-LogisticRegression,informational,6,tfidf:информация,0.116902
-LogisticRegression,informational,7,tfidf:приложении,0.114546
-LogisticRegression,informational,8,tfidf:сведения,0.094644
-LogisticRegression,informational,9,tfidf:процедуры,0.09016
-LogisticRegression,informational,10,tfidf:статусе,0.082728
-LinearSVC,critical,1,meta:has_deadline_terms,1.070147
-LinearSVC,critical,2,meta:has_obligation_terms,0.718745
-LinearSVC,critical,3,meta:high_priority_label,0.690042
-LinearSVC,critical,4,meta:has_number,0.33489
-LinearSVC,critical,5,tfidf:отказа является,0.316795
-LinearSVC,critical,6,tfidf:является,0.316795
-LinearSVC,critical,7,tfidf:для отказа,0.316795
-LinearSVC,critical,8,tfidf:основанием для,0.316795
-LinearSVC,critical,9,tfidf:основанием,0.316795
-LinearSVC,critical,10,tfidf:отказа,0.313017
-LinearSVC,important,1,meta:high_priority_label,1.73161
-LinearSVC,important,2,tfidf:копия,0.566383
-LinearSVC,important,3,meta:has_document_terms,0.514116
-LinearSVC,important,4,tfidf:копия документа,0.390774
-LinearSVC,important,5,tfidf:прилагается копия,0.37362
-LinearSVC,important,6,tfidf:прилагается,0.37362
-LinearSVC,important,7,meta:rule_based_requires_manual_review,0.315706
-LinearSVC,important,8,tfidf:включается,0.294486
-LinearSVC,important,9,tfidf:документов включается,0.294486
-LinearSVC,important,10,tfidf:включается копия,0.27469
-LinearSVC,informational,1,meta:rule_based_confidence,0.272943
-LinearSVC,informational,2,meta:rule_based_requires_manual_review,0.182577
-LinearSVC,informational,3,meta:relative_length_delta,0.155574
-LinearSVC,informational,4,tfidf:приложении,0.094728
-LinearSVC,informational,5,tfidf:информация,0.072833
-LinearSVC,informational,6,tfidf:сведения,0.06831
-LinearSVC,informational,7,tfidf:форма,0.066764
-LinearSVC,informational,8,meta:has_number,0.066497
-LinearSVC,informational,9,tfidf:пояснение,0.065565
-LinearSVC,informational,10,tfidf:статусе,0.06376
-RandomForestClassifier,global,1,meta:high_priority_label,0.148038
-RandomForestClassifier,global,2,meta:length_delta,0.039162
-RandomForestClassifier,global,3,meta:rule_based_confidence,0.031224
-RandomForestClassifier,global,4,meta:relative_length_delta,0.027292
-RandomForestClassifier,global,5,meta:rule_based_requires_manual_review,0.026425
-RandomForestClassifier,global,6,meta:old_length,0.022901
-RandomForestClassifier,global,7,meta:new_length,0.017507
-RandomForestClassifier,global,8,tfidf:дней,0.016715
-RandomForestClassifier,global,9,tfidf:обязан,0.01425
-RandomForestClassifier,global,10,meta:has_deadline_terms,0.013868
-RandomForestClassifier,global,11,meta:has_obligation_terms,0.012995
-RandomForestClassifier,global,12,tfidf:за,0.010906
-RandomForestClassifier,global,13,tfidf:после,0.010197
-RandomForestClassifier,global,14,tfidf:рабочих,0.009849
-RandomForestClassifier,global,15,tfidf:отказа является,0.009153
-RandomForestClassifier,global,16,tfidf:приложении,0.009138
-RandomForestClassifier,global,17,tfidf:течение,0.008919
-RandomForestClassifier,global,18,tfidf:отказа,0.008869
-RandomForestClassifier,global,19,tfidf:основанием,0.008857
-RandomForestClassifier,global,20,tfidf:рабочих дней,0.008031
+LogisticRegression,critical,1,meta:has_deadline_terms,1.648414
+LogisticRegression,critical,2,meta:high_priority_label,1.345402
+LogisticRegression,critical,3,meta:has_number,0.968312
+LogisticRegression,critical,4,meta:has_obligation_terms,0.805622
+LogisticRegression,critical,5,meta:rule_based_confidence,0.355504
+LogisticRegression,critical,6,tfidf:дней,0.333051
+LogisticRegression,critical,7,meta:has_modal_verbs,0.269848
+LogisticRegression,critical,8,tfidf:рабочих,0.254109
+LogisticRegression,critical,9,tfidf:рабочих дней,0.254109
+LogisticRegression,critical,10,meta:length_delta,0.226036
+LogisticRegression,editorial,1,meta:old_length,0.26181
+LogisticRegression,editorial,2,meta:rule_based_confidence,0.113928
+LogisticRegression,editorial,3,tfidf:учета,0.103805
+LogisticRegression,editorial,4,tfidf:сведения размещаются,0.091802
+LogisticRegression,editorial,5,tfidf:системе учета,0.091802
+LogisticRegression,editorial,6,tfidf:размещаются,0.091802
+LogisticRegression,editorial,7,tfidf:системе,0.079029
+LogisticRegression,editorial,8,tfidf:сотрудник,0.077445
+LogisticRegression,editorial,9,meta:has_procedure_terms,0.075972
+LogisticRegression,editorial,10,tfidf:проводится,0.07452
+LogisticRegression,important,1,meta:high_priority_label,2.349729
+LogisticRegression,important,2,meta:rule_based_requires_manual_review,0.558005
+LogisticRegression,important,3,meta:has_document_terms,0.547162
+LogisticRegression,important,4,tfidf:копия,0.331298
+LogisticRegression,important,5,tfidf:прилагается,0.300879
+LogisticRegression,important,6,tfidf:заявлению,0.250029
+LogisticRegression,important,7,tfidf:заявлению прилагается,0.250029
+LogisticRegression,important,8,tfidf:копия документа,0.2284
+LogisticRegression,important,9,tfidf:включается,0.212589
+LogisticRegression,important,10,tfidf:документов включается,0.212589
+LogisticRegression,informational,1,meta:rule_based_requires_manual_review,0.589838
+LogisticRegression,informational,2,meta:new_length,0.304638
+LogisticRegression,informational,3,meta:has_number,0.295883
+LogisticRegression,informational,4,meta:has_date,0.239702
+LogisticRegression,informational,5,meta:relative_length_delta,0.215356
+LogisticRegression,informational,6,meta:has_legal_reference,0.14954
+LogisticRegression,informational,7,tfidf:пояснение,0.142778
+LogisticRegression,informational,8,tfidf:информация,0.129363
+LogisticRegression,informational,9,tfidf:приложении,0.129231
+LogisticRegression,informational,10,tfidf:процедуры,0.105221
+LinearSVC,critical,1,meta:has_deadline_terms,1.055195
+LinearSVC,critical,2,meta:has_obligation_terms,0.71288
+LinearSVC,critical,3,meta:high_priority_label,0.602482
+LinearSVC,critical,4,tfidf:за,0.336412
+LinearSVC,critical,5,tfidf:отказа,0.312105
+LinearSVC,critical,6,tfidf:для отказа,0.310588
+LinearSVC,critical,7,tfidf:основанием,0.310588
+LinearSVC,critical,8,tfidf:основанием для,0.310588
+LinearSVC,critical,9,tfidf:является,0.310588
+LinearSVC,critical,10,tfidf:отказа является,0.310588
+LinearSVC,editorial,1,meta:rule_based_confidence,0.41265
+LinearSVC,editorial,2,tfidf:учета,0.144224
+LinearSVC,editorial,3,tfidf:сведения размещаются,0.138637
+LinearSVC,editorial,4,tfidf:размещаются,0.138637
+LinearSVC,editorial,5,tfidf:системе учета,0.138637
+LinearSVC,editorial,6,meta:old_length,0.127048
+LinearSVC,editorial,7,tfidf:системе,0.119339
+LinearSVC,editorial,8,tfidf:проверка проводится,0.11159
+LinearSVC,editorial,9,tfidf:сведения,0.108051
+LinearSVC,editorial,10,tfidf:сотрудник,0.104843
+LinearSVC,important,1,meta:high_priority_label,1.710413
+LinearSVC,important,2,tfidf:копия,0.538622
+LinearSVC,important,3,tfidf:прилагается,0.488629
+LinearSVC,important,4,tfidf:заявлению прилагается,0.377748
+LinearSVC,important,5,tfidf:заявлению,0.377748
+LinearSVC,important,6,tfidf:копия документа,0.363653
+LinearSVC,important,7,tfidf:включается,0.340482
+LinearSVC,important,8,tfidf:документов включается,0.340482
+LinearSVC,important,9,meta:has_document_terms,0.325869
+LinearSVC,important,10,tfidf:прилагается копия,0.32251
+LinearSVC,informational,1,meta:relative_length_delta,0.665111
+LinearSVC,informational,2,meta:rule_based_requires_manual_review,0.578252
+LinearSVC,informational,3,tfidf:пояснение,0.496108
+LinearSVC,informational,4,meta:new_length,0.292621
+LinearSVC,informational,5,tfidf:контрольный,0.279592
+LinearSVC,informational,6,tfidf:контрольный номер,0.279592
+LinearSVC,informational,7,tfidf:номер указывается,0.279592
+LinearSVC,informational,8,tfidf:уведомления указана,0.274948
+LinearSVC,informational,9,tfidf:указана,0.274948
+LinearSVC,informational,10,tfidf:указана приложении,0.274948
+RandomForestClassifier,global,1,meta:high_priority_label,0.087227
+RandomForestClassifier,global,2,meta:length_delta,0.065406
+RandomForestClassifier,global,3,meta:relative_length_delta,0.048175
+RandomForestClassifier,global,4,meta:new_length,0.038545
+RandomForestClassifier,global,5,meta:old_length,0.035544
+RandomForestClassifier,global,6,meta:rule_based_requires_manual_review,0.021112
+RandomForestClassifier,global,7,meta:rule_based_confidence,0.017203
+RandomForestClassifier,global,8,tfidf:только,0.015077
+RandomForestClassifier,global,9,meta:has_obligation_terms,0.014425
+RandomForestClassifier,global,10,meta:has_deadline_terms,0.014124
+RandomForestClassifier,global,11,tfidf:сотрудник,0.012472
+RandomForestClassifier,global,12,tfidf:обязан,0.009618
+RandomForestClassifier,global,13,tfidf:за,0.009469
+RandomForestClassifier,global,14,meta:has_number,0.0085
+RandomForestClassifier,global,15,tfidf:дней,0.008497
+RandomForestClassifier,global,16,tfidf:отказа,0.007749
+RandomForestClassifier,global,17,tfidf:через,0.007745
+RandomForestClassifier,global,18,tfidf:приложении,0.007269
+RandomForestClassifier,global,19,tfidf:для,0.006987
+RandomForestClassifier,global,20,tfidf:ответственность,0.006888

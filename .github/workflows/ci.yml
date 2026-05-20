@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: ci-secret-key
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_DEBUG: "0"
+      DB_ENGINE: sqlite
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+
+      - name: Django check
+        run: python backend/manage.py check
+
+      - name: Targeted tests
+        run: |
+          python backend/manage.py test \
+            documents.tests.test_supervised_ml_corpus \
+            documents.tests.test_significance_ml_experiment \
+            documents.tests.test_research_dashboard \
+            documents.tests.test_text_extraction
